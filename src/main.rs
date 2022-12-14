@@ -1,6 +1,12 @@
 use std::env;
 
 pub mod client;
+pub mod models;
+
+use log::info;
+
+use crate::models::feature_group::FeatureGroupDTO;
+use crate::models::feature_store::FeatureStoreDTO;
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
@@ -24,15 +30,25 @@ async fn main() -> Result<(), reqwest::Error> {
 
     let project_id: i32 = 119;
     let feature_store_id: i32 = 67;
+    let feature_group_id: i32 = 13;
 
-    let feature_group_list = the_client
-        .get(
-            format!("project/{project_id}/featurestores/{feature_store_id}/featuregroups").as_str(),
-        )
+    let feature_store: FeatureStoreDTO = the_client
+        .get(format!("project/{project_id}/featurestores/{feature_store_id}").as_str())
+        .await?
+        .json()
         .await?;
 
-    println!("{:?}", feature_group_list.status());
-    println!("{:?}", feature_group_list.text_with_charset("utf-8").await?);
+    info!("{}", serde_json::to_string_pretty(&feature_store).unwrap());
+
+    let feature_group_res = the_client
+        .get(format!("project/{project_id}/featurestores/{feature_store_id}/featuregroups/{feature_group_id}").as_str())
+        .await?;
+
+    // info!("{:?}", feature_group_res.text_with_charset("utf-8").await);
+
+    let feature_group: FeatureGroupDTO = feature_group_res.json().await?;
+
+    info!("{}", serde_json::to_string_pretty(&feature_group).unwrap());
 
     Ok(())
 }
