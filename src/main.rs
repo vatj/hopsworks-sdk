@@ -25,7 +25,7 @@ async fn main() -> Result<(), reqwest::Error> {
     } else if api_key.len() > 1 {
         the_client.set_api_key(api_key).await?;
     } else {
-        panic!("You need to use a combination of email and password or an API key to authenticate.")
+        panic!("Use a combination of email and password or an API key to authenticate.")
     }
 
     let project_id: i32 = 119;
@@ -40,13 +40,11 @@ async fn main() -> Result<(), reqwest::Error> {
 
     info!("{}", serde_json::to_string_pretty(&feature_store).unwrap());
 
-    let feature_group_res = the_client
+    let feature_group : FeatureGroupDTO = the_client
         .get(format!("project/{project_id}/featurestores/{feature_store_id}/featuregroups/{feature_group_id}").as_str())
+        .await?
+        .json()
         .await?;
-
-    // info!("{:?}", feature_group_res.text_with_charset("utf-8").await);
-
-    let feature_group: FeatureGroupDTO = feature_group_res.json().await?;
 
     info!("{}", serde_json::to_string_pretty(&feature_group).unwrap());
 
