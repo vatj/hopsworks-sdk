@@ -23,3 +23,13 @@ pub async fn get_example_df() -> Result<DataFrame> {
 
     Ok(df)
 }
+
+pub async fn get_mini_df() -> Result<DataFrame> {
+    let df: DataFrame = df! [
+        "number" => [2, 3],
+        "words" => ["charlie", "dylan"]
+    ]
+    .unwrap();
+
+    Ok(df)
+}

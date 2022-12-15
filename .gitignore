@@ -16,3 +16,6 @@ Cargo.lock
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+
+# ignore test certs dir
+certs/
