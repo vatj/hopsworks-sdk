@@ -1,13 +1,17 @@
 use color_eyre::Result;
-use polars::prelude::*;
+use rdkafka::message::{Header, OwnedHeaders};
+use rdkafka::producer::{FutureProducer, FutureRecord};
+use rdkafka::ClientConfig;
 use std::env;
-use std::io::Cursor;
+use std::time::Duration;
 
 pub mod client;
+pub mod minidf;
 pub mod models;
 
 use log::info;
 
+use crate::minidf::get_example_df;
 use crate::models::feature_group::FeatureGroupDTO;
 use crate::models::feature_store::FeatureStoreDTO;
 
@@ -55,27 +59,55 @@ async fn main() -> Result<()> {
 
     info!("{:?}", df);
 
+    // kafka
+
+    let (version_n, version_s) = rdkafka::util::get_rdkafka_version();
+    info!("rd_kafka_version: 0x{:08x}, {}", version_n, version_s);
+
+    let topic = "hello";
+    let brokers = "localhost:9092";
+
+    info!("producing to topic '{topic}' on broker '{brokers}'");
+
+    // produce(brokers, topic).await;
+
     Ok(())
 }
 
-async fn get_example_df() -> Result<DataFrame> {
-    let data: Vec<u8> = reqwest::Client::new()
-        .get("https://j.mp/iriscsv")
-        .send()
-        .await?
-        .text()
-        .await?
-        .bytes()
-        .collect();
+async fn produce(brokers: &str, topic_name: &str) {
+    let producer: &FutureProducer = &ClientConfig::new()
+        .set("bootstrap.servers", brokers)
+        .set("message.timeout.ms", "5000")
+        .create()
+        .expect("Producer creation error");
 
-    let df = CsvReader::new(Cursor::new(data))
-        .has_header(true)
-        .finish()?
-        .lazy()
-        .filter(col("sepal_length").gt(5))
-        .groupby([col("species")])
-        .agg([col("*").sum()])
-        .collect()?;
+    // This loop is non blocking: all messages will be sent one after the other, without waiting
+    // for the results.
+    let futures = (0..5)
+        .map(|i| async move {
+            // The send operation on the topic returns a future, which will be
+            // completed once the result or failure from Kafka is received.
+            let delivery_status = producer
+                .send(
+                    FutureRecord::to(topic_name)
+                        .payload(&format!("Message {}", i))
+                        .key(&format!("Key {}", i))
+                        .headers(OwnedHeaders::new().insert(Header {
+                            key: "header_key",
+                            value: Some("header_value"),
+                        })),
+                    Duration::from_secs(0),
+                )
+                .await;
 
-    Ok(df)
+            // This will be executed when the result is received.
+            info!("Delivery status for message {} received", i);
+            delivery_status
+        })
+        .collect::<Vec<_>>();
+
+    // This loop will wait until all delivery statuses have been received.
+    for future in futures {
+        info!("Future completed. Result: {:?}", future.await);
+    }
 }
