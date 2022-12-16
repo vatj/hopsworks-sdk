@@ -97,7 +97,7 @@ async fn produce(brokers: &str, topic_name: &str) {
         .set("ssl.ca.location", "/tmp/ca_chain.pem")
         .set("ssl.certificate.location", "/tmp/client_cert.pem")
         .set("ssl.key.location", "/tmp/client_key.pem")
-        .set("client.id", "jupyter-dataval--meb10000-89894b7d4-bgsb2")
+        // .set("debug", "broker,msg,security")
         .create()
         .expect("Producer creation error");
 

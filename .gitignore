@@ -19,3 +19,5 @@ Cargo.lock
 
 # ignore test certs dir
 certs/
+# ignore output logs
+nohup.log
