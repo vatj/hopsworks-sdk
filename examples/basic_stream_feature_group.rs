@@ -1,4 +1,5 @@
 use color_eyre::Result;
+
 use log::info;
 use std::env;
 
@@ -8,6 +9,7 @@ use hopsworks_rs::minidf::get_mini_df;
 use hopsworks_rs::repositories::feature_group::entities::FeatureGroupDTO;
 use hopsworks_rs::repositories::feature_store::entities::FeatureStoreDTO;
 use hopsworks_rs::repositories::kafka::entities::KafkaBrokersDTO;
+use hopsworks_rs::repositories::project::entities::ProjectDTO;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -32,6 +34,12 @@ async fn main() -> Result<()> {
     let project_id: i32 = 119;
     let feature_store_id: i32 = 67;
     let feature_group_id: i32 = 39;
+
+    let _project: ProjectDTO = the_client
+        .get(format!("project/{project_id}").as_str())
+        .await?
+        .json()
+        .await?;
 
     let feature_store: FeatureStoreDTO = the_client
         .get(format!("project/{project_id}/featurestores/{feature_store_id}").as_str())
