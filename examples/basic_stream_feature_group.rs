@@ -5,9 +5,9 @@ use std::env;
 use hopsworks_rs::client::HopsworksClient;
 use hopsworks_rs::kafka_producer;
 use hopsworks_rs::minidf::get_mini_df;
-use hopsworks_rs::models::feature_group::FeatureGroupDTO;
-use hopsworks_rs::models::feature_store::FeatureStoreDTO;
-use hopsworks_rs::models::kafka::KafkaBrokersDTO;
+use hopsworks_rs::repositories::feature_group::entities::FeatureGroupDTO;
+use hopsworks_rs::repositories::feature_store::entities::FeatureStoreDTO;
+use hopsworks_rs::repositories::kafka::entities::KafkaBrokersDTO;
 
 #[tokio::main]
 async fn main() -> Result<()> {
