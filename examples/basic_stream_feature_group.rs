@@ -1,22 +1,19 @@
 use color_eyre::Result;
-use models::kafka_topics::KafkaBrokersDTO;
-use std::env;
-pub mod client;
-pub mod kafka_producer;
-pub mod minidf;
-pub mod models;
-
 use log::info;
+use std::env;
 
-use crate::minidf::get_mini_df;
-use crate::models::feature_group::FeatureGroupDTO;
-use crate::models::feature_store::FeatureStoreDTO;
+use hopsworks_rs::client::HopsworksClient;
+use hopsworks_rs::kafka_producer;
+use hopsworks_rs::minidf::get_mini_df;
+use hopsworks_rs::models::feature_group::FeatureGroupDTO;
+use hopsworks_rs::models::feature_store::FeatureStoreDTO;
+use hopsworks_rs::models::kafka::KafkaBrokersDTO;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     env_logger::init();
 
-    let the_client: client::HopsworksClient = client::HopsworksClient::default();
+    let the_client: HopsworksClient = HopsworksClient::default();
 
     let email = env::var("HOPSWORKS_EMAIL").unwrap_or_default();
     let password = env::var("HOPSWORKS_PASSWORD").unwrap_or_default();
