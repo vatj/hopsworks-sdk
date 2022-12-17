@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDTO {
     email: String,
@@ -17,7 +17,7 @@ pub struct UserDTO {
     num_remaining_projects: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FeatureDTO {
     name: String,
@@ -58,4 +58,5 @@ pub struct FeatureGroupDTO {
     features: Vec<FeatureDTO>,
     online_enabled: bool,
     time_travel_format: String,
+    pub online_topic_name: Option<String>,
 }
