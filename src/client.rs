@@ -1,8 +1,14 @@
+use color_eyre::Result;
 use log::{info, warn};
 use reqwest::header::HeaderValue;
 use serde::Serialize;
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, env, sync::Arc};
 use tokio::sync::Mutex;
+
+use crate::{
+    api::project::entities::Project,
+    repositories::project::{entities::ProjectDTO, service::get_project_list},
+};
 
 pub const DEFAULT_HOPSWORKS_API_PREFIX: &str = "https://localhost:8182/hopsworks-api/api/";
 
@@ -84,7 +90,7 @@ impl HopsworksClient {
         }
     }
 
-    pub async fn get(&self, url: &str) -> Result<reqwest::Response, reqwest::Error> {
+    pub async fn send_get(&self, url: &str) -> Result<reqwest::Response, reqwest::Error> {
         let absolute_url = self.endpoint_url(url);
         info!("GET : {}", absolute_url);
         self.get_client()
@@ -94,7 +100,22 @@ impl HopsworksClient {
             .await
     }
 
-    pub async fn post_form<T: Serialize + ?Sized>(
+    pub async fn send_get_with_query_params<T: Serialize + ?Sized>(
+        &self,
+        url: &str,
+        query_params: &T,
+    ) -> Result<reqwest::Response, reqwest::Error> {
+        let absolute_url = self.endpoint_url(url);
+        info!("GET : {}", absolute_url);
+        self.get_client()
+            .get(absolute_url)
+            .query(query_params)
+            .header("authorization", self.get_authorization_header_value().await)
+            .send()
+            .await
+    }
+
+    pub async fn send_post_form<T: Serialize + ?Sized>(
         &self,
         url: &str,
         form: &T,
@@ -109,7 +130,7 @@ impl HopsworksClient {
             .await
     }
 
-    pub async fn post_json<T: Serialize + ?Sized>(
+    pub async fn send_post_json<T: Serialize + ?Sized>(
         &self,
         url: &str,
         payload: &T,
@@ -128,12 +149,12 @@ impl HopsworksClient {
         &self,
         email: &String,
         password: &String,
-    ) -> Result<(), reqwest::Error> {
+    ) -> Result<()> {
         let mut login_params = HashMap::new();
         login_params.insert("email", email);
         login_params.insert("password", password);
 
-        let response = self.post_form("auth/login", &login_params).await?;
+        let response = self.send_post_form("auth/login", &login_params).await?;
 
         if response.status() == reqwest::StatusCode::OK {
             let new_token = response.headers().get("authorization");
@@ -154,7 +175,7 @@ impl HopsworksClient {
         Ok(())
     }
 
-    pub async fn set_api_key(&self, new_api_key: String) -> Result<(), reqwest::Error> {
+    pub async fn set_api_key(&self, new_api_key: String) -> Result<()> {
         let header_key = HeaderValue::from_str(format!("ApiKey {}", new_api_key).as_str());
 
         if header_key.is_ok() {
@@ -165,5 +186,47 @@ impl HopsworksClient {
         }
 
         Ok(())
+    }
+
+    pub async fn login(&self) -> Result<Project> {
+        let email = env::var("HOPSWORKS_EMAIL").unwrap_or_default();
+        let password = env::var("HOPSWORKS_PASSWORD").unwrap_or_default();
+        let api_key = env::var("HOPSWORKS_API_KEY").unwrap_or_default();
+
+        if email.len() > 1 && password.len() > 1 {
+            self.login_with_email_and_password(&email, &password)
+                .await?;
+        } else if api_key.len() > 1 {
+            self.set_api_key(api_key).await?;
+        } else {
+            panic!("Use a combination of email and password or an API key to authenticate.")
+        }
+
+        self.get_the_project_or_default().await
+    }
+
+    async fn get_the_project_or_default(&self) -> Result<Project> {
+        let projects: Vec<ProjectDTO> = get_project_list().await?;
+
+        if projects.is_empty() {
+            panic!("No project found for this user, please create a project in the UI first.");
+        }
+
+        let project_name: String = env::var("HOPSWORKS_PROJECT_NAME").unwrap_or_default();
+
+        if project_name.is_empty() {
+            Ok(Project::from(projects[0].clone()))
+        } else {
+            let project_match: Vec<&ProjectDTO> = projects
+                .iter()
+                .filter(|project| project.name == project_name)
+                .collect();
+
+            if project_match.is_empty() {
+                panic!("No project with name {project_name} found for this user.");
+            }
+
+            Ok(Project::from(project_match[0].to_owned()))
+        }
     }
 }
