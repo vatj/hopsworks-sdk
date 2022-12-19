@@ -3,60 +3,60 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDTO {
-    email: String,
-    first_name: String,
-    last_name: String,
-    status: i32,
-    tos: bool,
-    two_factor: bool,
-    tours_state: i32,
-    max_num_projects: i32,
-    num_created_projects: i32,
-    test_user: bool,
-    num_active_projects: i32,
-    num_remaining_projects: i32,
+    pub email: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub status: i32,
+    pub tos: bool,
+    pub two_factor: bool,
+    pub tours_state: i32,
+    pub max_num_projects: i32,
+    pub num_created_projects: i32,
+    pub test_user: bool,
+    pub num_active_projects: i32,
+    pub num_remaining_projects: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FeatureDTO {
-    name: String,
-    description: Option<String>,
+    pub name: String,
+    pub description: Option<String>,
     #[serde(rename = "type")]
-    data_type: String,
-    primary: bool,
-    partition: bool,
-    hudi_precombine_key: bool,
-    feature_group_id: i32,
+    pub data_type: String,
+    pub primary: bool,
+    pub partition: bool,
+    pub hudi_precombine_key: bool,
+    pub feature_group_id: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StatisticsConfigDTO {
-    enabled: bool,
-    histograms: bool,
-    correlations: bool,
-    exact_uniqueness: bool,
-    columns: Vec<String>,
+    pub enabled: bool,
+    pub histograms: bool,
+    pub correlations: bool,
+    pub exact_uniqueness: bool,
+    pub columns: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FeatureGroupDTO {
     #[serde(rename = "type")]
-    feature_group_type: String,
-    featurestore_id: i32,
-    featurestore_name: String,
-    description: String,
-    created: String,
-    creator: UserDTO,
-    version: i32,
-    name: String,
-    id: i32,
-    location: String,
-    statistics_config: StatisticsConfigDTO,
-    features: Vec<FeatureDTO>,
-    online_enabled: bool,
-    time_travel_format: String,
+    pub feature_group_type: String,
+    pub featurestore_id: i32,
+    pub featurestore_name: String,
+    pub description: String,
+    pub created: String,
+    pub creator: UserDTO,
+    pub version: i32,
+    pub name: String,
+    pub id: i32,
+    pub location: String,
+    pub statistics_config: StatisticsConfigDTO,
+    pub features: Vec<FeatureDTO>,
+    pub online_enabled: bool,
+    pub time_travel_format: String,
     pub online_topic_name: Option<String>,
 }

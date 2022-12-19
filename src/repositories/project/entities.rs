@@ -2,23 +2,34 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct ProjectAndUserDTO {
+    user: ProjectUserDTO,
+    pub project: ProjectDTO,
+    #[serde(rename = "projectTeamPK")]
+    project_team_pk: ProjectTeamPkDTO,
+    team_role: String,
+    timestamp: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ProjectDTO {
-    project_id: i32,
-    project_name: String,
-    owner: String,
-    description: String,
-    docker_image: String,
-    retention_period: String,
-    created: String,
     archived: bool,
-    services: Vec<String>,
-    project_team: Vec<TeamMemberDTO>,
-    inodeid: i32,
-    quotas: QuotaDTO,
-    hops_examples: String,
-    is_preinstalled_docker_image: bool,
-    is_old_docker_image: bool,
+    logs: bool,
+    pub id: i32,
+    pub name: String,
+    owner: ProjectUserDTO,
+    python_environment: PythonEnvironmentDTO,
+    created: String,
+    retention_period: String,
+    payment_type: String,
+    description: String,
+    kafka_max_num_topics: i32,
+    last_quota_update: String,
+    docker_image: String,
     creation_status: String,
+    inode: InodeDTO,
+    payment_type_string: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -43,17 +54,6 @@ pub struct QuotaDTO {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct TeamMemberDTO {
-    user: TeamMemberUserDTO,
-    project: TeamMemberProjectDTO,
-    #[serde(rename = "projectTeamPK")]
-    project_team_pk: ProjectTeamPkDTO,
-    team_role: String,
-    timestamp: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
 pub struct ProjectTeamPkDTO {
     project_id: i32,
     team_member: String,
@@ -61,7 +61,7 @@ pub struct ProjectTeamPkDTO {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct TeamMemberUserDTO {
+pub struct ProjectUserDTO {
     uid: i32,
     username: String,
     email: String,
@@ -95,27 +95,6 @@ pub struct BbcGroupCollectionDTO {
     group_name: String,
     group_desc: String,
     gid: i32,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct TeamMemberProjectDTO {
-    archived: bool,
-    logs: bool,
-    id: i32,
-    name: String,
-    owner: TeamMemberUserDTO,
-    python_environment: PythonEnvironmentDTO,
-    created: String,
-    retention_period: String,
-    payment_type: String,
-    description: String,
-    kafka_max_num_topics: i32,
-    last_quota_update: String,
-    docker_image: String,
-    creation_status: String,
-    inode: InodeDTO,
-    payment_type_string: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

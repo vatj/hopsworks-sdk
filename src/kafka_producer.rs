@@ -1,12 +1,13 @@
 use apache_avro::types::Record;
 use apache_avro::{Schema, Writer};
+use color_eyre::Result;
 use log::info;
 use rdkafka::message::{Header, OwnedHeaders};
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::ClientConfig;
 use std::time::Duration;
 
-pub async fn produce(brokers: &str, topic_name: &str) {
+pub async fn produce(brokers: &str, topic_name: &str) -> Result<()> {
     let producer: &FutureProducer = &ClientConfig::new()
         .set("bootstrap.servers", brokers)
         .set("message.timeout.ms", "5000")
@@ -69,4 +70,6 @@ pub async fn produce(brokers: &str, topic_name: &str) {
     for future in futures {
         info!("Future completed. Result: {:?}", future.await);
     }
+
+    Ok(())
 }
