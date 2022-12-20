@@ -26,8 +26,8 @@ pub async fn get_example_df() -> Result<DataFrame> {
 
 pub async fn get_mini_df() -> Result<DataFrame> {
     let df: DataFrame = df! [
-        "number" => [2, 3],
-        "words" => ["charlie", "dylan"]
+        "number" => [2],
+        "words" => ["charlie"]
     ]
     .unwrap();
 

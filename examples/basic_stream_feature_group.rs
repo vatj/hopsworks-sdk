@@ -1,4 +1,5 @@
 use color_eyre::Result;
+use hopsworks_rs::minidf::get_mini_df;
 use log::info;
 
 use hopsworks_rs::hopsworks_login;
@@ -33,9 +34,20 @@ async fn main() -> Result<()> {
 
         let broker = "localhost:9192";
 
+        let mini_df = get_mini_df().await?;
+
         info!("producing to topic '{topic}' on broker '{broker}'");
 
         kafka_producer::produce(broker, topic.as_ref(), &project.project_name).await?;
+
+        kafka_producer::produce_df(
+            mini_df,
+            broker,
+            topic.as_ref(),
+            project.id,
+            &project.project_name,
+        )
+        .await?;
     }
 
     Ok(())
