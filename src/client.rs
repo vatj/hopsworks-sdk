@@ -6,8 +6,8 @@ use std::{collections::HashMap, env, sync::Arc};
 use tokio::sync::Mutex;
 
 use crate::{
-    api::project::entities::Project,
-    repositories::project::{entities::ProjectDTO, service::get_project_list},
+    api::project::entities::Project, domain::project::controller::get_project_list,
+    repositories::project::entities::ProjectDTO,
 };
 
 pub const DEFAULT_HOPSWORKS_API_PREFIX: &str = "https://localhost:8182/hopsworks-api/api/";
