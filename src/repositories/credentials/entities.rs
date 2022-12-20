@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CredentialsDTO {
-    pub file_type: String,
+    pub file_extension: String,
     pub t_store: String,
     pub k_store: String,
     pub password: String,

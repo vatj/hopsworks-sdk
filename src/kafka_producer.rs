@@ -7,14 +7,23 @@ use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::ClientConfig;
 use std::time::Duration;
 
-pub async fn produce(brokers: &str, topic_name: &str) -> Result<()> {
+pub async fn produce(broker: &str, topic_name: &str, project_name: &str) -> Result<()> {
     let producer: &FutureProducer = &ClientConfig::new()
-        .set("bootstrap.servers", brokers)
+        .set("bootstrap.servers", broker)
         .set("message.timeout.ms", "5000")
         .set("security.protocol", "SSL")
-        .set("ssl.ca.location", "/tmp/ca_chain.pem")
-        .set("ssl.certificate.location", "/tmp/client_cert.pem")
-        .set("ssl.key.location", "/tmp/client_key.pem")
+        .set(
+            "ssl.ca.location",
+            format!("/tmp/{project_name}/ca_chain.pem"),
+        )
+        .set(
+            "ssl.certificate.location",
+            format!("/tmp/{project_name}/client_cert.pem"),
+        )
+        .set(
+            "ssl.key.location",
+            format!("/tmp/{project_name}/client_key.pem"),
+        )
         // .set("debug", "broker,msg,security")
         .create()
         .expect("Producer creation error");

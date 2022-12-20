@@ -6,21 +6,28 @@ use std::{collections::HashMap, env, sync::Arc};
 use tokio::sync::Mutex;
 
 use crate::{
-    api::project::entities::Project, domain::project::controller::get_project_list,
+    api::project::entities::Project,
+    domain::{
+        credentials::controller::write_locally_project_credentials_on_login,
+        project::controller::get_project_list,
+    },
     repositories::project::entities::ProjectDTO,
 };
 
 pub const DEFAULT_HOPSWORKS_API_PREFIX: &str = "https://localhost:8182/hopsworks-api/api/";
+pub const DEFAULT_HOPSWORKS_CERT_DIR: &str = "/tmp/";
 
 #[derive(Clone, Debug)]
 pub struct HopsworksClientConfig {
     prefix: String,
+    cert_dir: String,
 }
 
 impl Default for HopsworksClientConfig {
     fn default() -> Self {
         Self {
             prefix: String::from(DEFAULT_HOPSWORKS_API_PREFIX),
+            cert_dir: String::from(DEFAULT_HOPSWORKS_CERT_DIR),
         }
     }
 }
@@ -36,10 +43,10 @@ pub struct HopsworksClient {
 impl Default for HopsworksClient {
     fn default() -> Self {
         Self {
+            config: HopsworksClientConfig::default(),
             client: reqwest::Client::new(),
             token: Arc::new(Mutex::new(None)),
             api_key: Arc::new(Mutex::new(None)),
-            config: HopsworksClientConfig::default(),
         }
     }
 }
@@ -202,7 +209,16 @@ impl HopsworksClient {
             panic!("Use a combination of email and password or an API key to authenticate.")
         }
 
-        self.get_the_project_or_default().await
+        let project = self.get_the_project_or_default().await?;
+
+        write_locally_project_credentials_on_login(
+            project.id,
+            &project.project_name,
+            &self.config.cert_dir,
+        )
+        .await?;
+
+        Ok(project)
     }
 
     async fn get_the_project_or_default(&self) -> Result<Project> {
