@@ -1,6 +1,9 @@
 use color_eyre::Result;
 
-use crate::repositories::feature_store::{self, entities::FeatureStoreDTO};
+use crate::repositories::{
+    feature_store::{self, entities::FeatureStoreDTO},
+    project::{entities::ProjectDTO, service::get_project_and_user_list},
+};
 
 pub async fn get_default_feature_store(
     project_id: i32,
@@ -12,4 +15,12 @@ pub async fn get_default_feature_store(
         feature_store_name.as_str(),
     )
     .await
+}
+
+pub async fn get_project_list() -> Result<Vec<ProjectDTO>> {
+    Ok(get_project_and_user_list()
+        .await?
+        .iter()
+        .map(|project_and_user| project_and_user.project.to_owned())
+        .collect())
 }
