@@ -23,7 +23,7 @@ pub struct ProjectDTO {
     created: String,
     retention_period: String,
     payment_type: String,
-    description: String,
+    description: Option<String>,
     kafka_max_num_topics: i32,
     last_quota_update: String,
     docker_image: String,

@@ -1,4 +1,4 @@
-use apache_avro::types::Record;
+use apache_avro::types::{Record, Value};
 use apache_avro::{Schema, Writer};
 use color_eyre::Result;
 use log::info;
@@ -104,6 +104,10 @@ pub async fn produce_df(
 
     let avro_schema = Schema::parse_str(subject_dto.schema.as_str()).unwrap();
 
+    println!("{avro_schema:?}");
+
+    let primary_keys = vec!["number"];
+
     let mut futures = vec![];
 
     df.as_single_chunk_par();
@@ -126,49 +130,64 @@ pub async fn produce_df(
         .map(|s| Ok(s.utf8()?.into_iter()))
         .collect::<Result<Vec<_>>>()?;
 
-    let selected_int32_columns: Vec<&str> = polars_schema
+    let selected_int64_columns: Vec<&str> = polars_schema
         .iter()
         // Filter the columns based on their data type
-        .filter(|col| col.1 == &DataType::Int32)
+        .filter(|col| col.1 == &DataType::Int64)
         // Extract the column names
         .map(|col| col.0.as_str())
         .collect();
 
     // let typed_df = df.select(selected_columns).unwrap();
-    let mut iters_int32 = df
-        .columns(selected_int32_columns.clone())?
+    let mut iters_int64 = df
+        .columns(selected_int64_columns.clone())?
         .iter()
-        .map(|s| Ok(s.i32()?.into_iter()))
+        .map(|s| Ok(s.i64()?.into_iter()))
         .collect::<Result<Vec<_>>>()?;
 
     // This loop is blocking
     for row in 0..df.height() {
         let mut writer = Writer::new(&avro_schema, Vec::new());
         let mut record = Record::new(&avro_schema).unwrap();
+        let mut composite_key = vec![];
+
+        for (idx, iter) in &mut iters_int64.iter_mut().enumerate() {
+            if let Some(value) = iter.next().expect("should have as many iterations as rows") {
+                // process value
+                info!(
+                    "the row: {row}, the column name: {:?}, the value : {value:?}",
+                    selected_int64_columns[idx]
+                );
+                record.put(selected_int64_columns[idx], Some(Value::Long(value)));
+                if primary_keys.contains(&selected_utf8_columns[idx]) {
+                    composite_key.push(value.to_string())
+                }
+            }
+        }
 
         for (idx, iter) in &mut iters_utf8.iter_mut().enumerate() {
-            let value = iter.next().expect("should have as many iterations as rows");
-            // process value
-            info!(
-                "the row: {row}, the column name: {:?}, the utf8 value : {value:?}",
-                selected_utf8_columns[idx]
-            );
-            record.put(selected_utf8_columns[idx], value);
+            if let Some(value) = iter.next().expect("should have as many iterations as rows") {
+                // process value
+                info!(
+                    "the row: {row}, the column name: {:?}, the utf8 value : {value:?}",
+                    selected_utf8_columns[idx]
+                );
+                record.put(
+                    selected_utf8_columns[idx],
+                    Some(Value::String(String::from(value))),
+                );
+                if primary_keys.contains(&selected_utf8_columns[idx]) {
+                    composite_key.push(String::from(value))
+                }
+            }
         }
 
-        for (idx, iter) in &mut iters_int32.iter_mut().enumerate() {
-            let value = iter.next().expect("should have as many iterations as rows");
-            // process value
-            info!(
-                "the row: {row}, the column name: {:?}, the value : {value:?}",
-                selected_int32_columns[idx]
-            );
-            record.put(selected_int32_columns[idx], value);
-        }
         writer.append(record).unwrap();
         let encoded_payload = writer.into_inner().unwrap();
 
-        let the_key = String::from("2");
+        println!("encoded_payload {encoded_payload:?}");
+
+        let the_key = composite_key.join("_");
 
         let delivery_status = producer
             .send(
@@ -205,11 +224,12 @@ fn make_future_record_from_encoded<'a>(
     encoded_payload: &'a Vec<u8>,
     topic_name: &'a str,
 ) -> Result<FutureRecord<'a, String, Vec<u8>>> {
+    let version_str = String::from("1");
     Ok(FutureRecord::to(topic_name)
         .payload(encoded_payload)
         .key(the_key)
         .headers(OwnedHeaders::new().insert(Header {
             key: "version",
-            value: Some("1"),
+            value: Some(&version_str),
         })))
 }

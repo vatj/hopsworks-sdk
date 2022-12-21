@@ -152,6 +152,16 @@ impl HopsworksClient {
             .await
     }
 
+    pub async fn send_empty_post(&self, url: &str) -> Result<reqwest::Response, reqwest::Error> {
+        let absolute_url = self.endpoint_url(url);
+        info!("POST : {}", absolute_url);
+        self.get_client()
+            .post(absolute_url)
+            .header("authorization", self.get_authorization_header_value().await)
+            .send()
+            .await
+    }
+
     pub async fn login_with_email_and_password(
         &self,
         email: &String,
