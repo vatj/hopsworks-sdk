@@ -34,14 +34,14 @@ async fn main() -> Result<()> {
 
         let broker = "localhost:9192";
 
-        let mini_df = get_mini_df().await?;
+        let mut mini_df = get_mini_df().await?;
 
         info!("producing to topic '{topic}' on broker '{broker}'");
 
         kafka_producer::produce(broker, topic.as_ref(), &project.project_name).await?;
 
         kafka_producer::produce_df(
-            mini_df,
+            &mut mini_df,
             broker,
             topic.as_ref(),
             project.id,
