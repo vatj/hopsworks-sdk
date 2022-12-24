@@ -46,16 +46,12 @@ pub async fn produce_df(
 
     let avro_schema = Schema::parse_str(subject_dto.schema.as_str()).unwrap();
 
-    println!("{avro_schema:?}");
-
     let primary_keys = vec!["number"];
 
     let mut futures = vec![];
-    // let futures: Vec<String> = vec![];
 
     df.as_single_chunk_par();
 
-    // let df_schema: Schema = df.select([c]).schema();
     let polars_schema = df.schema();
 
     let selected_utf8_columns: Vec<&str> = polars_schema
@@ -66,7 +62,6 @@ pub async fn produce_df(
         .map(|col| col.0.as_str())
         .collect();
 
-    // let typed_df = df.select(selected_columns).unwrap();
     let mut iters_utf8 = df
         .columns(selected_utf8_columns.clone())?
         .iter()
@@ -81,7 +76,6 @@ pub async fn produce_df(
         .map(|col| col.0.as_str())
         .collect();
 
-    // let typed_df = df.select(selected_columns).unwrap();
     let mut iters_int64 = df
         .columns(selected_int64_columns.clone())?
         .iter()
