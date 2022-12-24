@@ -1,73 +1,15 @@
 use apache_avro::types::{Record, Value};
-use apache_avro::{Schema, Writer};
+use apache_avro::Schema;
 use color_eyre::Result;
 use log::info;
 use polars::prelude::*;
 use rdkafka::message::{Header, OwnedHeaders};
-use rdkafka::producer::{FutureProducer, FutureRecord};
+use rdkafka::producer::{FutureProducer, FutureRecord, Producer};
 use rdkafka::ClientConfig;
 use std::time::Duration;
 
 use crate::domain::kafka::controller::get_kafka_topic_subject;
 use crate::repositories::kafka::entities::KafkaSubjectDTO;
-
-pub async fn produce(broker: &str, topic_name: &str, project_name: &str) -> Result<()> {
-    let producer: &FutureProducer = &setup_future_producer(broker, project_name).await?;
-
-    // This loop is non blocking: all messages will be sent one after the other, without waiting
-    // for the results.
-    let futures = (0..1)
-        .map(|i| async move {
-            let raw_schema = r#"
-            {
-                "type":"record",
-                "name":"rusty_1",
-                "namespace":"dataval_featurestore.db",
-                "fields":[
-                    {"name":"number","type":["null","long"]},
-                    {"name":"words","type":["null","string"]}
-                ]
-            }"#;
-
-            let the_schema = Schema::parse_str(raw_schema).unwrap();
-
-            let mut writer = Writer::new(&the_schema, Vec::new());
-            let mut record = Record::new(writer.schema()).unwrap();
-            record.put("number", Some(2i64));
-            record.put("words", Some("carl"));
-
-            writer.append(record).unwrap();
-
-            let encoded = writer.into_inner().unwrap();
-            // The send operation on the topic returns a future, which will be
-            // completed once the result or failure from Kafka is received.
-            let delivery_status = producer
-                .send(
-                    FutureRecord::to(topic_name)
-                        // .payload(&format!("Message {}", i))
-                        .payload(&encoded)
-                        .key(&String::from("2"))
-                        .headers(OwnedHeaders::new().insert(Header {
-                            key: "version",
-                            value: Some("1"),
-                        })),
-                    Duration::from_secs(1),
-                )
-                .await;
-
-            // This will be executed when the result is received.
-            info!("Delivery status for message {} received", i);
-            delivery_status
-        })
-        .collect::<Vec<_>>();
-
-    // This loop will wait until all delivery statuses have been received.
-    for future in futures {
-        info!("Future completed. Result: {:?}", future.await);
-    }
-
-    Ok(())
-}
 
 async fn setup_future_producer(broker: &str, project_name: &str) -> Result<FutureProducer> {
     Ok(ClientConfig::new()
@@ -109,6 +51,7 @@ pub async fn produce_df(
     let primary_keys = vec!["number"];
 
     let mut futures = vec![];
+    // let futures: Vec<String> = vec![];
 
     df.as_single_chunk_par();
 
@@ -147,7 +90,6 @@ pub async fn produce_df(
 
     // This loop is blocking
     for row in 0..df.height() {
-        let mut writer = Writer::new(&avro_schema, Vec::new());
         let mut record = Record::new(&avro_schema).unwrap();
         let mut composite_key = vec![];
 
@@ -182,10 +124,7 @@ pub async fn produce_df(
             }
         }
 
-        writer.append(record).unwrap();
-        let encoded_payload = writer.into_inner().unwrap();
-
-        println!("encoded_payload {encoded_payload:?}");
+        let encoded_payload = apache_avro::to_avro_datum(&avro_schema, record).unwrap();
 
         let the_key = composite_key.join("_");
 
@@ -204,19 +143,9 @@ pub async fn produce_df(
         info!("Future completed. Result: {:?}", future);
     }
 
+    producer.flush(Duration::from_secs(0)).unwrap();
+
     Ok(())
-}
-
-fn make_encoded_record_from_row(the_schema: Schema) -> Result<Vec<u8>> {
-    let mut writer = Writer::new(&the_schema, Vec::new());
-
-    let mut record = Record::new(&the_schema).unwrap();
-    record.put("word", Some("carl"));
-    record.put("number", Some(2i64));
-
-    writer.append(record).unwrap();
-
-    Ok(writer.into_inner()?)
 }
 
 fn make_future_record_from_encoded<'a>(

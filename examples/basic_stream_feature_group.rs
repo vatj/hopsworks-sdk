@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
     info!("{}", serde_json::to_string_pretty(&feature_store).unwrap());
 
     if let Some(feature_group) = feature_store
-        .get_feature_group_by_name_and_version("alice", 1)
+        .get_feature_group_by_name_and_version("bob", 1)
         .await?
     {
         info!("{}", serde_json::to_string_pretty(&feature_group).unwrap());
@@ -53,10 +53,8 @@ async fn main() -> Result<()> {
             feature_group.name, feature_group.version
         );
 
-        let running_job_dto =
+        let _running_job_dto =
             job::controller::run_job_with_name(project.id, job_name.as_str()).await?;
-
-        println!("{running_job_dto:?}")
     }
 
     Ok(())
