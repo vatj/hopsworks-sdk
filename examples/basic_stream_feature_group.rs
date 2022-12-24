@@ -1,4 +1,6 @@
 use color_eyre::Result;
+use hopsworks_rs::domain::job;
+use hopsworks_rs::minidf::get_mini_df;
 use log::info;
 
 use hopsworks_rs::hopsworks_login;
@@ -20,7 +22,7 @@ async fn main() -> Result<()> {
     info!("{}", serde_json::to_string_pretty(&feature_store).unwrap());
 
     if let Some(feature_group) = feature_store
-        .get_feature_group_by_name_and_version("rusty", 1)
+        .get_feature_group_by_name_and_version("bob", 1)
         .await?
     {
         info!("{}", serde_json::to_string_pretty(&feature_group).unwrap());
@@ -33,9 +35,26 @@ async fn main() -> Result<()> {
 
         let broker = "localhost:9192";
 
+        let mut mini_df = get_mini_df().await?;
+
         info!("producing to topic '{topic}' on broker '{broker}'");
 
-        kafka_producer::produce(broker, topic.as_ref(), &project.project_name).await?;
+        kafka_producer::produce_df(
+            &mut mini_df,
+            broker,
+            topic.as_ref(),
+            project.id,
+            &project.project_name,
+        )
+        .await?;
+
+        let job_name = format!(
+            "{}_{}_offline_fg_backfill",
+            feature_group.name, feature_group.version
+        );
+
+        let _running_job_dto =
+            job::controller::run_job_with_name(project.id, job_name.as_str()).await?;
     }
 
     Ok(())

@@ -12,6 +12,15 @@ pub struct KafkaTopicDTO {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct KafkaSubjectDTO {
+    id: i32,
+    subject: String,
+    version: i32,
+    pub schema: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct KafkaTopicListDTO {
     href: String,
     pub items: Vec<KafkaTopicDTO>,
