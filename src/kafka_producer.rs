@@ -37,12 +37,11 @@ pub async fn produce_df(
     df: &mut polars::prelude::DataFrame,
     broker: &str,
     topic_name: &str,
-    project_id: i32,
     project_name: &str,
 ) -> Result<()> {
     let producer: &FutureProducer = &setup_future_producer(broker, project_name).await?;
 
-    let subject_dto: KafkaSubjectDTO = get_kafka_topic_subject(project_id, topic_name).await?;
+    let subject_dto: KafkaSubjectDTO = get_kafka_topic_subject(topic_name).await?;
 
     let avro_schema = Schema::parse_str(subject_dto.schema.as_str()).unwrap();
 

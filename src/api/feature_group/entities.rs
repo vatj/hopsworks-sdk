@@ -1,12 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::feature_group::entities::{
-    FeatureDTO, FeatureGroupDTO, StatisticsConfigDTO, UserDTO,
+use crate::repositories::{
+    feature_group::entities::FeatureGroupDTO, features::entities::FeatureDTO,
+    statistics_config::entities::StatisticsConfigDTO, users::entities::UserDTO,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureGroup {
-    featurestore_id: i32,
+    pub featurestore_id: i32,
     featurestore_name: String,
     feature_group_type: String,
     description: String,
@@ -86,9 +87,9 @@ impl User {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Feature {
-    name: String,
-    description: Option<String>,
-    data_type: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub data_type: String,
     primary: bool,
     partition: bool,
     hudi_precombine_key: bool,

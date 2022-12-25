@@ -5,16 +5,9 @@ use crate::repositories::{
     project::{entities::ProjectDTO, service::get_project_and_user_list},
 };
 
-pub async fn get_default_feature_store(
-    project_id: i32,
-    project_name: &str,
-) -> Result<FeatureStoreDTO> {
+pub async fn get_default_feature_store(project_name: &str) -> Result<FeatureStoreDTO> {
     let feature_store_name = format!("{project_name}_featurestore");
-    feature_store::service::get_feature_store_by_project_id_and_name(
-        project_id,
-        feature_store_name.as_str(),
-    )
-    .await
+    feature_store::service::get_feature_store_by_name(feature_store_name.as_str()).await
 }
 
 pub async fn get_project_list() -> Result<Vec<ProjectDTO>> {

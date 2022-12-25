@@ -39,22 +39,15 @@ async fn main() -> Result<()> {
 
         info!("producing to topic '{topic}' on broker '{broker}'");
 
-        kafka_producer::produce_df(
-            &mut mini_df,
-            broker,
-            topic.as_ref(),
-            project.id,
-            &project.project_name,
-        )
-        .await?;
+        kafka_producer::produce_df(&mut mini_df, broker, topic.as_ref(), &project.project_name)
+            .await?;
 
         let job_name = format!(
             "{}_{}_offline_fg_backfill",
             feature_group.name, feature_group.version
         );
 
-        let _running_job_dto =
-            job::controller::run_job_with_name(project.id, job_name.as_str()).await?;
+        let _running_job_dto = job::controller::run_job_with_name(job_name.as_str()).await?;
     }
 
     Ok(())

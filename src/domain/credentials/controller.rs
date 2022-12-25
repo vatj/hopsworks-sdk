@@ -7,11 +7,10 @@ use tokio::io::AsyncWriteExt;
 use crate::repositories::credentials::service::get_hopsworks_credentials_for_project;
 
 pub async fn write_locally_project_credentials_on_login(
-    project_id: i32,
     project_name: &str,
     cert_dir: &str,
 ) -> Result<()> {
-    let credentials_dto = get_hopsworks_credentials_for_project(project_id).await?;
+    let credentials_dto = get_hopsworks_credentials_for_project().await?;
 
     if !Path::new(cert_dir).join(project_name).exists() {
         tokio::fs::create_dir(Path::new(cert_dir).join(project_name)).await?;

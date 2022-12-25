@@ -12,7 +12,7 @@ pub struct FeatureStore {
     featurestore_name: String,
     created: String,
     project_name: String,
-    pub project_id: i32,
+    project_id: i32,
     featurestore_description: String,
     online_featurestore_name: String,
     online_featurestore_size: f64,

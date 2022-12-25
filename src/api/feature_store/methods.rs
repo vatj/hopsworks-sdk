@@ -11,7 +11,6 @@ impl FeatureStore {
     ) -> Result<Option<FeatureGroup>> {
         if let Some(feature_group_dto) =
             feature_group::controller::get_feature_group_by_name_and_version(
-                self.project_id,
                 self.featurestore_id,
                 name,
                 version,
