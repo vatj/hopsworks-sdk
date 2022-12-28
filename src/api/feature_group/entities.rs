@@ -1,8 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::{
-    feature_group::entities::FeatureGroupDTO, features::entities::FeatureDTO,
-    statistics_config::entities::StatisticsConfigDTO, users::entities::UserDTO,
+use crate::{
+    api::feature_store::entities::FeatureStore,
+    repositories::{
+        feature_group::entities::FeatureGroupDTO, features::entities::FeatureDTO,
+        statistics_config::entities::StatisticsConfigDTO, users::entities::UserDTO,
+    },
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -10,14 +13,14 @@ pub struct FeatureGroup {
     pub featurestore_id: i32,
     featurestore_name: String,
     feature_group_type: String,
-    description: String,
+    description: Option<String>,
     created: String,
-    creator: User,
+    creator: Option<User>,
     pub version: i32,
     pub name: String,
-    id: i32,
-    location: String,
-    statistics_config: StatisticsConfig,
+    id: Option<i32>,
+    location: Option<String>,
+    statistics_config: Option<StatisticsConfig>,
     features: Vec<Feature>,
     online_enabled: bool,
     time_travel_format: String,
@@ -32,12 +35,14 @@ impl FeatureGroup {
             feature_group_type: feature_group_dto.feature_group_type,
             description: feature_group_dto.description,
             created: feature_group_dto.created,
-            creator: User::new_from_dto(feature_group_dto.creator),
+            creator: Some(User::new_from_dto(feature_group_dto.creator)),
             version: feature_group_dto.version,
             name: feature_group_dto.name,
-            id: feature_group_dto.id,
-            location: feature_group_dto.location,
-            statistics_config: StatisticsConfig::new_from_dto(feature_group_dto.statistics_config),
+            id: Some(feature_group_dto.id),
+            location: Some(feature_group_dto.location),
+            statistics_config: feature_group_dto
+                .statistics_config
+                .map(StatisticsConfig::new_from_dto),
             features: feature_group_dto
                 .features
                 .iter()
@@ -46,6 +51,33 @@ impl FeatureGroup {
             online_enabled: feature_group_dto.online_enabled,
             time_travel_format: feature_group_dto.time_travel_format,
             online_topic_name: feature_group_dto.online_topic_name,
+        }
+    }
+
+    pub fn new_in_feature_store(
+        feature_store: &FeatureStore,
+        name: &str,
+        version: i32,
+        description: Option<&str>,
+        _primary_key: Vec<&str>,
+        _event_time: &str,
+    ) -> Self {
+        Self {
+            featurestore_id: feature_store.featurestore_id,
+            featurestore_name: feature_store.featurestore_name.clone(),
+            feature_group_type: String::from("STREAM_FEATURE_GROUP"),
+            description: description.map(String::from),
+            created: String::from(""),
+            creator: None,
+            version,
+            name: String::from(name),
+            id: None,
+            location: None,
+            statistics_config: None,
+            features: vec![],
+            online_enabled: false,
+            time_travel_format: String::from("NONE"),
+            online_topic_name: None,
         }
     }
 }

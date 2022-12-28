@@ -9,7 +9,7 @@ pub struct FeatureStore {
     num_storage_connectors: i32,
     num_feature_views: i32,
     pub featurestore_id: i32,
-    featurestore_name: String,
+    pub featurestore_name: String,
     created: String,
     project_name: String,
     project_id: i32,

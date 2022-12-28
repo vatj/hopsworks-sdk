@@ -35,9 +35,19 @@ async fn main() -> Result<()> {
         .rename("birthdate", "age_at_transaction")
         .unwrap();
 
-    let _project = hopsworks_login()
+    let project = hopsworks_login()
         .await
         .expect("Error connecting to Hopsworks:\n");
+
+    let fs = project.get_feature_store().await?;
+
+    let trans_fg = fs.get_or_create_feature_group(
+        "transactions_fg",
+        1,
+        Some("Transactions data"),
+        vec!["cc_num"],
+        "datetime",
+    );
 
     Ok(())
 }
