@@ -13,11 +13,14 @@ log = { version = "0.4" }
 env_logger = { version = "0.10" }
 serde_json = { version = "1.0" }
 apache-avro = { version = "0.14", features = ["derive"] }
-polars = { version = "0.25.1", features = ["lazy", "avro"] }
-polars-io = { version = "0.25.1", features = ["avro"] }
+polars = { version = "0.26.1", features = ["lazy", "avro", "strings"] }
 color-eyre = { version = "0.6.2" }
 rdkafka = { version = "0.29.0", features = ["tokio", "libz", "ssl"] }
 
 [[example]]
 name = "basic_stream_feature_group"
 path = "examples/basic_stream_feature_group.rs"
+
+[[example]]
+name = "fraud_batch"
+path = "examples/fraud_batch.rs"
