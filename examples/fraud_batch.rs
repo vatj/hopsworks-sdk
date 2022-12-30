@@ -30,10 +30,18 @@ async fn main() -> Result<()> {
         .unwrap();
 
     trans_df
-        .with_column(&age_df["birthdate"] - &age_df["datetime"])
+        .with_column(
+            (&age_df["birthdate"] - &age_df["datetime"])
+                .cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))
+                .unwrap(),
+        )
         .unwrap()
         .rename("birthdate", "age_at_transaction")
         .unwrap();
+
+    trans_df.with_column(
+        trans_df["datetime"].cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
+    )?;
 
     let project = hopsworks_login()
         .await
@@ -41,13 +49,17 @@ async fn main() -> Result<()> {
 
     let fs = project.get_feature_store().await?;
 
-    let trans_fg = fs.get_or_create_feature_group(
-        "transactions_fg",
-        1,
-        Some("Transactions data"),
-        vec!["cc_num"],
-        "datetime",
-    );
+    let trans_fg = fs
+        .get_or_create_feature_group(
+            "transactions_fg",
+            1,
+            Some("Transactions data"),
+            vec!["cc_num"],
+            "datetime",
+        )
+        .await?;
+
+    trans_fg.insert(trans_df).await?;
 
     Ok(())
 }

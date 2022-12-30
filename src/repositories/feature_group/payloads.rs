@@ -1,16 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::features::payloads::NewFeaturePayload;
+use crate::repositories::feature::payloads::NewFeaturePayload;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct NewFeatureGroupPayload<'a> {
+    #[serde(rename = "type")]
+    fg_type: &'a str,
     name: &'a str,
     version: i32,
     description: Option<&'a str>,
-    features: Vec<NewFeaturePayload<'a>>,
+    features: Vec<NewFeaturePayload>,
     event_time: Option<&'a str>,
-    primary_key: Vec<&'a str>,
 }
 
 impl<'a> NewFeatureGroupPayload<'a> {
@@ -18,17 +19,16 @@ impl<'a> NewFeatureGroupPayload<'a> {
         name: &'a str,
         version: i32,
         description: Option<&'a str>,
-        features: Vec<NewFeaturePayload<'a>>,
-        primary_key: Vec<&'a str>,
+        features: Vec<NewFeaturePayload>,
         event_time: Option<&'a str>,
     ) -> Self {
         Self {
+            fg_type: "streamFeatureGroupDTO",
             name,
             version,
             description,
             features,
             event_time,
-            primary_key,
         }
     }
 }

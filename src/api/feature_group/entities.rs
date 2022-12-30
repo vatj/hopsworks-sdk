@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     api::feature_store::entities::FeatureStore,
     repositories::{
-        feature_group::entities::FeatureGroupDTO, features::entities::FeatureDTO,
+        feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO,
         statistics_config::entities::StatisticsConfigDTO, users::entities::UserDTO,
     },
 };
@@ -13,18 +13,20 @@ pub struct FeatureGroup {
     pub featurestore_id: i32,
     featurestore_name: String,
     feature_group_type: String,
-    description: Option<String>,
+    pub description: Option<String>,
     created: String,
     creator: Option<User>,
     pub version: i32,
     pub name: String,
-    id: Option<i32>,
+    pub id: Option<i32>,
     location: Option<String>,
     statistics_config: Option<StatisticsConfig>,
     features: Vec<Feature>,
     online_enabled: bool,
     time_travel_format: String,
     pub online_topic_name: Option<String>,
+    pub primary_key: Option<Vec<String>>,
+    pub event_time: Option<String>,
 }
 
 impl FeatureGroup {
@@ -51,6 +53,8 @@ impl FeatureGroup {
             online_enabled: feature_group_dto.online_enabled,
             time_travel_format: feature_group_dto.time_travel_format,
             online_topic_name: feature_group_dto.online_topic_name,
+            primary_key: None,
+            event_time: None,
         }
     }
 
@@ -59,8 +63,8 @@ impl FeatureGroup {
         name: &str,
         version: i32,
         description: Option<&str>,
-        _primary_key: Vec<&str>,
-        _event_time: &str,
+        primary_key: Vec<&str>,
+        event_time: &str,
     ) -> Self {
         Self {
             featurestore_id: feature_store.featurestore_id,
@@ -78,6 +82,8 @@ impl FeatureGroup {
             online_enabled: false,
             time_travel_format: String::from("NONE"),
             online_topic_name: None,
+            primary_key: Some(primary_key.iter().map(|pk| pk.to_string()).collect()),
+            event_time: Some(String::from(event_time)),
         }
     }
 }
@@ -125,7 +131,7 @@ pub struct Feature {
     primary: bool,
     partition: bool,
     hudi_precombine_key: bool,
-    feature_group_id: i32,
+    feature_group_id: Option<i32>,
 }
 
 impl Feature {

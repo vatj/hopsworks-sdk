@@ -1,8 +1,12 @@
 use color_eyre::Result;
+use polars::prelude::{DataFrame, Schema};
 
-use crate::repositories::{
-    feature_group::{self, entities::FeatureGroupDTO, payloads::NewFeatureGroupPayload},
-    features::payloads::NewFeaturePayload,
+use crate::{
+    domain::feature,
+    repositories::{
+        feature::payloads::NewFeaturePayload,
+        feature_group::{self, entities::FeatureGroupDTO, payloads::NewFeatureGroupPayload},
+    },
 };
 
 pub async fn get_feature_group_by_name_and_version(
@@ -25,16 +29,50 @@ pub fn make_new_feature_group_payload<'a>(
     name: &'a str,
     version: i32,
     description: Option<&'a str>,
-    features: Vec<NewFeaturePayload<'a>>,
-    primary_key: Vec<&'a str>,
+    features: Vec<NewFeaturePayload>,
     event_time: Option<&'a str>,
 ) -> NewFeatureGroupPayload<'a> {
-    NewFeatureGroupPayload::new(
+    NewFeatureGroupPayload::new(name, version, description, features, event_time)
+}
+
+pub async fn insert_in_registered_feature_group(
+    _feature_group_id: i32,
+    _dataframe: DataFrame,
+) -> Result<()> {
+    Ok(())
+}
+
+pub fn build_new_feature_group_payload<'a>(
+    name: &'a str,
+    version: i32,
+    description: Option<&'a str>,
+    primary_key: Vec<&'a str>,
+    event_time: Option<&'a str>,
+    schema: Schema,
+) -> Result<NewFeatureGroupPayload<'a>> {
+    let features =
+        feature::controller::build_feature_payloads_from_schema_and_feature_group_options(
+            schema,
+            primary_key,
+        )
+        .unwrap();
+
+    Ok(NewFeatureGroupPayload::new(
         name,
         version,
         description,
         features,
-        primary_key,
         event_time,
-    )
+    ))
+}
+
+pub async fn save_feature_group_metadata(
+    feature_store_id: i32,
+    new_feature_group_payload: NewFeatureGroupPayload<'_>,
+) -> Result<i32> {
+    let feature_group_dto =
+        feature_group::service::create_feature_group(feature_store_id, &new_feature_group_payload)
+            .await?;
+
+    Ok(feature_group_dto.id)
 }
