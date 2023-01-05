@@ -2,10 +2,12 @@ use color_eyre::Result;
 use polars::prelude::{DataFrame, Schema};
 
 use crate::{
-    domain::feature,
+    domain::{feature, kafka},
+    kafka_producer::produce_df,
     repositories::{
         feature::payloads::NewFeaturePayload,
         feature_group::{self, entities::FeatureGroupDTO, payloads::NewFeatureGroupPayload},
+        project::service::get_client_project,
     },
 };
 
@@ -37,8 +39,25 @@ pub fn make_new_feature_group_payload<'a>(
 
 pub async fn insert_in_registered_feature_group(
     _feature_group_id: i32,
-    _dataframe: DataFrame,
+    online_topic_name: &str,
+    dataframe: &mut DataFrame,
+    primary_keys: Vec<&str>,
 ) -> Result<()> {
+    let brokers = kafka::controller::get_project_broker_endpoints(true).await?;
+
+    let broker = brokers.first().unwrap();
+
+    let project_name = get_client_project().await?.project_name;
+
+    produce_df(
+        dataframe,
+        broker,
+        online_topic_name,
+        project_name.as_str(),
+        primary_keys,
+    )
+    .await?;
+
     Ok(())
 }
 

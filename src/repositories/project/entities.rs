@@ -148,3 +148,24 @@ pub struct HdfsGroupDTO {
     id: i32,
     name: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct SingleProjectDTO {
+    project_id: i32,
+    pub project_name: String,
+    owner: String,
+    description: Option<String>,
+    docker_image: String,
+    retention_period: String,
+    created: String,
+    archived: bool,
+    services: Vec<String>,
+    project_team: Vec<ProjectAndUserDTO>,
+    inodeid: i32,
+    quotas: QuotaDTO,
+    hops_examples: String,
+    is_preinstalled_docker_image: bool,
+    is_old_docker_image: bool,
+    creation_status: String,
+}

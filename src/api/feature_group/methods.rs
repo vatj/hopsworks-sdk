@@ -52,8 +52,18 @@ impl FeatureGroup {
     //         Some(fg) => Ok(fg.into()),
     //     }
     // }
+    pub fn get_primary_keys(&self) -> Result<Vec<&str>> {
+        let primary_keys = self
+            .features
+            .iter()
+            .filter(|f| f.primary)
+            .map(|f| f.name.as_str())
+            .collect();
 
-    pub async fn insert(&self, dataframe: DataFrame) -> Result<()> {
+        Ok(primary_keys)
+    }
+
+    pub async fn insert(&self, dataframe: &mut DataFrame) -> Result<()> {
         if self.id.is_none() {
             let _id = feature_group::controller::save_feature_group_metadata(
                 self.featurestore_id,
@@ -79,7 +89,9 @@ impl FeatureGroup {
 
         feature_group::controller::insert_in_registered_feature_group(
             self.id.unwrap_or(0),
+            self.online_topic_name.clone().unwrap_or_default().as_str(),
             dataframe,
+            self.get_primary_keys().unwrap(),
         )
         .await
     }

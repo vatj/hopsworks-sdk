@@ -30,8 +30,8 @@ async fn main() -> Result<()> {
         // kafka
         let topic = feature_group
             .online_topic_name
-            .unwrap_or_else(|| String::from(""))
-            .clone();
+            .clone()
+            .unwrap_or_else(|| String::from(""));
 
         let broker = "localhost:9192";
 
@@ -39,8 +39,14 @@ async fn main() -> Result<()> {
 
         info!("producing to topic '{topic}' on broker '{broker}'");
 
-        kafka_producer::produce_df(&mut mini_df, broker, topic.as_ref(), &project.project_name)
-            .await?;
+        kafka_producer::produce_df(
+            &mut mini_df,
+            broker,
+            topic.as_ref(),
+            &project.project_name,
+            feature_group.get_primary_keys().unwrap(),
+        )
+        .await?;
 
         let job_name = format!(
             "{}_{}_offline_fg_backfill",

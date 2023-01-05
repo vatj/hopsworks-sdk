@@ -38,6 +38,7 @@ pub async fn produce_df(
     broker: &str,
     topic_name: &str,
     project_name: &str,
+    primary_keys: Vec<&str>,
 ) -> Result<()> {
     let producer: &FutureProducer = &setup_future_producer(broker, project_name).await?;
 
@@ -45,7 +46,7 @@ pub async fn produce_df(
 
     let avro_schema = Schema::parse_str(subject_dto.schema.as_str()).unwrap();
 
-    let primary_keys = vec!["number"];
+    // let primary_keys = vec!["number"];
 
     let mut futures = vec![];
 
@@ -61,12 +62,6 @@ pub async fn produce_df(
         .map(|col| col.0.as_str())
         .collect();
 
-    let mut iters_utf8 = df
-        .columns(selected_utf8_columns.clone())?
-        .iter()
-        .map(|s| Ok(s.utf8()?.into_iter()))
-        .collect::<Result<Vec<_>>>()?;
-
     let selected_int64_columns: Vec<&str> = polars_schema
         .iter()
         // Filter the columns based on their data type
@@ -75,10 +70,44 @@ pub async fn produce_df(
         .map(|col| col.0.as_str())
         .collect();
 
+    let selected_float64_columns: Vec<&str> = polars_schema
+        .iter()
+        // Filter the columns based on their data type
+        .filter(|col| col.1 == &DataType::Float64)
+        // Extract the column names
+        .map(|col| col.0.as_str())
+        .collect();
+
+    let selected_datetime_nanoseconds_columns: Vec<&str> = polars_schema
+        .iter()
+        // Filter the columns based on their data type
+        .filter(|col| col.1 == &DataType::Datetime(TimeUnit::Nanoseconds, None))
+        // Extract the column names
+        .map(|col| col.0.as_str())
+        .collect();
+
+    let mut iters_utf8 = df
+        .columns(selected_utf8_columns.clone())?
+        .iter()
+        .map(|s| Ok(s.utf8()?.into_iter()))
+        .collect::<Result<Vec<_>>>()?;
+
     let mut iters_int64 = df
         .columns(selected_int64_columns.clone())?
         .iter()
         .map(|s| Ok(s.i64()?.into_iter()))
+        .collect::<Result<Vec<_>>>()?;
+
+    let mut iters_float64 = df
+        .columns(selected_float64_columns.clone())?
+        .iter()
+        .map(|s| Ok(s.f64()?.into_iter()))
+        .collect::<Result<Vec<_>>>()?;
+
+    let mut iters_datetime_nanoseconds = df
+        .columns(selected_datetime_nanoseconds_columns.clone())?
+        .iter()
+        .map(|s| Ok(s.datetime()?.into_iter()))
         .collect::<Result<Vec<_>>>()?;
 
     // This loop is blocking
@@ -113,6 +142,37 @@ pub async fn produce_df(
                 );
                 if primary_keys.contains(&selected_utf8_columns[idx]) {
                     composite_key.push(String::from(value))
+                }
+            }
+        }
+
+        for (idx, iter) in &mut iters_float64.iter_mut().enumerate() {
+            if let Some(value) = iter.next().expect("should have as many iterations as rows") {
+                // process value
+                info!(
+                    "the row: {row}, the column name: {:?}, the f64 value : {value:?}",
+                    selected_float64_columns[idx]
+                );
+                record.put(selected_float64_columns[idx], Some(Value::Double(value)));
+                if primary_keys.contains(&selected_float64_columns[idx]) {
+                    composite_key.push(value.to_string())
+                }
+            }
+        }
+
+        for (idx, iter) in &mut iters_datetime_nanoseconds.iter_mut().enumerate() {
+            if let Some(value) = iter.next().expect("should have as many iterations as rows") {
+                // process value
+                info!(
+                    "the row: {row}, the column name: {:?}, the datetime value : {value:?}",
+                    selected_datetime_nanoseconds_columns[idx]
+                );
+                record.put(
+                    selected_datetime_nanoseconds_columns[idx],
+                    Some(Value::Long(value)),
+                );
+                if primary_keys.contains(&selected_datetime_nanoseconds_columns[idx]) {
+                    composite_key.push(value.to_string())
                 }
             }
         }

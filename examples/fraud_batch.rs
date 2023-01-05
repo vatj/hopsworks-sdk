@@ -1,6 +1,7 @@
 use color_eyre::Result;
 
 use hopsworks_rs::hopsworks_login;
+use log::info;
 use polars::prelude::*;
 
 #[tokio::main]
@@ -51,7 +52,7 @@ async fn main() -> Result<()> {
 
     let trans_fg = fs
         .get_or_create_feature_group(
-            "transactions_fg",
+            "transactions_fg_2",
             1,
             Some("Transactions data"),
             vec!["cc_num"],
@@ -59,7 +60,9 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    trans_fg.insert(trans_df).await?;
+    info!("{:?}", trans_fg);
+
+    trans_fg.insert(&mut trans_df).await?;
 
     Ok(())
 }

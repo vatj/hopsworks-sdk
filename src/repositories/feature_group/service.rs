@@ -23,8 +23,11 @@ pub async fn get_feature_group_by_name_and_version(
 
     match response.status() {
         StatusCode::NOT_FOUND => Ok(None),
-        StatusCode::ACCEPTED => Ok(response.json::<Vec<FeatureGroupDTO>>().await?.pop()),
-        _ => panic!("Proper error handling when fetching FG is not implemented yet."), // This is bad...
+        StatusCode::OK => Ok(response.json::<Vec<FeatureGroupDTO>>().await?.pop()),
+        _ => panic!(
+            "Proper error handling when fetching FG is not implemented yet. Response status: {:?}",
+            response.status()
+        ), // This is bad...
     }
 }
 
