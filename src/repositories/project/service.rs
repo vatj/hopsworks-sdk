@@ -1,5 +1,4 @@
 use color_eyre::Result;
-use log::info;
 use reqwest::StatusCode;
 
 use super::{

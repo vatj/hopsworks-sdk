@@ -1,5 +1,4 @@
 use color_eyre::Result;
-use log::info;
 use polars::prelude::{DataType, Schema, TimeUnit};
 
 use crate::repositories::feature::payloads::NewFeaturePayload;
@@ -8,7 +7,6 @@ pub fn extract_features_from_polars_schema(schema: Schema) -> Result<Vec<NewFeat
     Ok(schema
         .iter_fields()
         .map(|field| {
-            info!("{}", field.name);
             NewFeaturePayload::new(
                 field.name.clone(),
                 String::from(convert_polars_data_type(field.data_type())),
