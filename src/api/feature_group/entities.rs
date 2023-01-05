@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::cell::Cell;
 
 use crate::{
     api::feature_store::entities::FeatureStore,
@@ -10,6 +11,7 @@ use crate::{
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureGroup {
+    pub(super) id: Cell<Option<i32>>,
     pub featurestore_id: i32,
     featurestore_name: String,
     feature_group_type: String,
@@ -18,7 +20,6 @@ pub struct FeatureGroup {
     creator: Option<User>,
     pub version: i32,
     pub name: String,
-    pub id: Option<i32>,
     location: Option<String>,
     statistics_config: Option<StatisticsConfig>,
     pub features: Vec<Feature>,
@@ -40,7 +41,7 @@ impl FeatureGroup {
             creator: Some(User::new_from_dto(feature_group_dto.creator)),
             version: feature_group_dto.version,
             name: feature_group_dto.name,
-            id: Some(feature_group_dto.id),
+            id: Cell::new(Some(feature_group_dto.id)),
             location: Some(feature_group_dto.location),
             statistics_config: feature_group_dto
                 .statistics_config
@@ -75,7 +76,7 @@ impl FeatureGroup {
             creator: None,
             version,
             name: String::from(name),
-            id: None,
+            id: Cell::new(None),
             location: None,
             statistics_config: None,
             features: vec![],

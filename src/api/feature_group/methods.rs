@@ -6,6 +6,14 @@ use crate::domain::feature_group;
 use super::entities::FeatureGroup;
 
 impl FeatureGroup {
+    fn set_id(&self, id: i32) {
+        self.id.set(Some(id));
+    }
+
+    fn get_id(&self) -> Option<i32> {
+        self.id.get()
+    }
+
     pub fn get_primary_keys(&self) -> Result<Vec<&str>> {
         let primary_keys = self
             .features
@@ -18,8 +26,8 @@ impl FeatureGroup {
     }
 
     pub async fn insert(&self, dataframe: &mut DataFrame) -> Result<()> {
-        if self.id.is_none() {
-            let _id = feature_group::controller::save_feature_group_metadata(
+        if self.get_id().is_none() {
+            let id = feature_group::controller::save_feature_group_metadata(
                 self.featurestore_id,
                 feature_group::controller::build_new_feature_group_payload(
                     &self.name,
@@ -38,11 +46,11 @@ impl FeatureGroup {
             )
             .await?;
 
-            todo!("Wrapping fg.id in mutex to update it without forcing fg to be declared mutable")
+            self.set_id(id);
         }
 
         feature_group::controller::insert_in_registered_feature_group(
-            self.id.unwrap_or(0),
+            self.get_id().unwrap_or(0),
             self.online_topic_name.clone().unwrap_or_default().as_str(),
             dataframe,
             self.get_primary_keys().unwrap(),
