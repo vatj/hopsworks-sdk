@@ -10,8 +10,16 @@ impl FeatureGroup {
         self.id.set(Some(id));
     }
 
-    fn get_id(&self) -> Option<i32> {
+    pub fn get_id(&self) -> Option<i32> {
         self.id.get()
+    }
+
+    fn set_online_topic_name(&self, online_topic_name: Option<String>) {
+        *self.online_topic_name.borrow_mut() = online_topic_name;
+    }
+
+    pub fn get_online_topic_name(&self) -> Option<String> {
+        self.online_topic_name.borrow().clone()
     }
 
     pub fn get_primary_keys(&self) -> Result<Vec<&str>> {
@@ -27,7 +35,7 @@ impl FeatureGroup {
 
     pub async fn insert(&self, dataframe: &mut DataFrame) -> Result<()> {
         if self.get_id().is_none() {
-            let id = feature_group::controller::save_feature_group_metadata(
+            let feature_group_dto = feature_group::controller::save_feature_group_metadata(
                 self.featurestore_id,
                 feature_group::controller::build_new_feature_group_payload(
                     &self.name,
@@ -46,12 +54,14 @@ impl FeatureGroup {
             )
             .await?;
 
-            self.set_id(id);
+            self.set_id(feature_group_dto.id);
+            self.set_online_topic_name(feature_group_dto.online_topic_name);
         }
 
         feature_group::controller::insert_in_registered_feature_group(
-            self.get_id().unwrap_or(0),
-            self.online_topic_name.clone().unwrap_or_default().as_str(),
+            self.name.as_str(),
+            self.version,
+            self.get_online_topic_name().unwrap_or_default().as_str(),
             dataframe,
             self.get_primary_keys().unwrap(),
         )

@@ -2,7 +2,7 @@ use color_eyre::Result;
 use polars::prelude::{DataFrame, Schema};
 
 use crate::{
-    domain::{feature, kafka},
+    domain::{feature, job, kafka},
     kafka_producer::produce_df,
     repositories::{
         feature::payloads::NewFeaturePayload,
@@ -38,7 +38,8 @@ pub fn make_new_feature_group_payload<'a>(
 }
 
 pub async fn insert_in_registered_feature_group(
-    _feature_group_id: i32,
+    feature_group_name: &str,
+    feature_group_version: i32,
     online_topic_name: &str,
     dataframe: &mut DataFrame,
     primary_keys: Vec<&str>,
@@ -57,6 +58,13 @@ pub async fn insert_in_registered_feature_group(
         primary_keys,
     )
     .await?;
+
+    let job_name = format!(
+        "{}_{}_offline_fg_backfill",
+        feature_group_name, feature_group_version
+    );
+
+    let _running_job_dto = job::controller::run_job_with_name(job_name.as_str()).await?;
 
     Ok(())
 }
@@ -88,10 +96,10 @@ pub fn build_new_feature_group_payload<'a>(
 pub async fn save_feature_group_metadata(
     feature_store_id: i32,
     new_feature_group_payload: NewFeatureGroupPayload<'_>,
-) -> Result<i32> {
+) -> Result<FeatureGroupDTO> {
     let feature_group_dto =
         feature_group::service::create_feature_group(feature_store_id, &new_feature_group_payload)
             .await?;
 
-    Ok(feature_group_dto.id)
+    Ok(feature_group_dto)
 }

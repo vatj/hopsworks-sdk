@@ -29,8 +29,7 @@ async fn main() -> Result<()> {
 
         // kafka
         let topic = feature_group
-            .online_topic_name
-            .clone()
+            .get_online_topic_name()
             .unwrap_or_else(|| String::from(""));
 
         let broker = "localhost:9192";

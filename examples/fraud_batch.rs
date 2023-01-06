@@ -52,7 +52,7 @@ async fn main() -> Result<()> {
 
     let trans_fg = fs
         .get_or_create_feature_group(
-            "transactions_fg_2",
+            "transactions_fg_6",
             1,
             Some("Transactions data"),
             vec!["cc_num"],
@@ -62,7 +62,7 @@ async fn main() -> Result<()> {
 
     info!("{:?}", trans_fg);
 
-    trans_fg.insert(&mut trans_df).await?;
+    trans_fg.insert(&mut trans_df.head(Some(5))).await?;
 
     Ok(())
 }

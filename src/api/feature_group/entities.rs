@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 
 use crate::{
     api::feature_store::entities::FeatureStore,
@@ -25,7 +25,7 @@ pub struct FeatureGroup {
     pub features: Vec<Feature>,
     online_enabled: bool,
     time_travel_format: String,
-    pub online_topic_name: Option<String>,
+    pub online_topic_name: RefCell<Option<String>>,
     pub primary_key: Option<Vec<String>>,
     pub event_time: Option<String>,
 }
@@ -53,7 +53,7 @@ impl FeatureGroup {
                 .collect(),
             online_enabled: feature_group_dto.online_enabled,
             time_travel_format: feature_group_dto.time_travel_format,
-            online_topic_name: feature_group_dto.online_topic_name,
+            online_topic_name: RefCell::new(feature_group_dto.online_topic_name),
             primary_key: None,
             event_time: None,
         }
@@ -82,7 +82,7 @@ impl FeatureGroup {
             features: vec![],
             online_enabled: false,
             time_travel_format: String::from("NONE"),
-            online_topic_name: None,
+            online_topic_name: RefCell::new(None),
             primary_key: Some(primary_key.iter().map(|pk| pk.to_string()).collect()),
             event_time: Some(String::from(event_time)),
         }
