@@ -37,6 +37,7 @@ pub struct HopsworksClient {
     pub client: reqwest::Client,
     pub token: Arc<Mutex<Option<HeaderValue>>>,
     pub api_key: Arc<Mutex<Option<HeaderValue>>>,
+    pub project_id: Arc<Mutex<i32>>,
     pub config: HopsworksClientConfig,
 }
 
@@ -47,6 +48,7 @@ impl Default for HopsworksClient {
             client: reqwest::Client::new(),
             token: Arc::new(Mutex::new(None)),
             api_key: Arc::new(Mutex::new(None)),
+            project_id: Arc::new(Mutex::new(0)),
         }
     }
 }
@@ -64,16 +66,29 @@ impl HopsworksClient {
         Arc::clone(&self.api_key)
     }
 
+    pub fn get_project_id(&self) -> Arc<Mutex<i32>> {
+        Arc::clone(&self.project_id)
+    }
+
     fn get_config(&self) -> &HopsworksClientConfig {
         &self.config
     }
 
-    fn endpoint_url(&self, url: &str) -> String {
+    async fn endpoint_url(&self, url: &str, with_project_id: bool) -> String {
         // Using the client's prefix in case it's a relative route.
         if url.starts_with("https") {
             url.to_string()
         } else {
-            self.get_config().prefix.clone() + url
+            // with_project_id only applies for relative url
+            if with_project_id {
+                format!(
+                    "{}project/{}/{url}",
+                    self.get_config().prefix.clone(),
+                    self.get_project_id().lock().await
+                )
+            } else {
+                self.get_config().prefix.clone() + url
+            }
         }
     }
 
@@ -97,8 +112,12 @@ impl HopsworksClient {
         }
     }
 
-    pub async fn send_get(&self, url: &str) -> Result<reqwest::Response, reqwest::Error> {
-        let absolute_url = self.endpoint_url(url);
+    pub async fn send_get(
+        &self,
+        url: &str,
+        with_project_id: bool,
+    ) -> Result<reqwest::Response, reqwest::Error> {
+        let absolute_url = self.endpoint_url(url, with_project_id).await;
         info!("GET : {}", absolute_url);
         self.get_client()
             .get(absolute_url)
@@ -111,8 +130,9 @@ impl HopsworksClient {
         &self,
         url: &str,
         query_params: &T,
+        with_project_id: bool,
     ) -> Result<reqwest::Response, reqwest::Error> {
-        let absolute_url = self.endpoint_url(url);
+        let absolute_url = self.endpoint_url(url, with_project_id).await;
         info!("GET : {}", absolute_url);
         self.get_client()
             .get(absolute_url)
@@ -126,8 +146,9 @@ impl HopsworksClient {
         &self,
         url: &str,
         form: &T,
+        with_project_id: bool,
     ) -> Result<reqwest::Response, reqwest::Error> {
-        let absolute_url = self.endpoint_url(url);
+        let absolute_url = self.endpoint_url(url, with_project_id).await;
         info!("POST : {}", absolute_url);
         self.get_client()
             .post(absolute_url)
@@ -141,8 +162,9 @@ impl HopsworksClient {
         &self,
         url: &str,
         payload: &T,
+        with_project_id: bool,
     ) -> Result<reqwest::Response, reqwest::Error> {
-        let absolute_url = self.endpoint_url(url);
+        let absolute_url = self.endpoint_url(url, with_project_id).await;
         info!("POST : {}", absolute_url);
         self.get_client()
             .post(absolute_url)
@@ -152,8 +174,12 @@ impl HopsworksClient {
             .await
     }
 
-    pub async fn send_empty_post(&self, url: &str) -> Result<reqwest::Response, reqwest::Error> {
-        let absolute_url = self.endpoint_url(url);
+    pub async fn send_empty_post(
+        &self,
+        url: &str,
+        with_project_id: bool,
+    ) -> Result<reqwest::Response, reqwest::Error> {
+        let absolute_url = self.endpoint_url(url, with_project_id).await;
         info!("POST : {}", absolute_url);
         self.get_client()
             .post(absolute_url)
@@ -171,7 +197,9 @@ impl HopsworksClient {
         login_params.insert("email", email);
         login_params.insert("password", password);
 
-        let response = self.send_post_form("auth/login", &login_params).await?;
+        let response = self
+            .send_post_form("auth/login", &login_params, false)
+            .await?;
 
         if response.status() == reqwest::StatusCode::OK {
             let new_token = response.headers().get("authorization");
@@ -205,6 +233,12 @@ impl HopsworksClient {
         Ok(())
     }
 
+    pub async fn set_project_id(&self, project_id: i32) -> Result<()> {
+        *self.get_project_id().lock().await = project_id;
+
+        Ok(())
+    }
+
     pub async fn login(&self) -> Result<Project> {
         let email = env::var("HOPSWORKS_EMAIL").unwrap_or_default();
         let password = env::var("HOPSWORKS_PASSWORD").unwrap_or_default();
@@ -220,13 +254,10 @@ impl HopsworksClient {
         }
 
         let project = self.get_the_project_or_default().await?;
+        self.set_project_id(project.id).await?;
 
-        write_locally_project_credentials_on_login(
-            project.id,
-            &project.project_name,
-            &self.config.cert_dir,
-        )
-        .await?;
+        write_locally_project_credentials_on_login(&project.project_name, &self.config.cert_dir)
+            .await?;
 
         Ok(project)
     }

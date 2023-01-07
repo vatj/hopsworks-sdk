@@ -29,9 +29,8 @@ async fn main() -> Result<()> {
 
         // kafka
         let topic = feature_group
-            .online_topic_name
-            .unwrap_or_else(|| String::from(""))
-            .clone();
+            .get_online_topic_name()
+            .unwrap_or_else(|| String::from(""));
 
         let broker = "localhost:9192";
 
@@ -43,8 +42,8 @@ async fn main() -> Result<()> {
             &mut mini_df,
             broker,
             topic.as_ref(),
-            project.id,
             &project.project_name,
+            feature_group.get_primary_keys().unwrap(),
         )
         .await?;
 
@@ -53,8 +52,7 @@ async fn main() -> Result<()> {
             feature_group.name, feature_group.version
         );
 
-        let _running_job_dto =
-            job::controller::run_job_with_name(project.id, job_name.as_str()).await?;
+        let _running_job_dto = job::controller::run_job_with_name(job_name.as_str()).await?;
     }
 
     Ok(())

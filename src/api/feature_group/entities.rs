@@ -1,26 +1,33 @@
 use serde::{Deserialize, Serialize};
+use std::cell::{Cell, RefCell};
 
-use crate::repositories::feature_group::entities::{
-    FeatureDTO, FeatureGroupDTO, StatisticsConfigDTO, UserDTO,
+use crate::{
+    api::feature_store::entities::FeatureStore,
+    repositories::{
+        feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO,
+        statistics_config::entities::StatisticsConfigDTO, users::entities::UserDTO,
+    },
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureGroup {
-    featurestore_id: i32,
+    pub(super) id: Cell<Option<i32>>,
+    pub featurestore_id: i32,
     featurestore_name: String,
     feature_group_type: String,
-    description: String,
+    pub description: Option<String>,
     created: String,
-    creator: User,
+    creator: Option<User>,
     pub version: i32,
     pub name: String,
-    id: i32,
-    location: String,
-    statistics_config: StatisticsConfig,
-    features: Vec<Feature>,
+    location: Option<String>,
+    statistics_config: Option<StatisticsConfig>,
+    pub features: Vec<Feature>,
     online_enabled: bool,
     time_travel_format: String,
-    pub online_topic_name: Option<String>,
+    pub online_topic_name: RefCell<Option<String>>,
+    pub primary_key: Option<Vec<String>>,
+    pub event_time: Option<String>,
 }
 
 impl FeatureGroup {
@@ -31,12 +38,14 @@ impl FeatureGroup {
             feature_group_type: feature_group_dto.feature_group_type,
             description: feature_group_dto.description,
             created: feature_group_dto.created,
-            creator: User::new_from_dto(feature_group_dto.creator),
+            creator: Some(User::new_from_dto(feature_group_dto.creator)),
             version: feature_group_dto.version,
             name: feature_group_dto.name,
-            id: feature_group_dto.id,
-            location: feature_group_dto.location,
-            statistics_config: StatisticsConfig::new_from_dto(feature_group_dto.statistics_config),
+            id: Cell::new(Some(feature_group_dto.id)),
+            location: Some(feature_group_dto.location),
+            statistics_config: feature_group_dto
+                .statistics_config
+                .map(StatisticsConfig::new_from_dto),
             features: feature_group_dto
                 .features
                 .iter()
@@ -44,7 +53,38 @@ impl FeatureGroup {
                 .collect(),
             online_enabled: feature_group_dto.online_enabled,
             time_travel_format: feature_group_dto.time_travel_format,
-            online_topic_name: feature_group_dto.online_topic_name,
+            online_topic_name: RefCell::new(feature_group_dto.online_topic_name),
+            primary_key: None,
+            event_time: None,
+        }
+    }
+
+    pub fn new_in_feature_store(
+        feature_store: &FeatureStore,
+        name: &str,
+        version: i32,
+        description: Option<&str>,
+        primary_key: Vec<&str>,
+        event_time: &str,
+    ) -> Self {
+        Self {
+            featurestore_id: feature_store.featurestore_id,
+            featurestore_name: feature_store.featurestore_name.clone(),
+            feature_group_type: String::from("STREAM_FEATURE_GROUP"),
+            description: description.map(String::from),
+            created: String::from(""),
+            creator: None,
+            version,
+            name: String::from(name),
+            id: Cell::new(None),
+            location: None,
+            statistics_config: None,
+            features: vec![],
+            online_enabled: false,
+            time_travel_format: String::from("NONE"),
+            online_topic_name: RefCell::new(None),
+            primary_key: Some(primary_key.iter().map(|pk| pk.to_string()).collect()),
+            event_time: Some(String::from(event_time)),
         }
     }
 }
@@ -86,13 +126,13 @@ impl User {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Feature {
-    name: String,
-    description: Option<String>,
-    data_type: String,
-    primary: bool,
+    pub name: String,
+    pub description: Option<String>,
+    pub data_type: String,
+    pub primary: bool,
     partition: bool,
     hudi_precombine_key: bool,
-    feature_group_id: i32,
+    feature_group_id: Option<i32>,
 }
 
 impl Feature {

@@ -18,6 +18,9 @@ Cargo.lock
 *.pdb
 
 # ignore test certs dir
-certs/
+example_data/
 # ignore output logs
 nohup.log
+
+# Apple
+.DS_Store

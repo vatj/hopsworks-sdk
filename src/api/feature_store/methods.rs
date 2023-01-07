@@ -11,7 +11,6 @@ impl FeatureStore {
     ) -> Result<Option<FeatureGroup>> {
         if let Some(feature_group_dto) =
             feature_group::controller::get_feature_group_by_name_and_version(
-                self.project_id,
                 self.featurestore_id,
                 name,
                 version,
@@ -22,5 +21,30 @@ impl FeatureStore {
         } else {
             Ok(None)
         }
+    }
+
+    pub async fn get_or_create_feature_group(
+        &self,
+        name: &str,
+        version: i32,
+        description: Option<&str>,
+        primary_key: Vec<&str>,
+        event_time: &str,
+    ) -> Result<FeatureGroup> {
+        if let Some(feature_group) = self
+            .get_feature_group_by_name_and_version(name, version)
+            .await?
+        {
+            return Ok(feature_group);
+        }
+
+        Ok(FeatureGroup::new_in_feature_store(
+            self,
+            name,
+            version,
+            description,
+            primary_key,
+            event_time,
+        ))
     }
 }
