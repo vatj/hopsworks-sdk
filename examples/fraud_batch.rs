@@ -1,7 +1,7 @@
 use color_eyre::Result;
 
 use hopsworks_rs::hopsworks_login;
-use polars::{frame::row::Row, prelude::*};
+use polars::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -55,27 +55,6 @@ async fn main() -> Result<()> {
         ])
         .collect()?;
 
-    // let mut mini_df = trans_df.head(Some(5));
-    // mini_df.as_single_chunk_par();
-
-    // let columns = mini_df.get_column_names();
-
-    // let arr_chunks = mini_df.iter_chunks();
-
-    // if let Some(boxed_arr) = mini_df.iter_chunks().next() {
-    //     for (idx, one_iter) in &mut boxed_arr.iter().enumerate() {
-    //         println!("{:?} : {:?}", columns[idx], one_iter)
-    //     }
-    // }
-
-    // for (idx, one_iter) in &mut arr_chunks.enumerate() {
-    //     println!("{:?} : {:?}", columns[idx], one_iter)
-    // }
-
-    // println!("{:?}", my_iter);
-
-    // println!("{:?}", mini_df.get_row(0));
-
     let project = hopsworks_login()
         .await
         .expect("Error connecting to Hopsworks:\n");
@@ -84,7 +63,7 @@ async fn main() -> Result<()> {
 
     let trans_fg = fs
         .get_or_create_feature_group(
-            "transactions_fg_2",
+            "transactions_fg_3",
             1,
             Some("Transactions data"),
             vec!["cc_num"],
@@ -92,23 +71,21 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    println!("{:?}", trans_fg);
+    trans_fg.insert(&mut trans_df.head(Some(50000))).await?;
 
-    trans_fg.insert(&mut trans_df).await?;
+    let window_aggs_fg = fs
+        .get_or_create_feature_group(
+            format!("transactions_{}_aggs_fraud_batch_fg", window_len).as_str(),
+            1,
+            Some("Aggregate transaction data over {window_len} windows."),
+            vec!["cc_num"],
+            "datetime",
+        )
+        .await?;
 
-    // let window_aggs_fg = fs
-    //     .get_or_create_feature_group(
-    //         format!("transactions_{}_aggs_fraud_batch_fg", window_len).as_str(),
-    //         1,
-    //         Some("Aggregate transaction data over {window_len} windows."),
-    //         vec!["cc_num"],
-    //         "datetime",
-    //     )
-    //     .await?;
-
-    // window_aggs_fg
-    //     .insert(&mut window_agg_df.head(Some(20)))
-    //     .await?;
+    window_aggs_fg
+        .insert(&mut window_agg_df.head(Some(20)))
+        .await?;
 
     Ok(())
 }
