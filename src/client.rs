@@ -14,7 +14,9 @@ use crate::{
     repositories::project::entities::ProjectDTO,
 };
 
-pub const DEFAULT_HOPSWORKS_API_PREFIX: &str = "https://localhost:8182/hopsworks-api/api/";
+// pub const DEFAULT_HOPSWORKS_API_PREFIX: &str = "https://localhost:8182/hopsworks-api/api/";
+pub const DEFAULT_HOPSWORKS_API_PREFIX: &str =
+    "https://staging.cloud.hopsworks.ai/hopsworks-api/api/";
 pub const DEFAULT_HOPSWORKS_CERT_DIR: &str = "/tmp/";
 
 #[derive(Clone, Debug)]
