@@ -1,6 +1,6 @@
 use color_eyre::Result;
 
-use hopsworks_rs::hopsworks_login;
+use hopsworks_rs::{domain::query::controller::construct_query, hopsworks_login};
 use polars::prelude::*;
 
 #[tokio::main]
@@ -61,9 +61,11 @@ async fn main() -> Result<()> {
 
     let fs = project.get_feature_store().await?;
 
+    let n_rows = 50000;
+
     let trans_fg = fs
         .get_or_create_feature_group(
-            "transactions_fg_3",
+            "transactions_fg",
             1,
             Some("Transactions data"),
             vec!["cc_num"],
@@ -71,21 +73,25 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    trans_fg.insert(&mut trans_df.head(Some(50000))).await?;
+    let query = trans_fg.select(vec!["cc_num", "datetime"])?;
 
-    let window_aggs_fg = fs
-        .get_or_create_feature_group(
-            format!("transactions_{}_aggs_fraud_batch_fg", window_len).as_str(),
-            1,
-            Some("Aggregate transaction data over {window_len} windows."),
-            vec!["cc_num"],
-            "datetime",
-        )
-        .await?;
+    construct_query(query).await?;
 
-    window_aggs_fg
-        .insert(&mut window_agg_df.head(Some(20)))
-        .await?;
+    // trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
+
+    // let window_aggs_fg = fs
+    //     .get_or_create_feature_group(
+    //         format!("transactions_{}_aggs_fraud_batch_fg", window_len).as_str(),
+    //         1,
+    //         Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
+    //         vec!["cc_num"],
+    //         "datetime",
+    //     )
+    //     .await?;
+
+    // window_aggs_fg
+    //     .insert(&mut window_agg_df.head(Some(n_rows)))
+    //     .await?;
 
     Ok(())
 }

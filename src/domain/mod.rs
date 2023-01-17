@@ -5,3 +5,4 @@ pub mod feature_store;
 pub mod job;
 pub mod kafka;
 pub mod project;
+pub mod query;

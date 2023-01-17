@@ -1,7 +1,7 @@
 use color_eyre::Result;
 use polars::prelude::DataFrame;
 
-use crate::domain::feature_group;
+use crate::{api::query::entities::Query, domain::feature_group};
 
 use super::entities::FeatureGroup;
 
@@ -66,5 +66,21 @@ impl FeatureGroup {
             self.get_primary_keys().unwrap(),
         )
         .await
+    }
+
+    pub fn select(&self, feature_names: Vec<&str>) -> Result<Query> {
+        Ok(Query::new(
+            self.clone(),
+            self.features
+                .iter()
+                .filter_map(|feature| {
+                    if feature_names.contains(&feature.name.as_str()) {
+                        Some(feature.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect(),
+        ))
     }
 }

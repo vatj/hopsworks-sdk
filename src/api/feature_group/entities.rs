@@ -13,18 +13,18 @@ use crate::{
 pub struct FeatureGroup {
     pub(super) id: Cell<Option<i32>>,
     pub featurestore_id: i32,
-    featurestore_name: String,
-    feature_group_type: String,
+    pub featurestore_name: String,
+    pub feature_group_type: String,
     pub description: Option<String>,
-    created: String,
-    creator: Option<User>,
+    pub created: String,
+    pub creator: Option<User>,
     pub version: i32,
     pub name: String,
-    location: Option<String>,
-    statistics_config: Option<StatisticsConfig>,
+    pub location: Option<String>,
+    pub statistics_config: Option<StatisticsConfig>,
     pub features: Vec<Feature>,
-    online_enabled: bool,
-    time_travel_format: String,
+    pub online_enabled: bool,
+    pub time_travel_format: String,
     pub online_topic_name: RefCell<Option<String>>,
     pub primary_key: Option<Vec<String>>,
     pub event_time: Option<String>,
@@ -91,18 +91,18 @@ impl FeatureGroup {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
-    email: String,
-    first_name: String,
-    last_name: String,
-    status: i32,
-    tos: bool,
-    two_factor: bool,
-    tours_state: i32,
-    max_num_projects: i32,
-    num_created_projects: i32,
-    test_user: bool,
-    num_active_projects: i32,
-    num_remaining_projects: i32,
+    pub email: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub status: i32,
+    pub tos: bool,
+    pub two_factor: bool,
+    pub tours_state: i32,
+    pub max_num_projects: i32,
+    pub num_created_projects: i32,
+    pub test_user: bool,
+    pub num_active_projects: i32,
+    pub num_remaining_projects: i32,
 }
 
 impl User {
@@ -130,9 +130,9 @@ pub struct Feature {
     pub description: Option<String>,
     pub data_type: String,
     pub primary: bool,
-    partition: bool,
-    hudi_precombine_key: bool,
-    feature_group_id: Option<i32>,
+    pub partition: bool,
+    pub hudi_precombine_key: bool,
+    pub feature_group_id: Option<i32>,
 }
 
 impl Feature {
@@ -151,11 +151,11 @@ impl Feature {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct StatisticsConfig {
-    enabled: bool,
-    histograms: bool,
-    correlations: bool,
-    exact_uniqueness: bool,
-    columns: Vec<String>,
+    pub enabled: bool,
+    pub histograms: bool,
+    pub correlations: bool,
+    pub exact_uniqueness: bool,
+    pub columns: Vec<String>,
 }
 
 impl StatisticsConfig {
