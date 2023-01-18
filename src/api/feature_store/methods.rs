@@ -1,6 +1,8 @@
 use super::entities::FeatureStore;
 use crate::api::feature_group::entities::FeatureGroup;
+use crate::api::transformation_function::entities::TransformationFunction;
 use crate::domain::feature_group;
+use crate::domain::transformation_function::controller::get_transformation_function_by_name_and_version;
 use color_eyre::Result;
 
 impl FeatureStore {
@@ -46,5 +48,13 @@ impl FeatureStore {
             primary_key,
             event_time,
         ))
+    }
+
+    pub async fn get_transformation_function(
+        &self,
+        name: &str,
+        version: Option<i32>,
+    ) -> Result<Option<TransformationFunction>> {
+        get_transformation_function_by_name_and_version(self.featurestore_id, name, version).await
     }
 }

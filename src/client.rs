@@ -186,6 +186,27 @@ impl HopsworksClient {
         }
     }
 
+    pub async fn get_with_project_id_and_auth(
+        &self,
+        url: &str,
+        with_project_id: bool,
+        with_auth_header: bool,
+    ) -> Result<reqwest::RequestBuilder, reqwest::Error> {
+        let absolute_url: String = self.endpoint_url(url, with_project_id).await;
+        info!("GET : {}", absolute_url);
+
+        let request_builder = self.get_client().get(absolute_url);
+
+        if with_auth_header {
+            Ok(
+                request_builder
+                    .header("authorization", self.get_authorization_header_value().await),
+            )
+        } else {
+            Ok(request_builder)
+        }
+    }
+
     pub async fn send_post_form<T: Serialize + ?Sized>(
         &self,
         url: &str,

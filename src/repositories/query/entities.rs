@@ -12,7 +12,7 @@ pub struct FeatureStoreQueryDTO {
     href: String,
     query: String,
     query_online: String,
-    pit_query: String,
-    hudi_cached_feature_group: Vec<FeatureGroupDTO>,
-    on_demand_feature_group: Vec<FeatureGroupDTO>,
+    pit_query: Option<String>,
+    hudi_cached_feature_groups: Vec<FeatureGroupDTO>,
+    on_demand_feature_groups: Vec<FeatureGroupDTO>,
 }

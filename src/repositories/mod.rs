@@ -8,4 +8,5 @@ pub mod kafka;
 pub mod project;
 pub mod query;
 pub mod statistics_config;
+pub mod transformation_function;
 pub mod users;

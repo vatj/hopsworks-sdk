@@ -77,6 +77,15 @@ async fn main() -> Result<()> {
 
     construct_query(query).await?;
 
+    let min_max_scaler = fs
+        .get_transformation_function("min_max_scaler", None)
+        .await?;
+    let label_encoder = fs
+        .get_transformation_function("label_encoder", None)
+        .await?;
+
+    println!("{:?}\n{:?}", min_max_scaler, label_encoder);
+
     // trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
 
     // let window_aggs_fg = fs
