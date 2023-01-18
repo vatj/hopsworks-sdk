@@ -40,7 +40,7 @@ impl FeatureStore {
             return Ok(feature_group);
         }
 
-        Ok(FeatureGroup::new_in_feature_store(
+        Ok(FeatureGroup::new_local(
             self,
             name,
             version,

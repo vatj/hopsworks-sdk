@@ -59,7 +59,7 @@ impl FeatureGroup {
         }
     }
 
-    pub fn new_in_feature_store(
+    pub fn new_local(
         feature_store: &FeatureStore,
         name: &str,
         version: i32,
