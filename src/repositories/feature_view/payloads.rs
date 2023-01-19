@@ -5,6 +5,8 @@ use crate::repositories::{
     query::entities::{FeatureStoreQueryDTO, QueryDTO},
 };
 
+use super::entities::TagsDTO;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct NewFeatureViewPayload {
@@ -53,9 +55,3 @@ impl NewFeatureViewPayload {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct KeywordDTO {}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct TagsDTO {
-    href: Option<String>,
-}

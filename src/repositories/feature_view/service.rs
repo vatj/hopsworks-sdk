@@ -1,10 +1,7 @@
 use color_eyre::Result;
 use reqwest::StatusCode;
 
-use super::{
-    entities::{FeatureViewDTO, FeatureViewResponseDTO},
-    payloads::NewFeatureViewPayload,
-};
+use super::{entities::FeatureViewDTO, payloads::NewFeatureViewPayload};
 use crate::get_hopsworks_client;
 
 pub async fn get_feature_view_by_name_and_version(
@@ -35,11 +32,6 @@ pub async fn get_feature_view_by_name_and_version(
             res.text_with_charset("utf-8").await?
         ),
     }
-
-    // match feature_view_list.items.pop() {
-    //     Some(feature_view) => Ok(Some(feature_view)),
-    //     None => Ok(None),
-    // }
 }
 
 pub async fn create_feature_view(

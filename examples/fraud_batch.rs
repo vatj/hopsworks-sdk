@@ -4,6 +4,7 @@ use color_eyre::Result;
 
 use hopsworks_rs::{
     api::transformation_function::entities::TransformationFunction, hopsworks_login,
+    repositories::training_datasets::service::get_training_dataset_by_name_and_version,
 };
 use polars::prelude::*;
 
@@ -12,52 +13,52 @@ async fn main() -> Result<()> {
     env_logger::init();
 
     // Load csv files into dataframes
-    let mut trans_df = CsvReader::from_path("./example_data/transactions.csv")?
-        .with_parse_dates(true)
-        .finish()?;
+    // let mut trans_df = CsvReader::from_path("./example_data/transactions.csv")?
+    //     .with_parse_dates(true)
+    //     .finish()?;
 
-    let _credit_cards_df = CsvReader::from_path("./example_data/credit_cards.csv")?.finish()?;
+    // let _credit_cards_df = CsvReader::from_path("./example_data/credit_cards.csv")?.finish()?;
 
-    let profiles_df = CsvReader::from_path("./example_data/profiles.csv")?
-        .with_parse_dates(true)
-        .finish()?;
+    // let profiles_df = CsvReader::from_path("./example_data/profiles.csv")?
+    //     .with_parse_dates(true)
+    //     .finish()?;
 
-    let age_df = trans_df.left_join(&profiles_df, ["cc_num"], ["cc_num"])?;
+    // let age_df = trans_df.left_join(&profiles_df, ["cc_num"], ["cc_num"])?;
 
-    trans_df
-        .with_column(
-            (&age_df["birthdate"] - &age_df["datetime"])
-                .cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
-        )?
-        .rename("birthdate", "age_at_transaction")?;
+    // trans_df
+    //     .with_column(
+    //         (&age_df["birthdate"] - &age_df["datetime"])
+    //             .cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
+    //     )?
+    //     .rename("birthdate", "age_at_transaction")?;
 
-    trans_df.with_column(
-        trans_df["datetime"].cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
-    )?;
+    // trans_df.with_column(
+    //     trans_df["datetime"].cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
+    // )?;
 
-    let window_len = "4h";
-    let groupby_rolling_options = RollingGroupOptions {
-        index_column: String::from("datetime"),
-        period: Duration::parse(window_len),
-        offset: Duration::parse("0s"),
-        closed_window: ClosedWindow::Left,
-    };
+    // let window_len = "4h";
+    // let groupby_rolling_options = RollingGroupOptions {
+    //     index_column: String::from("datetime"),
+    //     period: Duration::parse(window_len),
+    //     offset: Duration::parse("0s"),
+    //     closed_window: ClosedWindow::Left,
+    // };
 
-    trans_df.sort_in_place(["datetime"], vec![false])?;
+    // trans_df.sort_in_place(["datetime"], vec![false])?;
 
-    let _window_agg_df = trans_df
-        .select(["datetime", "amount", "cc_num"])?
-        .lazy()
-        .groupby_rolling([col("cc_num")], groupby_rolling_options)
-        .agg([
-            col("amount").mean().alias("trans_volume_mavg"),
-            col("amount").std(1).alias("trans_volume_mstd"),
-            col("amount")
-                .count()
-                .alias("trans_freq")
-                .cast(DataType::Int64),
-        ])
-        .collect()?;
+    // let window_agg_df = trans_df
+    //     .select(["datetime", "amount", "cc_num"])?
+    //     .lazy()
+    //     .groupby_rolling([col("cc_num")], groupby_rolling_options)
+    //     .agg([
+    //         col("amount").mean().alias("trans_volume_mavg"),
+    //         col("amount").std(1).alias("trans_volume_mstd"),
+    //         col("amount")
+    //             .count()
+    //             .alias("trans_freq")
+    //             .cast(DataType::Int64),
+    //     ])
+    //     .collect()?;
 
     let project = hopsworks_login()
         .await
@@ -65,15 +66,24 @@ async fn main() -> Result<()> {
 
     let fs = project.get_feature_store().await?;
 
-    let trans_fg = fs
-        .get_or_create_feature_group(
-            "transactions_fg",
-            1,
-            Some("Transactions data"),
-            vec!["cc_num"],
-            "datetime",
-        )
-        .await?;
+    let test = get_training_dataset_by_name_and_version(
+        fs.featurestore_id,
+        "transactions_view_fraud_batch_fv_1",
+        Some(1),
+    )
+    .await?;
+
+    println!("{test:?}");
+
+    // let trans_fg = fs
+    //     .get_or_create_feature_group(
+    //         "transactions_fg",
+    //         1,
+    //         Some("Transactions data"),
+    //         vec!["cc_num"],
+    //         "datetime",
+    //     )
+    //     .await?;
 
     // let n_rows = 50000;
     // trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
@@ -92,25 +102,25 @@ async fn main() -> Result<()> {
     //     .insert(&mut window_agg_df.head(Some(n_rows)))
     //     .await?;
 
-    let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?;
+    // let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?;
 
-    let min_max_scaler = fs
-        .get_transformation_function("min_max_scaler", None)
-        .await?;
-    let label_encoder = fs
-        .get_transformation_function("label_encoder", None)
-        .await?;
+    // let min_max_scaler = fs
+    //     .get_transformation_function("min_max_scaler", None)
+    //     .await?;
+    // let label_encoder = fs
+    //     .get_transformation_function("label_encoder", None)
+    //     .await?;
 
-    println!("{:?}\n{:?}", min_max_scaler, label_encoder);
+    // println!("{:?}\n{:?}", min_max_scaler, label_encoder);
 
-    let mut transformation_functions = HashMap::<String, TransformationFunction>::new();
-    transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap().clone());
+    // let mut transformation_functions = HashMap::<String, TransformationFunction>::new();
+    // transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap().clone());
 
-    let feature_view = fs
-        .create_feature_view("trans_view_1", 13, query, transformation_functions)
-        .await?;
+    // let feature_view = fs
+    //     .create_feature_view("trans_view_1", 13, query, transformation_functions)
+    //     .await?;
 
-    println!("The view: {:?}", feature_view);
+    // println!("The view: {:?}", feature_view);
 
     // let fetched_view = fs.get_feature_view("trans_view_1", Some(12)).await?;
 
