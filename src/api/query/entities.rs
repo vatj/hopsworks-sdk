@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::api::feature_group::entities::{Feature, FeatureGroup};
+use crate::{
+    api::feature_group::entities::{Feature, FeatureGroup},
+    repositories::query::entities::QueryDTO,
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Query {
@@ -8,7 +11,7 @@ pub struct Query {
     pub left_features: Vec<Feature>,
     pub feature_store_name: String,
     pub feature_store_id: i32,
-    pub joins: Vec<JoinQuery>,
+    pub joins: Option<Vec<JoinQuery>>,
 }
 
 impl Query {
@@ -18,7 +21,23 @@ impl Query {
             feature_store_id: left_feature_group.featurestore_id,
             left_feature_group,
             left_features,
-            joins: vec![],
+            joins: Some(vec![]),
+        }
+    }
+}
+
+impl From<QueryDTO> for Query {
+    fn from(dto: QueryDTO) -> Self {
+        Self {
+            left_feature_group: FeatureGroup::from(dto.left_feature_group),
+            left_features: dto
+                .left_features
+                .iter()
+                .map(|feature_dto| Feature::from(feature_dto.clone()))
+                .collect(),
+            feature_store_name: dto.feature_store_name.clone(),
+            feature_store_id: dto.feature_store_id,
+            joins: Some(vec![]),
         }
     }
 }

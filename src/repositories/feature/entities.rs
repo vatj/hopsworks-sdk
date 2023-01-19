@@ -1,6 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use crate::api::feature_group::entities::Feature;
+use crate::{
+    api::feature_group::entities::Feature,
+    repositories::{
+        feature_group::entities::FeatureGroupDTO,
+        transformation_function::entities::TransformationFunctionDTO,
+    },
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -45,6 +51,37 @@ impl FeatureDTO {
             partition: feature.partition,
             hudi_precombine_key: feature.hudi_precombine_key,
             feature_group_id: feature.feature_group_id,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct TrainingDatasetFeatureDTO {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub data_type: String,
+    pub label: bool,
+    pub feature_group_feature_name: String,
+    pub transformation_function: Option<TransformationFunctionDTO>,
+    pub index: i32,
+    pub featuregroup: FeatureGroupDTO,
+}
+
+impl TrainingDatasetFeatureDTO {
+    pub fn new_from_feature_and_transformation_function(
+        feature: FeatureDTO,
+        feature_group: FeatureGroupDTO,
+        transformation_function: Option<TransformationFunctionDTO>,
+    ) -> Self {
+        Self {
+            name: feature.name.clone(),
+            data_type: feature.data_type,
+            label: false,
+            feature_group_feature_name: feature.name,
+            transformation_function,
+            index: 0,
+            featuregroup: feature_group,
         }
     }
 }

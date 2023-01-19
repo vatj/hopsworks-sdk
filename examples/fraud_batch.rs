@@ -1,6 +1,10 @@
+use std::collections::HashMap;
+
 use color_eyre::Result;
 
-use hopsworks_rs::{domain::query::controller::construct_query, hopsworks_login};
+use hopsworks_rs::{
+    api::transformation_function::entities::TransformationFunction, hopsworks_login,
+};
 use polars::prelude::*;
 
 #[tokio::main]
@@ -73,9 +77,9 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    let query = trans_fg.select(vec!["cc_num", "datetime"])?;
+    let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?;
 
-    construct_query(query).await?;
+    // construct_query(query).await?;
 
     let min_max_scaler = fs
         .get_transformation_function("min_max_scaler", None)
@@ -85,6 +89,19 @@ async fn main() -> Result<()> {
         .await?;
 
     println!("{:?}\n{:?}", min_max_scaler, label_encoder);
+
+    let mut transformation_functions = HashMap::<String, TransformationFunction>::new();
+    transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap().clone());
+
+    // let _feature_view = fs
+    //     .create_feature_view("trans_view_1", 13, query, transformation_functions)
+    //     .await?;
+
+    // println!("The view: {:?}", feature_view);
+
+    let fetched_view = fs.get_feature_view("trans_view_1", Some(12)).await?;
+
+    println!("The fetched view:\n{:?}", fetched_view);
 
     // trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
 

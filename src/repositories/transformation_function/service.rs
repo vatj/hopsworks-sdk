@@ -17,7 +17,6 @@ pub async fn get_transformation_function_by_name_and_version(
     if let Some(ver) = version {
         query_params.insert("version", ver.to_string());
     }
-    // let query_params = [("name", name.to_owned())];
 
     let res = get_hopsworks_client()
         .await
@@ -31,16 +30,15 @@ pub async fn get_transformation_function_by_name_and_version(
         .send()
         .await?;
 
-    let transformation_function_response= match res.status() {
+    let mut transformation_function_list= match res.status() {
         StatusCode::OK => res.json::<TransformationFunctionResponse>().await?,
         _ => panic!("Transformation function get request failed with status {:?}, here is the response : \n{:?}.",
             res.status(),
             res.text_with_charset("utf-8").await)
     };
 
-    if transformation_function_response.items.is_empty() {
-        Ok(None)
-    } else {
-        Ok(transformation_function_response.items.first().cloned())
+    match transformation_function_list.items.pop() {
+        Some(transformation_function) => Ok(Some(transformation_function)),
+        None => Ok(None),
     }
 }

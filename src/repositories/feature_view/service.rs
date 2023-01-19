@@ -1,6 +1,10 @@
 use color_eyre::Result;
+use reqwest::StatusCode;
 
-use super::entities::{FeatureViewDTO, FeatureViewResponseDTO};
+use super::{
+    entities::{FeatureViewDTO, FeatureViewResponseDTO},
+    payloads::NewFeatureViewPayload,
+};
 use crate::get_hopsworks_client;
 
 pub async fn get_feature_view_by_name_and_version(
@@ -8,25 +12,58 @@ pub async fn get_feature_view_by_name_and_version(
     name: &str,
     version: Option<i32>,
 ) -> Result<Option<FeatureViewDTO>> {
-    let mut query_params: Vec<(&str, String)> = vec![];
+    let query_params = [("expand", "features"), ("expand", "query")];
+    let base_relative_url = format!("featurestores/{feature_store_id}/featureview/{name}");
+    let relative_url = match version {
+        Some(ver) => format!("{base_relative_url}/version/{ver}"),
+        None => base_relative_url,
+    };
 
-    if let Some(provided_version) = version {
-        query_params.push(("version", provided_version.to_string()));
+    let res = get_hopsworks_client()
+        .await
+        .get_with_project_id_and_auth(relative_url.as_str(), true, true)
+        .await?
+        .query(&query_params)
+        .send()
+        .await?;
+
+    match res.status() {
+        StatusCode::OK => Ok(Some(res.json::<FeatureViewDTO>().await?)),
+        _ => panic!(
+            "get_feature_view failed with status : {:?}, here is the response :\n{:?}",
+            res.status(),
+            res.text_with_charset("utf-8").await?
+        ),
     }
 
-    let mut feature_view_list = get_hopsworks_client()
+    // match feature_view_list.items.pop() {
+    //     Some(feature_view) => Ok(Some(feature_view)),
+    //     None => Ok(None),
+    // }
+}
+
+pub async fn create_feature_view(
+    feature_store_id: i32,
+    new_feature_view_payload: NewFeatureViewPayload,
+) -> Result<FeatureViewDTO> {
+    let res = get_hopsworks_client()
         .await
-        .send_get_with_query_params(
-            format!("featurestores/{feature_store_id}/featureview/{name}").as_str(),
-            &query_params,
+        .post_with_project_id_and_auth(
+            format!("featurestores/{}/featureview", feature_store_id).as_str(),
+            true,
             true,
         )
         .await?
-        .json::<FeatureViewResponseDTO>()
+        .json(&new_feature_view_payload)
+        .send()
         .await?;
 
-    match feature_view_list.items.pop() {
-        Some(feature_view) => Ok(Some(feature_view)),
-        None => Ok(None),
+    match res.status() {
+        StatusCode::CREATED => Ok(res.json::<FeatureViewDTO>().await?),
+        _ => panic!(
+            "create_feature_view failed with status : {:?}, here is the response :\n{:?}",
+            res.status(),
+            res.text_with_charset("utf-8").await?
+        ),
     }
 }

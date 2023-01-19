@@ -14,7 +14,7 @@ pub struct NewQueryPayload<'a> {
     left_features: Vec<FeatureDTO>,
     left_feature_group_start_time: Option<&'a str>,
     left_feature_group_end_time: Option<&'a str>,
-    joins: Vec<NewJoinQueryPayload<'a>>,
+    joins: Option<Vec<NewJoinQueryPayload<'a>>>,
     hive_engine: bool,
     filter: Option<&'a str>,
 }
@@ -25,7 +25,7 @@ impl<'a> NewQueryPayload<'a> {
         left_features: Vec<FeatureDTO>,
         left_feature_group_start_time: Option<&'a str>,
         left_feature_group_end_time: Option<&'a str>,
-        joins: Vec<NewJoinQueryPayload<'a>>,
+        joins: Option<Vec<NewJoinQueryPayload<'a>>>,
         hive_engine: bool,
         filter: Option<&'a str>,
     ) -> Self {
@@ -56,11 +56,15 @@ impl<'a> From<Query> for NewQueryPayload<'a> {
                 .collect(),
             left_feature_group_start_time: None,
             left_feature_group_end_time: None,
-            joins: query
-                .joins
-                .iter()
-                .map(|join_query| NewJoinQueryPayload::from(join_query.clone()))
-                .collect(),
+            joins: match query.joins {
+                Some(joins) => Some(
+                    joins
+                        .iter()
+                        .map(|join_query| NewJoinQueryPayload::from(join_query.clone()))
+                        .collect(),
+                ),
+                None => None,
+            },
             hive_engine: true,
             filter: None,
         }
