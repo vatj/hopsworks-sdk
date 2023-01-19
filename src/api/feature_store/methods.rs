@@ -1,6 +1,12 @@
+use std::collections::HashMap;
+
 use super::entities::FeatureStore;
 use crate::api::feature_group::entities::FeatureGroup;
-use crate::domain::feature_group;
+use crate::api::feature_view::entities::FeatureView;
+use crate::api::query::entities::Query;
+use crate::api::transformation_function::entities::TransformationFunction;
+use crate::domain::transformation_function::controller::get_transformation_function_by_name_and_version;
+use crate::domain::{feature_group, feature_view};
 use color_eyre::Result;
 
 impl FeatureStore {
@@ -38,7 +44,8 @@ impl FeatureStore {
             return Ok(feature_group);
         }
 
-        Ok(FeatureGroup::new_in_feature_store(
+        // If FG does not exist in backend, create a local Feature Group entity not registered with Hopsworks
+        Ok(FeatureGroup::new_local(
             self,
             name,
             version,
@@ -46,5 +53,44 @@ impl FeatureStore {
             primary_key,
             event_time,
         ))
+    }
+
+    pub async fn create_feature_view(
+        &self,
+        name: &str,
+        version: i32,
+        query: Query,
+        transformation_functions: HashMap<String, TransformationFunction>,
+    ) -> Result<FeatureView> {
+        feature_view::controller::create_feature_view(
+            self.featurestore_id,
+            self.featurestore_name.clone(),
+            name.to_owned(),
+            version,
+            query,
+            transformation_functions,
+        )
+        .await
+    }
+
+    pub async fn get_feature_view(
+        &self,
+        name: &str,
+        version: Option<i32>,
+    ) -> Result<Option<FeatureView>> {
+        feature_view::controller::get_feature_view_by_name_and_version(
+            self.featurestore_id,
+            name,
+            version,
+        )
+        .await
+    }
+
+    pub async fn get_transformation_function(
+        &self,
+        name: &str,
+        version: Option<i32>,
+    ) -> Result<Option<TransformationFunction>> {
+        get_transformation_function_by_name_and_version(self.featurestore_id, name, version).await
     }
 }
