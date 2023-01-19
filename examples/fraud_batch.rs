@@ -45,7 +45,7 @@ async fn main() -> Result<()> {
 
     trans_df.sort_in_place(["datetime"], vec![false])?;
 
-    let window_agg_df = trans_df
+    let _window_agg_df = trans_df
         .select(["datetime", "amount", "cc_num"])?
         .lazy()
         .groupby_rolling([col("cc_num")], groupby_rolling_options)
@@ -65,8 +65,6 @@ async fn main() -> Result<()> {
 
     let fs = project.get_feature_store().await?;
 
-    let n_rows = 50000;
-
     let trans_fg = fs
         .get_or_create_feature_group(
             "transactions_fg",
@@ -77,32 +75,7 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?;
-
-    // construct_query(query).await?;
-
-    let min_max_scaler = fs
-        .get_transformation_function("min_max_scaler", None)
-        .await?;
-    let label_encoder = fs
-        .get_transformation_function("label_encoder", None)
-        .await?;
-
-    println!("{:?}\n{:?}", min_max_scaler, label_encoder);
-
-    let mut transformation_functions = HashMap::<String, TransformationFunction>::new();
-    transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap().clone());
-
-    // let _feature_view = fs
-    //     .create_feature_view("trans_view_1", 13, query, transformation_functions)
-    //     .await?;
-
-    // println!("The view: {:?}", feature_view);
-
-    let fetched_view = fs.get_feature_view("trans_view_1", Some(12)).await?;
-
-    println!("The fetched view:\n{:?}", fetched_view);
-
+    // let n_rows = 50000;
     // trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
 
     // let window_aggs_fg = fs
@@ -118,6 +91,28 @@ async fn main() -> Result<()> {
     // window_aggs_fg
     //     .insert(&mut window_agg_df.head(Some(n_rows)))
     //     .await?;
+
+    let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?;
+
+    let min_max_scaler = fs
+        .get_transformation_function("min_max_scaler", None)
+        .await?;
+    let label_encoder = fs
+        .get_transformation_function("label_encoder", None)
+        .await?;
+
+    println!("{:?}\n{:?}", min_max_scaler, label_encoder);
+
+    let mut transformation_functions = HashMap::<String, TransformationFunction>::new();
+    transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap().clone());
+
+    let feature_view = fs
+        .create_feature_view("trans_view_1", 13, query, transformation_functions)
+        .await?;
+
+    println!("The view: {:?}", feature_view);
+
+    // let fetched_view = fs.get_feature_view("trans_view_1", Some(12)).await?;
 
     Ok(())
 }
