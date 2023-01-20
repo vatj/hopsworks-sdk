@@ -17,6 +17,7 @@ pub struct TrainingDatasetDTO {
     pub featurestore_id: i32,
     pub featurestore_name: String,
     description: Option<String>,
+    query: Option<QueryDTO>,
     created: String,
     creator: UserDTO,
     statistics_config: StatisticsConfigDTO,

@@ -2,7 +2,12 @@ use color_eyre::Result;
 use reqwest::StatusCode;
 
 use super::{entities::FeatureViewDTO, payloads::NewFeatureViewPayload};
-use crate::get_hopsworks_client;
+use crate::{
+    get_hopsworks_client,
+    repositories::training_datasets::{
+        entities::TrainingDatasetDTO, payloads::NewTrainingDatasetPayload,
+    },
+};
 
 pub async fn get_feature_view_by_name_and_version(
     feature_store_id: i32,
@@ -54,6 +59,38 @@ pub async fn create_feature_view(
         StatusCode::CREATED => Ok(res.json::<FeatureViewDTO>().await?),
         _ => panic!(
             "create_feature_view failed with status : {:?}, here is the response :\n{:?}",
+            res.status(),
+            res.text_with_charset("utf-8").await?
+        ),
+    }
+}
+
+// This is left here to emulate the feature-store-api
+pub async fn create_training_dataset_attached_to_feature_view(
+    name: &str,
+    version: i32,
+    new_training_dataset_payload: NewTrainingDatasetPayload,
+) -> Result<TrainingDatasetDTO> {
+    let res = get_hopsworks_client()
+        .await
+        .post_with_project_id_and_auth(
+            format!(
+                "featurestores/{}/featureview/{name}/version/{version}/trainingdatasets",
+                new_training_dataset_payload.featurestore_id,
+            )
+            .as_str(),
+            true,
+            true,
+        )
+        .await?
+        .json(&new_training_dataset_payload)
+        .send()
+        .await?;
+
+    match res.status() {
+        StatusCode::CREATED => Ok(res.json::<TrainingDatasetDTO>().await?),
+        _ => panic!(
+            "create_training_dataset failed with status : {:?}, here is the response :\n{:?}",
             res.status(),
             res.text_with_charset("utf-8").await?
         ),
