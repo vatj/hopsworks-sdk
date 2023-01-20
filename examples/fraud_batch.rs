@@ -6,7 +6,7 @@ use hopsworks_rs::{
     api::transformation_function::entities::TransformationFunction,
     domain::{
         query::controller::construct_query,
-        training_dataset::controller::create_training_dataset_from_feature_view,
+        training_dataset::controller::create_training_dataset_attached_to_feature_view,
     },
     hopsworks_login,
     repositories::training_datasets::{
@@ -126,7 +126,7 @@ async fn main() -> Result<()> {
 
     println!("The view: {:?}", fetched_view);
 
-    create_training_dataset_from_feature_view(fetched_view).await?;
+    create_training_dataset_attached_to_feature_view(fetched_view).await?;
 
     // let test_get = get_training_dataset_by_name_and_version(
     //     fs.featurestore_id,

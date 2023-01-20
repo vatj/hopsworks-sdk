@@ -4,8 +4,12 @@ use reqwest::StatusCode;
 use super::{entities::FeatureViewDTO, payloads::NewFeatureViewPayload};
 use crate::{
     get_hopsworks_client,
-    repositories::training_datasets::{
-        entities::TrainingDatasetDTO, payloads::NewTrainingDatasetPayload,
+    repositories::{
+        job::entities::JobDTO,
+        training_datasets::{
+            entities::TrainingDatasetDTO,
+            payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
+        },
     },
 };
 
@@ -89,6 +93,38 @@ pub async fn create_training_dataset_attached_to_feature_view(
 
     match res.status() {
         StatusCode::CREATED => Ok(res.json::<TrainingDatasetDTO>().await?),
+        _ => panic!(
+            "create_training_dataset failed with status : {:?}, here is the response :\n{:?}",
+            res.status(),
+            res.text_with_charset("utf-8").await?
+        ),
+    }
+}
+
+pub async fn compute_training_dataset_attached_to_feature_view(
+    feature_store_id: i32,
+    name: &str,
+    version: i32,
+    dataset_version: i32,
+    job_config: TrainingDatasetComputeJobConfigPayload,
+) -> Result<JobDTO> {
+    let res = get_hopsworks_client()
+        .await
+        .post_with_project_id_and_auth(
+            format!(
+                "featurestores/{feature_store_id}/featureview/{name}/version/{version}/trainingdatasets/version/{dataset_version}/compute",
+            )
+            .as_str(),
+            true,
+            true,
+        )
+        .await?
+        .json(&job_config)
+        .send()
+        .await?;
+
+    match res.status() {
+        StatusCode::CREATED => Ok(res.json::<JobDTO>().await?),
         _ => panic!(
             "create_training_dataset failed with status : {:?}, here is the response :\n{:?}",
             res.status(),

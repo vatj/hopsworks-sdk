@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 use crate::repositories::{
@@ -55,4 +57,38 @@ impl NewTrainingDatasetPayload {
             tags: None,
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct TrainingDatasetComputeJobConfigPayload {
+    pub overwrite: bool,
+    pub write_options: Vec<OptionDTO>,
+    pub spark_job_configuration: Option<SparkJobConfiguration>,
+    pub query: QueryDTO,
+}
+
+impl TrainingDatasetComputeJobConfigPayload {
+    pub fn new(overwrite: bool, query: QueryDTO) -> Self {
+        Self {
+            overwrite,
+            write_options: vec![],
+            spark_job_configuration: None,
+            query: query,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct OptionDTO {
+    name: String,
+    value: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct SparkJobConfiguration {
+    #[serde(rename = "type")]
+    spark_job_configuration_type: String,
 }
