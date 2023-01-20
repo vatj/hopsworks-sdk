@@ -40,3 +40,7 @@ pub struct FeatureViewDTO {
 pub struct TagsDTO {
     href: Option<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct KeywordDTO {}

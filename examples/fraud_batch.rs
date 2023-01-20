@@ -3,8 +3,16 @@ use std::collections::HashMap;
 use color_eyre::Result;
 
 use hopsworks_rs::{
-    api::transformation_function::entities::TransformationFunction, hopsworks_login,
-    repositories::training_datasets::service::get_training_dataset_by_name_and_version,
+    api::transformation_function::entities::TransformationFunction,
+    domain::{
+        query::controller::construct_query,
+        training_dataset::controller::create_training_dataset_from_feature_view,
+    },
+    hopsworks_login,
+    repositories::training_datasets::{
+        payloads::NewTrainingDatasetPayload,
+        service::{create_training_dataset, get_training_dataset_by_name_and_version},
+    },
 };
 use polars::prelude::*;
 
@@ -66,18 +74,9 @@ async fn main() -> Result<()> {
 
     let fs = project.get_feature_store().await?;
 
-    let test = get_training_dataset_by_name_and_version(
-        fs.featurestore_id,
-        "transactions_view_fraud_batch_fv_1",
-        Some(1),
-    )
-    .await?;
-
-    println!("{test:?}");
-
     // let trans_fg = fs
     //     .get_or_create_feature_group(
-    //         "transactions_fg",
+    //         "transactions_fg_rust",
     //         1,
     //         Some("Transactions data"),
     //         vec!["cc_num"],
@@ -90,7 +89,7 @@ async fn main() -> Result<()> {
 
     // let window_aggs_fg = fs
     //     .get_or_create_feature_group(
-    //         format!("transactions_{}_aggs_fraud_batch_fg", window_len).as_str(),
+    //         format!("transactions_{}_aggs_fraud_batch_fg_rust", window_len).as_str(),
     //         1,
     //         Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
     //         vec!["cc_num"],
@@ -117,12 +116,24 @@ async fn main() -> Result<()> {
     // transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap().clone());
 
     // let feature_view = fs
-    //     .create_feature_view("trans_view_1", 13, query, transformation_functions)
+    //     .create_feature_view("trans_view_1_rust", 1, query, transformation_functions)
     //     .await?;
 
-    // println!("The view: {:?}", feature_view);
+    let fetched_view = fs
+        .get_feature_view("trans_view_1_rust", Some(1))
+        .await?
+        .unwrap();
 
-    // let fetched_view = fs.get_feature_view("trans_view_1", Some(12)).await?;
+    println!("The view: {:?}", fetched_view);
+
+    create_training_dataset_from_feature_view(fetched_view).await?;
+
+    // let test_get = get_training_dataset_by_name_and_version(
+    //     fs.featurestore_id,
+    //     "transactions_view_fraud_batch_fv_1",
+    //     Some(1),
+    // )
+    // .await?;
 
     Ok(())
 }
