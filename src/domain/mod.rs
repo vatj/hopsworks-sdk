@@ -7,4 +7,5 @@ pub mod job;
 pub mod kafka;
 pub mod project;
 pub mod query;
+pub mod training_dataset;
 pub mod transformation_function;

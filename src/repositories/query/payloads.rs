@@ -56,15 +56,12 @@ impl<'a> From<Query> for NewQueryPayload<'a> {
                 .collect(),
             left_feature_group_start_time: None,
             left_feature_group_end_time: None,
-            joins: match query.joins {
-                Some(joins) => Some(
-                    joins
-                        .iter()
-                        .map(|join_query| NewJoinQueryPayload::from(join_query.clone()))
-                        .collect(),
-                ),
-                None => None,
-            },
+            joins: query.joins.map(|joins| {
+                joins
+                    .iter()
+                    .map(|join_query| NewJoinQueryPayload::from(join_query.clone()))
+                    .collect()
+            }),
             hive_engine: true,
             filter: None,
         }

@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use color_eyre::Result;
 
 use hopsworks_rs::{
-    api::transformation_function::entities::TransformationFunction, hopsworks_login,
+    api::transformation_function::entities::TransformationFunction,
+    domain::training_dataset::controller::create_training_dataset_attached_to_feature_view,
+    hopsworks_login,
 };
 use polars::prelude::*;
 
@@ -32,7 +34,8 @@ async fn main() -> Result<()> {
         .rename("birthdate", "age_at_transaction")?;
 
     trans_df.with_column(
-        trans_df["datetime"].cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
+        1e-3.mul(&trans_df["datetime"])
+            .cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
     )?;
 
     let window_len = "4h";
@@ -45,7 +48,7 @@ async fn main() -> Result<()> {
 
     trans_df.sort_in_place(["datetime"], vec![false])?;
 
-    let _window_agg_df = trans_df
+    let window_agg_df = trans_df
         .select(["datetime", "amount", "cc_num"])?
         .lazy()
         .groupby_rolling([col("cc_num")], groupby_rolling_options)
@@ -67,7 +70,7 @@ async fn main() -> Result<()> {
 
     let trans_fg = fs
         .get_or_create_feature_group(
-            "transactions_fg",
+            "transactions_fg_3_rust",
             1,
             Some("Transactions data"),
             vec!["cc_num"],
@@ -75,44 +78,54 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    // let n_rows = 50000;
-    // trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
+    let n_rows = 5000;
+    trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
 
-    // let window_aggs_fg = fs
-    //     .get_or_create_feature_group(
-    //         format!("transactions_{}_aggs_fraud_batch_fg", window_len).as_str(),
-    //         1,
-    //         Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
-    //         vec!["cc_num"],
-    //         "datetime",
-    //     )
-    //     .await?;
+    let window_aggs_fg = fs
+        .get_or_create_feature_group(
+            format!("transactions_{}_aggs_fraud_batch_fg_3_rust", window_len).as_str(),
+            1,
+            Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
+            vec!["cc_num"],
+            "datetime",
+        )
+        .await?;
 
-    // window_aggs_fg
-    //     .insert(&mut window_agg_df.head(Some(n_rows)))
-    //     .await?;
+    window_aggs_fg
+        .insert(&mut window_agg_df.head(Some(n_rows)))
+        .await?;
 
     let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?;
 
     let min_max_scaler = fs
         .get_transformation_function("min_max_scaler", None)
         .await?;
-    let label_encoder = fs
+    let _label_encoder = fs
         .get_transformation_function("label_encoder", None)
         .await?;
 
-    println!("{:?}\n{:?}", min_max_scaler, label_encoder);
-
     let mut transformation_functions = HashMap::<String, TransformationFunction>::new();
-    transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap().clone());
+    transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap());
 
     let feature_view = fs
-        .create_feature_view("trans_view_1", 13, query, transformation_functions)
+        .create_feature_view("trans_view_3_rust", 1, query, transformation_functions)
         .await?;
 
-    println!("The view: {:?}", feature_view);
+    // let fetched_view = fs
+    //     .get_feature_view("trans_view_1_rust", Some(1))
+    //     .await?
+    //     .unwrap();
 
-    // let fetched_view = fs.get_feature_view("trans_view_1", Some(12)).await?;
+    // println!("The view: {:?}", fetched_view);
+
+    create_training_dataset_attached_to_feature_view(feature_view).await?;
+
+    // let test_get = get_training_dataset_by_name_and_version(
+    //     fs.featurestore_id,
+    //     "transactions_view_fraud_batch_fv_1",
+    //     Some(1),
+    // )
+    // .await?;
 
     Ok(())
 }

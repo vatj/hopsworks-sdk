@@ -3,7 +3,7 @@ use polars::prelude::DataFrame;
 
 use crate::{api::query::entities::Query, domain::feature_group};
 
-use super::entities::FeatureGroup;
+use super::entities::{Feature, FeatureGroup, StatisticsConfig, User};
 
 impl FeatureGroup {
     fn set_id(&self, id: i32) {
@@ -22,12 +22,44 @@ impl FeatureGroup {
         self.online_topic_name.borrow().clone()
     }
 
-    pub fn get_primary_keys(&self) -> Result<Vec<&str>> {
+    pub fn get_creator(&self) -> Option<User> {
+        self.creator.borrow().clone()
+    }
+
+    fn set_creator(&self, creator: Option<User>) {
+        *self.creator.borrow_mut() = creator;
+    }
+
+    pub fn get_location(&self) -> Option<String> {
+        self.location.borrow().clone()
+    }
+
+    fn set_location(&self, location: Option<String>) {
+        *self.location.borrow_mut() = location;
+    }
+
+    pub fn get_statistics_config(&self) -> Option<StatisticsConfig> {
+        self.statistics_config.borrow().clone()
+    }
+
+    fn set_statisctics_config(&self, statistics_config: Option<StatisticsConfig>) {
+        *self.statistics_config.borrow_mut() = statistics_config;
+    }
+
+    pub fn get_features(&self) -> Vec<Feature> {
+        self.features.borrow().clone()
+    }
+
+    fn set_features(&self, features: Vec<Feature>) {
+        *self.features.borrow_mut() = features;
+    }
+
+    pub fn get_primary_keys(&self) -> Result<Vec<String>> {
         let primary_keys = self
-            .features
+            .get_features()
             .iter()
             .filter(|f| f.primary)
-            .map(|f| f.name.as_str())
+            .map(|f| f.name.clone())
             .collect();
 
         Ok(primary_keys)
@@ -56,6 +88,24 @@ impl FeatureGroup {
 
             self.set_id(feature_group_dto.id);
             self.set_online_topic_name(feature_group_dto.online_topic_name);
+            self.set_creator(Some(User::from(feature_group_dto.creator)));
+            self.set_location(Some(feature_group_dto.location));
+            // self.set_statisctics_config(match feature_group_dto.statistics_config {
+            //     Some(config) => Some(StatisticsConfig::from(config)),
+            //     None => None,
+            // });
+            self.set_statisctics_config(
+                feature_group_dto
+                    .statistics_config
+                    .map(StatisticsConfig::from),
+            );
+            self.set_features(
+                feature_group_dto
+                    .features
+                    .into_iter()
+                    .map(Feature::from)
+                    .collect(),
+            );
         }
 
         feature_group::controller::insert_in_registered_feature_group(
@@ -71,7 +121,7 @@ impl FeatureGroup {
     pub fn select(&self, feature_names: Vec<&str>) -> Result<Query> {
         Ok(Query::new(
             self.clone(),
-            self.features
+            self.get_features()
                 .iter()
                 .filter_map(|feature| {
                     if feature_names.contains(&feature.name.as_str()) {

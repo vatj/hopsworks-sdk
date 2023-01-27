@@ -33,12 +33,17 @@ pub async fn create_feature_view(
             TrainingDatasetFeatureDTO::new_from_feature_and_transformation_function(
                 FeatureDTO::from(feature.clone()),
                 FeatureGroupDTO::from(query.left_feature_group.clone()),
-                match transformation_functions.get(&feature.name) {
-                    Some(transformation_function) => Some(TransformationFunctionDTO::from(
-                        transformation_function.clone(),
-                    )),
-                    None => None,
-                },
+                // match transformation_functions.get(&feature.name) {
+                //     Some(transformation_function) => Some(TransformationFunctionDTO::from(
+                //         transformation_function.clone(),
+                //     )),
+                //     None => None,
+                // },
+                transformation_functions
+                    .get(&feature.name)
+                    .map(|transformation_function| {
+                        TransformationFunctionDTO::from(transformation_function.clone())
+                    }),
             )
         })
         .collect();
