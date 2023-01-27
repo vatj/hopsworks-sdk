@@ -40,29 +40,36 @@ impl FeatureGroupDTO {
         Self {
             id: feature_group.get_id().unwrap_or(0),
             online_topic_name: feature_group.get_online_topic_name(),
-            feature_group_type: feature_group.feature_group_type,
-            featurestore_id: feature_group.featurestore_id,
-            featurestore_name: feature_group.featurestore_name,
-            description: feature_group.description,
-            created: feature_group.created,
-            creator: match feature_group.creator {
+            creator: match feature_group.get_creator() {
                 Some(user) => UserDTO::from(user),
                 None => panic!("creator field should not be None for an initialized FeatureGroup"),
             },
-            version: feature_group.version,
-            name: feature_group.name,
-            location: feature_group.location.unwrap_or_else(|| String::from("")),
-            statistics_config: Some(match feature_group.statistics_config {
+            location: feature_group
+                .get_location()
+                .unwrap_or_else(|| String::from("")),
+            statistics_config: Some(match feature_group.get_statistics_config() {
                 Some(statistics_config) => StatisticsConfigDTO::from(statistics_config),
                 None => panic!(
                     "statistics_config field should not be None for an initialized FeatureGroup"
                 ),
             }),
             features: feature_group
-                .features
+                .get_features()
                 .iter()
                 .map(|feature| FeatureDTO::from(feature.clone()))
                 .collect(),
+            feature_group_type: match feature_group.feature_group_type.as_str() {
+                "STREAM_FEATURE_GROUP" => "streamFeatureGroupDTO".to_owned(),
+                "streamFeatureGroupDTO" => "streamFeatureGroupDTO".to_owned(),
+                _ => "streamFeatureGroupDTO".to_owned(),
+            },
+            featurestore_id: feature_group.featurestore_id,
+            featurestore_name: feature_group.featurestore_name,
+            description: feature_group.description,
+            created: feature_group.created,
+            version: feature_group.version,
+            name: feature_group.name,
+
             online_enabled: feature_group.online_enabled,
             time_travel_format: feature_group.time_travel_format,
         }

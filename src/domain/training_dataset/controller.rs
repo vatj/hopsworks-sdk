@@ -49,7 +49,7 @@ pub async fn create_training_dataset_attached_to_feature_view(
         feature_view.feature_store_id,
         feature_view.feature_store_name.clone(),
         "trans_view_1_1".to_owned(),
-        6,
+        1,
         QueryDTO::from(feature_view.query.clone()),
         Some(construct_query(feature_view.query.clone()).await?),
         features,

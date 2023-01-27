@@ -8,6 +8,7 @@ use super::{entities::FeatureStoreQueryDTO, payloads::NewQueryPayload};
 pub async fn construct_query<'a>(
     query_payload: NewQueryPayload<'_>,
 ) -> Result<FeatureStoreQueryDTO> {
+    println!("query_payload : {:?}", query_payload.clone());
     let res = get_hopsworks_client()
         .await
         .put_with_project_id_and_auth("featurestores/query", true, true)

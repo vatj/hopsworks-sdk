@@ -38,12 +38,14 @@ async fn main() -> Result<()> {
 
         info!("producing to topic '{topic}' on broker '{broker}'");
 
+        let primary_keys = feature_group.get_primary_keys()?;
+
         kafka_producer::produce_df(
             &mut mini_df,
             broker,
             topic.as_ref(),
             &project.project_name,
-            feature_group.get_primary_keys().unwrap(),
+            primary_keys.iter().map(|key| key.as_str()).collect(),
         )
         .await?;
 

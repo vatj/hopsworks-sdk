@@ -17,12 +17,12 @@ pub struct FeatureGroup {
     pub feature_group_type: String,
     pub description: Option<String>,
     pub created: String,
-    pub creator: Option<User>,
+    pub creator: RefCell<Option<User>>,
     pub version: i32,
     pub name: String,
-    pub location: Option<String>,
-    pub statistics_config: Option<StatisticsConfig>,
-    pub features: Vec<Feature>,
+    pub location: RefCell<Option<String>>,
+    pub statistics_config: RefCell<Option<StatisticsConfig>>,
+    pub features: RefCell<Vec<Feature>>,
     pub online_enabled: bool,
     pub time_travel_format: String,
     pub online_topic_name: RefCell<Option<String>>,
@@ -38,19 +38,23 @@ impl FeatureGroup {
             feature_group_type: feature_group_dto.feature_group_type,
             description: feature_group_dto.description,
             created: feature_group_dto.created,
-            creator: Some(User::new_from_dto(feature_group_dto.creator)),
+            creator: RefCell::new(Some(User::new_from_dto(feature_group_dto.creator))),
             version: feature_group_dto.version,
             name: feature_group_dto.name,
             id: Cell::new(Some(feature_group_dto.id)),
-            location: Some(feature_group_dto.location),
-            statistics_config: feature_group_dto
-                .statistics_config
-                .map(StatisticsConfig::new_from_dto),
-            features: feature_group_dto
-                .features
-                .iter()
-                .map(|feature_dto| Feature::new_from_dto(feature_dto.to_owned()))
-                .collect(),
+            location: RefCell::new(Some(feature_group_dto.location)),
+            statistics_config: RefCell::new(
+                feature_group_dto
+                    .statistics_config
+                    .map(StatisticsConfig::new_from_dto),
+            ),
+            features: RefCell::new(
+                feature_group_dto
+                    .features
+                    .iter()
+                    .map(|feature_dto| Feature::new_from_dto(feature_dto.to_owned()))
+                    .collect(),
+            ),
             online_enabled: feature_group_dto.online_enabled,
             time_travel_format: feature_group_dto.time_travel_format,
             online_topic_name: RefCell::new(feature_group_dto.online_topic_name),
@@ -73,13 +77,13 @@ impl FeatureGroup {
             feature_group_type: String::from("STREAM_FEATURE_GROUP"),
             description: description.map(String::from),
             created: String::from(""),
-            creator: None,
+            creator: RefCell::new(None),
             version,
             name: String::from(name),
             id: Cell::new(None),
-            location: None,
-            statistics_config: None,
-            features: vec![],
+            location: RefCell::new(None),
+            statistics_config: RefCell::new(None),
+            features: RefCell::new(vec![]),
             online_enabled: false,
             time_travel_format: String::from("NONE"),
             online_topic_name: RefCell::new(None),
