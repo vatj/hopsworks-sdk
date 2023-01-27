@@ -6,10 +6,6 @@ use hopsworks_rs::{
     api::transformation_function::entities::TransformationFunction,
     domain::training_dataset::controller::create_training_dataset_attached_to_feature_view,
     hopsworks_login,
-    repositories::training_datasets::{
-        payloads::NewTrainingDatasetPayload,
-        service::{create_training_dataset, get_training_dataset_by_name_and_version},
-    },
 };
 use polars::prelude::*;
 
@@ -104,14 +100,12 @@ async fn main() -> Result<()> {
     let min_max_scaler = fs
         .get_transformation_function("min_max_scaler", None)
         .await?;
-    let label_encoder = fs
+    let _label_encoder = fs
         .get_transformation_function("label_encoder", None)
         .await?;
 
-    println!("{:?}\n{:?}", min_max_scaler, label_encoder);
-
     let mut transformation_functions = HashMap::<String, TransformationFunction>::new();
-    transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap().clone());
+    transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap());
 
     let feature_view = fs
         .create_feature_view("trans_view_3_rust", 1, query, transformation_functions)

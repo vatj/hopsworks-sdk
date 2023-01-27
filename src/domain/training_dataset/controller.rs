@@ -35,12 +35,12 @@ pub async fn create_training_dataset_attached_to_feature_view(
             TrainingDatasetFeatureDTO::new_from_feature_and_transformation_function(
                 FeatureDTO::from(feature.clone()),
                 FeatureGroupDTO::from(feature_view.query.left_feature_group.clone()),
-                match feature_view.transformation_functions.get(&feature.name) {
-                    Some(transformation_function) => Some(TransformationFunctionDTO::from(
-                        transformation_function.clone(),
-                    )),
-                    None => None,
-                },
+                feature_view
+                    .transformation_functions
+                    .get(&feature.name)
+                    .map(|transformation_function| {
+                        TransformationFunctionDTO::from(transformation_function.clone())
+                    }),
             )
         })
         .collect();
@@ -88,14 +88,12 @@ pub async fn compute_training_dataset_attached_to_feature_view(
 ) -> Result<JobDTO> {
     let job_config = TrainingDatasetComputeJobConfigPayload::new(true, QueryDTO::from(query));
 
-    Ok(
-        feature_view_service::compute_training_dataset_attached_to_feature_view(
-            feature_store_id,
-            feature_view_name,
-            feature_view_version,
-            training_dataset_version,
-            job_config,
-        )
-        .await?,
+    feature_view_service::compute_training_dataset_attached_to_feature_view(
+        feature_store_id,
+        feature_view_name,
+        feature_view_version,
+        training_dataset_version,
+        job_config,
     )
+    .await
 }

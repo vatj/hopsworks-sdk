@@ -45,7 +45,7 @@ impl NewFeatureViewPayload {
             featurestore_name: feature_store_name,
             description: None,
             location: "".to_owned(),
-            features: features,
+            features,
             keywords: None,
             tags: None,
         }

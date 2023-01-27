@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
 
 use crate::repositories::{
@@ -52,7 +50,7 @@ impl NewTrainingDatasetPayload {
             featurestore_name: feature_store_name,
             description: None,
             location: "".to_owned(),
-            features: features,
+            features,
             keywords: None,
             tags: None,
         }
@@ -74,7 +72,7 @@ impl TrainingDatasetComputeJobConfigPayload {
             overwrite,
             write_options: vec![],
             spark_job_configuration: None,
-            query: query,
+            query,
         }
     }
 }

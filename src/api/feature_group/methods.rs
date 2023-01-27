@@ -90,15 +90,20 @@ impl FeatureGroup {
             self.set_online_topic_name(feature_group_dto.online_topic_name);
             self.set_creator(Some(User::from(feature_group_dto.creator)));
             self.set_location(Some(feature_group_dto.location));
-            self.set_statisctics_config(match feature_group_dto.statistics_config {
-                Some(config) => Some(StatisticsConfig::from(config)),
-                None => None,
-            });
+            // self.set_statisctics_config(match feature_group_dto.statistics_config {
+            //     Some(config) => Some(StatisticsConfig::from(config)),
+            //     None => None,
+            // });
+            self.set_statisctics_config(
+                feature_group_dto
+                    .statistics_config
+                    .map(StatisticsConfig::from),
+            );
             self.set_features(
                 feature_group_dto
                     .features
                     .into_iter()
-                    .map(|feature_dto| Feature::from(feature_dto))
+                    .map(Feature::from)
                     .collect(),
             );
         }

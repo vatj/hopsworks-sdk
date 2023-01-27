@@ -11,5 +11,5 @@ use crate::{
 pub async fn construct_query(query: Query) -> Result<FeatureStoreQueryDTO> {
     let query_payload = NewQueryPayload::from(query);
 
-    Ok(query::service::construct_query(query_payload).await?)
+    query::service::construct_query(query_payload).await
 }
