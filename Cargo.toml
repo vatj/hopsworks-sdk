@@ -12,13 +12,14 @@ tokio = { version = "1", features = ["full"] }
 log = { version = "0.4" }
 env_logger = { version = "0.10" }
 serde_json = { version = "1.0" }
-apache-avro = { version = "0.14", features = ["derive"] }
-polars = { version = "0.26.1", features = ["lazy", "avro", "strings", "dtype-full", "rows"] }
-polars-lazy = { version = "0.26.1", features = ["dynamic_groupby"] }
+apache-avro = { version = "0.16", features = ["derive"] }
+polars = { version = "0.33.2", features = ["lazy", "avro", "strings", "dtype-full", "rows", "dynamic_group_by"] }
 color-eyre = { version = "0.6.2" }
-rdkafka = { version = "0.29.0", features = ["tokio", "libz", "ssl"] }
-indicatif = { version = "0.17.2" }
+rdkafka = { version = "0.34.0", features = ["tokio", "libz", "ssl"] }
+indicatif = { version = "0.17.0" }
 connectorx = { version = "0.3.1" }
+arrow2 = { version = "0.18.0" }
+chrono = { version = "0.4.31" }
 
 [[example]]
 name = "basic_stream_feature_group"

@@ -8,7 +8,7 @@ pub fn extract_features_from_polars_schema(schema: Schema) -> Result<Vec<NewFeat
         .iter_fields()
         .map(|field| {
             NewFeaturePayload::new(
-                field.name.clone(),
+                field.name.to_string(),
                 String::from(convert_polars_data_type(field.data_type())),
             )
         })
