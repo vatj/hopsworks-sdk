@@ -7,6 +7,7 @@ use hopsworks_rs::{
     domain::training_dataset::controller::create_training_dataset_attached_to_feature_view,
     hopsworks_login,
 };
+use log::info;
 use polars::{prelude::*, lazy::dsl::col};
 
 #[tokio::main]
@@ -78,6 +79,8 @@ async fn main() -> Result<()> {
             "datetime",
         )
         .await?;
+
+    info!("topic name : {:?}", trans_fg.online_topic_name.try_borrow().unwrap());
 
     let n_rows = 5000;
     trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;

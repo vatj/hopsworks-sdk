@@ -19,6 +19,6 @@ pub async fn get_project_broker_endpoints(external: bool) -> Result<Vec<String>>
         .collect())
 }
 
-pub async fn get_kafka_topic_subject(topic_name: &str) -> Result<KafkaSubjectDTO> {
-    kafka::service::get_kafka_topic_subject(topic_name).await
+pub async fn get_kafka_topic_subject(subject_name: &str, opt_version: Option<&str>) -> Result<KafkaSubjectDTO> {
+    kafka::service::get_kafka_topic_subject(subject_name, opt_version).await
 }

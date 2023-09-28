@@ -1,2 +1,3 @@
 [env]
 HOPSWORKS_API_KEY = "YOUR_API_KEY"
+HOPSWORKS_KAFKA_BROKER = "c.app.hopsworks.ai:9092"

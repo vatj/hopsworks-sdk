@@ -45,17 +45,16 @@ pub async fn insert_in_registered_feature_group(
     primary_keys: Vec<String>,
 ) -> Result<()> {
     let brokers = kafka::controller::get_project_broker_endpoints(true).await?;
-
     let broker = brokers.first().unwrap();
-
     let project_name = get_client_project().await?.project_name;
-
     let ref_primary_keys = primary_keys.iter().map(|key| key.as_str()).collect();
+    let subject_name = format!("{}_{}", feature_group_name, feature_group_version);
 
     produce_df(
         dataframe,
         broker,
-        online_topic_name,
+        subject_name.as_str(),
+        None,
         project_name.as_str(),
         ref_primary_keys,
     )

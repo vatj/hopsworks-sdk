@@ -15,10 +15,11 @@ pub async fn get_project_broker_endpoints(external: bool) -> Result<KafkaBrokers
         .await?)
 }
 
-pub async fn get_kafka_topic_subject(topic_name: &str) -> Result<KafkaSubjectDTO> {
+pub async fn get_kafka_topic_subject(subject_name: &str, opt_version: Option<&str>) -> Result<KafkaSubjectDTO> {
+    let version = opt_version.unwrap_or("latest");
     Ok(get_hopsworks_client()
         .await
-        .send_get(format!("kafka/topics/{topic_name}/subjects").as_str(), true)
+        .send_get(format!("kafka/subjects/{subject_name}/versions/{version}").as_str(), true)
         .await?
         .json::<KafkaSubjectDTO>()
         .await?)
