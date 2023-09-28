@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use reqwest::StatusCode;
+use reqwest::{StatusCode, Method};
 
 use super::{
     entities::{ProjectAndUserDTO, SingleProjectDTO},
@@ -10,7 +10,9 @@ use crate::get_hopsworks_client;
 pub async fn get_project_and_user_list() -> Result<Vec<ProjectAndUserDTO>> {
     Ok(get_hopsworks_client()
         .await
-        .send_get("project", false)
+        .request(Method::GET, "project", true, false)
+        .await?
+        .send()
         .await?
         .json::<Vec<ProjectAndUserDTO>>()
         .await?)
@@ -21,14 +23,22 @@ pub async fn create_project(
 ) -> Result<Vec<ProjectAndUserDTO>> {
     Ok(get_hopsworks_client()
         .await
-        .send_post_json("project", new_project_payload, false)
+        .request(Method::POST, "project", true, false)
+        .await?
+        .json(new_project_payload)
+        .send()
         .await?
         .json::<Vec<ProjectAndUserDTO>>()
         .await?)
 }
 
 pub async fn get_client_project() -> Result<SingleProjectDTO> {
-    let resp = get_hopsworks_client().await.send_get("", true).await?;
+    let resp = get_hopsworks_client()
+        .await
+        .request(Method::GET, "", true, true)
+        .await?
+        .send()
+        .await?;
 
     match resp.status() {
         StatusCode::OK => Ok(resp.json::<SingleProjectDTO>().await?),

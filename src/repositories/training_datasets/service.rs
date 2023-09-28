@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use reqwest::StatusCode;
+use reqwest::{StatusCode, Method};
 
 use crate::get_hopsworks_client;
 
@@ -10,7 +10,6 @@ pub async fn get_training_dataset_by_name_and_version(
     name: &str,
     version: Option<i32>,
 ) -> Result<Option<TrainingDatasetDTO>> {
-    let relative_url = format!("featurestores/{feature_store_id}/trainingdatasets/{name}");
     let mut query_params = vec![];
     if let Some(ver) = version {
         query_params.push(("version", ver));
@@ -18,7 +17,12 @@ pub async fn get_training_dataset_by_name_and_version(
 
     let res = get_hopsworks_client()
         .await
-        .get_with_project_id_and_auth(relative_url.as_str(), true, true)
+        .request(
+            Method::GET, 
+            format!("featurestores/{feature_store_id}/trainingdatasets/{name}").as_str(), 
+            true, 
+            true
+        )
         .await?
         .query(&query_params)
         .send()
@@ -39,7 +43,8 @@ pub async fn create_training_dataset(
 ) -> Result<TrainingDatasetDTO> {
     let res = get_hopsworks_client()
         .await
-        .post_with_project_id_and_auth(
+        .request(
+            Method::POST,
             format!(
                 "featurestores/{}/trainingdatasets",
                 new_training_dataset_payload.featurestore_id
