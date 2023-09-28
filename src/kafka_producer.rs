@@ -12,11 +12,13 @@ use tokio::task::JoinSet;
 use crate::domain::kafka::controller::get_kafka_topic_subject;
 use crate::repositories::kafka::entities::KafkaSubjectDTO;
 
-async fn setup_future_producer(broker: &str, project_name: &str) -> Result<FutureProducer> {
+async fn setup_future_producer(_broker: &str, project_name: &str) -> Result<FutureProducer> {
+    let broker = std::env::var("HOPSWORKS_KAFKA_BROKER").unwrap_or("localhost:9092".to_string());
     Ok(ClientConfig::new()
         .set("bootstrap.servers", broker)
         .set("message.timeout.ms", "300000")
-        .set("security.protocol", "SSL")
+        .set("security.protocol", "ssl")
+        .set("ssl.endpoint.identification.algorithm", "none")
         .set(
             "ssl.ca.location",
             format!("/tmp/{project_name}/ca_chain.pem"),
@@ -29,7 +31,7 @@ async fn setup_future_producer(broker: &str, project_name: &str) -> Result<Futur
             "ssl.key.location",
             format!("/tmp/{project_name}/client_key.pem"),
         )
-        // .set("debug", "broker,msg,security")
+        // .set("debug", "all")
         .create()
         .expect("Error setting up kafka producer"))
 }
@@ -37,13 +39,15 @@ async fn setup_future_producer(broker: &str, project_name: &str) -> Result<Futur
 pub async fn produce_df(
     df: &mut polars::prelude::DataFrame,
     broker: &str,
-    topic_name: &str,
+    subject_name: &str,
+    opt_version: Option<&str>,
+    online_topic_name: &str,
     project_name: &str,
     primary_keys: Vec<&str>,
 ) -> Result<()> {
     let producer: &FutureProducer = &setup_future_producer(broker, project_name).await?;
 
-    let subject_dto: KafkaSubjectDTO = get_kafka_topic_subject(topic_name).await?;
+    let subject_dto: KafkaSubjectDTO = get_kafka_topic_subject(subject_name, opt_version).await?;
 
     let avro_schema = Schema::parse_str(subject_dto.schema.as_str()).unwrap();
 
@@ -90,7 +94,7 @@ pub async fn produce_df(
         composite_key.clear();
 
         let producer = producer.clone();
-        let topic_name = topic_name.to_string();
+        let topic_name = online_topic_name.to_string();
 
         handles.spawn(async move {
             let produce_future = producer.send(

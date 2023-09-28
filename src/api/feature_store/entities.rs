@@ -13,9 +13,9 @@ pub struct FeatureStore {
     created: String,
     project_name: String,
     project_id: i32,
-    featurestore_description: String,
+    featurestore_description: Option<String>,
     online_featurestore_name: String,
-    online_featurestore_size: f64,
+    online_featurestore_size: Option<f64>,
     online_enabled: bool,
 }
 

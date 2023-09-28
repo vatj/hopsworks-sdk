@@ -1,6 +1,6 @@
 use color_eyre::Result;
 use log::info;
-use reqwest::StatusCode;
+use reqwest::{StatusCode, Method};
 
 use super::{entities::FeatureGroupDTO, payloads::NewFeatureGroupPayload};
 use crate::get_hopsworks_client;
@@ -14,11 +14,15 @@ pub async fn get_feature_group_by_name_and_version(
 
     let response = get_hopsworks_client()
         .await
-        .send_get_with_query_params(
+        .request(
+            Method::GET,
             format!("featurestores/{feature_store_id}/featuregroups/{name}").as_str(),
-            &query_params,
+            true,
             true,
         )
+        .await?
+        .query(&query_params)
+        .send()
         .await?;
 
     match response.status() {
@@ -37,7 +41,8 @@ pub async fn get_feature_group_by_id(
 ) -> Result<Option<FeatureGroupDTO>> {
     let response = get_hopsworks_client()
         .await
-        .get_with_project_id_and_auth(
+        .request(
+            Method::GET,
             format!("featurestores/{feature_store_id}/featuregroups/{feature_group_id}").as_str(),
             true,
             true,
@@ -62,11 +67,15 @@ pub async fn create_feature_group(
 ) -> Result<FeatureGroupDTO> {
     let response = get_hopsworks_client()
         .await
-        .send_post_json(
+        .request(
+            Method::POST,
             format!("featurestores/{feature_store_id}/featuregroups/").as_str(),
-            new_feature_group_payload,
+            true,
             true,
         )
+        .await?
+        .json(new_feature_group_payload)
+        .send()
         .await?;
 
     match response.status() {

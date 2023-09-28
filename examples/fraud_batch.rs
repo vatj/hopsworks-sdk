@@ -7,7 +7,8 @@ use hopsworks_rs::{
     domain::training_dataset::controller::create_training_dataset_attached_to_feature_view,
     hopsworks_login,
 };
-use polars::prelude::*;
+use log::info;
+use polars::{prelude::*, lazy::dsl::col};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -15,13 +16,13 @@ async fn main() -> Result<()> {
 
     // Load csv files into dataframes
     let mut trans_df = CsvReader::from_path("./example_data/transactions.csv")?
-        .with_parse_dates(true)
+        .with_try_parse_dates(true)
         .finish()?;
 
     let _credit_cards_df = CsvReader::from_path("./example_data/credit_cards.csv")?.finish()?;
 
     let profiles_df = CsvReader::from_path("./example_data/profiles.csv")?
-        .with_parse_dates(true)
+        .with_try_parse_dates(true)
         .finish()?;
 
     let age_df = trans_df.left_join(&profiles_df, ["cc_num"], ["cc_num"])?;
@@ -39,19 +40,20 @@ async fn main() -> Result<()> {
     )?;
 
     let window_len = "4h";
-    let groupby_rolling_options = RollingGroupOptions {
-        index_column: String::from("datetime"),
+    let group_by_rolling_options = RollingGroupOptions {
+        index_column: "datetime".into(),
         period: Duration::parse(window_len),
         offset: Duration::parse("0s"),
         closed_window: ClosedWindow::Left,
+        check_sorted: true,
     };
 
-    trans_df.sort_in_place(["datetime"], vec![false])?;
+    trans_df.sort_in_place(["datetime"], vec![false], true)?;
 
     let window_agg_df = trans_df
         .select(["datetime", "amount", "cc_num"])?
         .lazy()
-        .groupby_rolling([col("cc_num")], groupby_rolling_options)
+        .group_by_rolling(col("cc_num"), [col("datetime")] , group_by_rolling_options)
         .agg([
             col("amount").mean().alias("trans_volume_mavg"),
             col("amount").std(1).alias("trans_volume_mstd"),
@@ -77,6 +79,8 @@ async fn main() -> Result<()> {
             "datetime",
         )
         .await?;
+
+    info!("topic name : {:?}", trans_fg.online_topic_name.try_borrow().unwrap());
 
     let n_rows = 5000;
     trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;

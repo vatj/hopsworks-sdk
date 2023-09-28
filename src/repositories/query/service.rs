@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use reqwest::StatusCode;
+use reqwest::{StatusCode, Method};
 
 use crate::get_hopsworks_client;
 
@@ -11,7 +11,7 @@ pub async fn construct_query<'a>(
     println!("query_payload : {:?}", query_payload.clone());
     let res = get_hopsworks_client()
         .await
-        .put_with_project_id_and_auth("featurestores/query", true, true)
+        .request(Method::PUT, "featurestores/query", true, true)
         .await?
         .json(&query_payload)
         .send()
@@ -32,12 +32,11 @@ pub async fn get_batch_query_by_feature_view_name_and_version(
     name: &str,
     version: i32,
 ) -> Result<FeatureStoreQueryDTO> {
-    let relative_url = format!(
-        "featurestores/{feature_store_id}/feature_view/{name}/version/{version}/query/batch"
-    );
     let res = get_hopsworks_client()
         .await
-        .get_with_project_id_and_auth(relative_url.as_str(), true, true)
+        .request(Method::GET, format!(
+            "featurestores/{feature_store_id}/feature_view/{name}/version/{version}/query/batch"
+        ).as_str(), true, true)
         .await?
         .send()
         .await?;

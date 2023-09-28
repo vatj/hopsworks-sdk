@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use color_eyre::Result;
-use reqwest::StatusCode;
+use reqwest::{StatusCode, Method};
 
 use crate::get_hopsworks_client;
 
@@ -20,7 +20,8 @@ pub async fn get_transformation_function_by_name_and_version(
 
     let res = get_hopsworks_client()
         .await
-        .get_with_project_id_and_auth(
+        .request(
+            Method::GET,
             format!("featurestores/{}/transformationfunctions", feature_store_id).as_str(),
             true,
             true,

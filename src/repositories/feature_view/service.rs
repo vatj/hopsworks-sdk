@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use reqwest::StatusCode;
+use reqwest::{StatusCode, Method};
 
 use super::{entities::FeatureViewDTO, payloads::NewFeatureViewPayload};
 use crate::{
@@ -27,7 +27,8 @@ pub async fn get_feature_view_by_name_and_version(
 
     let res = get_hopsworks_client()
         .await
-        .get_with_project_id_and_auth(relative_url.as_str(), true, true)
+        .request(
+            Method::GET, relative_url.as_str(), true, true)
         .await?
         .query(&query_params)
         .send()
@@ -49,7 +50,8 @@ pub async fn create_feature_view(
 ) -> Result<FeatureViewDTO> {
     let res = get_hopsworks_client()
         .await
-        .post_with_project_id_and_auth(
+        .request(
+            Method::POST,
             format!("featurestores/{}/featureview", feature_store_id).as_str(),
             true,
             true,
@@ -77,7 +79,8 @@ pub async fn create_training_dataset_attached_to_feature_view(
 ) -> Result<TrainingDatasetDTO> {
     let res = get_hopsworks_client()
         .await
-        .post_with_project_id_and_auth(
+        .request(
+            Method::POST,
             format!(
                 "featurestores/{}/featureview/{name}/version/{version}/trainingdatasets",
                 new_training_dataset_payload.featurestore_id,
@@ -110,7 +113,8 @@ pub async fn compute_training_dataset_attached_to_feature_view(
 ) -> Result<JobDTO> {
     let res = get_hopsworks_client()
         .await
-        .post_with_project_id_and_auth(
+        .request(
+            Method::POST,
             format!(
                 "featurestores/{feature_store_id}/featureview/{name}/version/{version}/trainingdatasets/version/{dataset_version}/compute",
             )

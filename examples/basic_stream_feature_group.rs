@@ -44,6 +44,8 @@ async fn main() -> Result<()> {
             &mut mini_df,
             broker,
             topic.as_ref(),
+            None,
+            &project.project_name,
             &project.project_name,
             primary_keys.iter().map(|key| key.as_str()).collect(),
         )

@@ -103,7 +103,7 @@ pub struct User {
     pub two_factor: bool,
     pub tours_state: i32,
     pub max_num_projects: i32,
-    pub num_created_projects: i32,
+    pub num_created_projects: Option<i32>,
     pub test_user: bool,
     pub num_active_projects: i32,
     pub num_remaining_projects: i32,

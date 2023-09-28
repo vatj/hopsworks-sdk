@@ -17,7 +17,7 @@ pub async fn get_example_df() -> Result<DataFrame> {
         .finish()?
         .lazy()
         .filter(col("sepal_length").gt(5))
-        .groupby([col("species")])
+        .group_by([col("species")])
         .agg([col("*").sum()])
         .collect()?;
 

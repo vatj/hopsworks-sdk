@@ -24,3 +24,7 @@ nohup.log
 
 # Apple
 .DS_Store
+
+# Config files
+managed-config.toml
+staging-config.toml
