@@ -46,6 +46,7 @@ async fn main() -> Result<()> {
             topic.as_ref(),
             None,
             &project.project_name,
+            &project.project_name,
             primary_keys.iter().map(|key| key.as_str()).collect(),
         )
         .await?;

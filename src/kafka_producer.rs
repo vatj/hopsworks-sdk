@@ -2,7 +2,6 @@ use apache_avro::types::Record;
 use apache_avro::Schema;
 use color_eyre::Result;
 use indicatif::ProgressBar;
-use log::info;
 use polars::prelude::*;
 use rdkafka::message::{Header, OwnedHeaders};
 use rdkafka::producer::{FutureProducer, FutureRecord, Producer};
@@ -42,6 +41,7 @@ pub async fn produce_df(
     broker: &str,
     subject_name: &str,
     opt_version: Option<&str>,
+    online_topic_name: &str,
     project_name: &str,
     primary_keys: Vec<&str>,
 ) -> Result<()> {
@@ -94,7 +94,7 @@ pub async fn produce_df(
         composite_key.clear();
 
         let producer = producer.clone();
-        let topic_name = project_name.to_string();
+        let topic_name = online_topic_name.to_string();
 
         handles.spawn(async move {
             let produce_future = producer.send(

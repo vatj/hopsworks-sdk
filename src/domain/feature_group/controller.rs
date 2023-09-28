@@ -55,13 +55,14 @@ pub async fn insert_in_registered_feature_group(
         broker,
         subject_name.as_str(),
         None,
+        online_topic_name,
         project_name.as_str(),
         ref_primary_keys,
     )
     .await?;
 
     let job_name = format!(
-        "{}_{}_offline_fg_backfill",
+        "{}_{}_offline_fg_materialization",
         feature_group_name, feature_group_version
     );
 
