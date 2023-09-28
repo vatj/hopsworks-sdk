@@ -5,7 +5,7 @@ use crate::get_hopsworks_client;
 
 use super::entities::FeatureStoreKafkaConnectorDTO;
 
-pub async fn get_kafka_storage_connector(feature_store_id: i32, external: bool) -> Result<FeatureStoreKafkaConnectorDTO> {
+pub async fn get_feature_store_kafka_connector(feature_store_id: i32, external: bool) -> Result<FeatureStoreKafkaConnectorDTO> {
     Ok(get_hopsworks_client()
         .await
         .request(
