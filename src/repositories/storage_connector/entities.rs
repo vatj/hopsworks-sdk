@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 pub struct FeatureStoreKafkaConnectorDTO {
     #[serde(rename = "type")]
     _type: String,
-    bootstrap_servers: String,
+    pub bootstrap_servers: String,
     security_protocol: String,
     ssl_endpoint_identification_algorithm: String,
     options: String,
