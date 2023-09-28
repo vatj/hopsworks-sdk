@@ -1,5 +1,6 @@
 use color_eyre::Result;
 use hopsworks_rs::domain::job;
+use hopsworks_rs::domain::storage_connector::controller::get_feature_store_kafka_connector;
 use hopsworks_rs::minidf::get_mini_df;
 use log::info;
 
@@ -31,18 +32,17 @@ async fn main() -> Result<()> {
         let topic = feature_group
             .get_online_topic_name()
             .unwrap_or_else(|| String::from(""));
-
-        let broker = "localhost:9192";
+        let kafka_connector = get_feature_store_kafka_connector(feature_store.featurestore_id, true).await?;
 
         let mut mini_df = get_mini_df().await?;
 
-        info!("producing to topic '{topic}' on broker '{broker}'");
+        info!("producing to topic '{topic}' on broker '{}'", kafka_connector.bootstrap_servers);
 
         let primary_keys = feature_group.get_primary_keys()?;
 
         kafka_producer::produce_df(
             &mut mini_df,
-            broker,
+            kafka_connector,
             topic.as_ref(),
             None,
             &project.project_name,
@@ -52,7 +52,7 @@ async fn main() -> Result<()> {
         .await?;
 
         let job_name = format!(
-            "{}_{}_offline_fg_backfill",
+            "{}_{}_offline_fg_materialization",
             feature_group.name, feature_group.version
         );
 
