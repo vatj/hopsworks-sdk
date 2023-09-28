@@ -11,13 +11,13 @@ use tokio::task::JoinSet;
 
 use crate::domain::kafka::controller::get_kafka_topic_subject;
 use crate::repositories::kafka::entities::KafkaSubjectDTO;
+use crate::repositories::storage_connector::entities::FeatureStoreKafkaConnectorDTO;
 
-async fn setup_future_producer(_broker: &str, project_name: &str) -> Result<FutureProducer> {
-    let broker = std::env::var("HOPSWORKS_KAFKA_BROKER").unwrap_or("localhost:9092".to_string());
+async fn setup_future_producer(kafka_connector: FeatureStoreKafkaConnectorDTO, project_name: &str) -> Result<FutureProducer> {
     Ok(ClientConfig::new()
-        .set("bootstrap.servers", broker)
+        .set("bootstrap.servers", kafka_connector.bootstrap_servers)
         .set("message.timeout.ms", "300000")
-        .set("security.protocol", "ssl")
+        .set("security.protocol", "SSL")
         .set("ssl.endpoint.identification.algorithm", "none")
         .set(
             "ssl.ca.location",
@@ -38,14 +38,14 @@ async fn setup_future_producer(_broker: &str, project_name: &str) -> Result<Futu
 
 pub async fn produce_df(
     df: &mut polars::prelude::DataFrame,
-    broker: &str,
+    kafka_connector: FeatureStoreKafkaConnectorDTO,
     subject_name: &str,
     opt_version: Option<&str>,
     online_topic_name: &str,
     project_name: &str,
     primary_keys: Vec<&str>,
 ) -> Result<()> {
-    let producer: &FutureProducer = &setup_future_producer(broker, project_name).await?;
+    let producer: &FutureProducer = &setup_future_producer(kafka_connector, project_name).await?;
 
     let subject_dto: KafkaSubjectDTO = get_kafka_topic_subject(subject_name, opt_version).await?;
 
