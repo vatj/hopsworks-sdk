@@ -21,6 +21,7 @@ connectorx = { version = "0.3.1" }
 arrow2 = { version = "0.18.0" }
 chrono = { version = "0.4.31" }
 arrow-flight = "47.0.0"
+tonic = { version = "0.10.2", features = ["transport", "tls"] }
 
 [[example]]
 name = "basic_stream_feature_group"

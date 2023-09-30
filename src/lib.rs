@@ -4,12 +4,16 @@ pub mod domain;
 pub mod kafka_producer;
 pub mod minidf;
 pub mod repositories;
+pub mod arrow_flight_client;
 
 use api::project::entities::Project;
+use arrow_flight_client::HopsworksArrowFlightClient;
 use client::HopsworksClient;
 use color_eyre::Result;
 use log::{debug, info};
 use tokio::sync::OnceCell;
+
+use crate::arrow_flight_client::HopsworksArrowFlightClientBuilder;
 
 static HOPSWORKS_CLIENT: OnceCell<HopsworksClient> = OnceCell::const_new();
 

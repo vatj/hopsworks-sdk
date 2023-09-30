@@ -73,8 +73,8 @@ impl HopsworksClientBuilder {
 #[derive(Debug, Clone)]
 pub struct HopsworksClient {
     client: reqwest::Client,
-    url: String,
-    cert_dir: String,
+    pub(crate) url: String,
+    pub(crate) cert_dir: String,
     api_key: Arc<Mutex<Option<HeaderValue>>>,
     project_id: Arc<Mutex<Option<i32>>>,
 }
