@@ -16,6 +16,7 @@ use tokio::sync::OnceCell;
 use crate::arrow_flight_client::HopsworksArrowFlightClientBuilder;
 
 static HOPSWORKS_CLIENT: OnceCell<HopsworksClient> = OnceCell::const_new();
+static HOPSWORKS_ARROW_FLIGHT_CLIENT: OnceCell<HopsworksArrowFlightClient> = OnceCell::const_new();
 
 async fn get_hopsworks_client() -> &'static HopsworksClient {
     debug!("Access global Hopsworks Client");
@@ -27,4 +28,11 @@ async fn get_hopsworks_client() -> &'static HopsworksClient {
 pub async fn hopsworks_login() -> Result<Project> {
     info!("Login with Hopsworks Client");
     get_hopsworks_client().await.login().await
+}
+
+pub async fn get_hopsworks_arrow_flight_client() -> Result<&'static HopsworksArrowFlightClient> {
+    debug!("Access global Hopsworks Arrow Flight Client");
+    HOPSWORKS_ARROW_FLIGHT_CLIENT
+        .get_or_try_init(|| async { HopsworksArrowFlightClientBuilder::default().build().await })
+        .await
 }
