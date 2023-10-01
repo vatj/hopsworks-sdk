@@ -1,9 +1,10 @@
 use color_eyre::Result;
-use arrow_flight::FlightClient;
+use arrow_flight::{FlightClient, Action};
 
+use log::info;
 use tonic::transport::{channel::ClientTlsConfig, Identity, Endpoint, Certificate};
 
-use crate::{get_hopsworks_client, repositories::variables};
+use crate::{get_hopsworks_client, repositories::{variables, credentials::entities::RegisterArrowFlightClientCertificatePayload}};
 
 #[derive(Debug, Clone, Default)]
 pub struct HopsworksArrowFlightClientBuilder {}
@@ -54,16 +55,44 @@ impl HopsworksArrowFlightClientBuilder {
                 ).await?)?;
         let channel = endpoint.connect().await?;
 
-        let client = FlightClient::new(channel);
-        
+        let mut hopsworks_arrow_client = HopsworksArrowFlightClient {
+            client: FlightClient::new(channel),
+        };
+        hopsworks_arrow_client.health_check().await?;
+        hopsworks_arrow_client.register_certificates(hopsworks_client.cert_dir.as_str()).await?;
 
-        Ok(HopsworksArrowFlightClient {
-            client,
-        })
+        Ok(hopsworks_arrow_client)
     }
 }
 
 #[derive(Debug)]
 pub struct HopsworksArrowFlightClient {
     pub client: FlightClient,
+}
+
+impl HopsworksArrowFlightClient {
+    async fn health_check(&mut self) -> Result<()> {
+        info!("Health checking arrow flight client...");
+        let _health_check = self.client.do_action(Action::new("healthcheck", "")).await?;
+        info!("Arrow flight client health check successful.");
+        Ok(())
+    }
+
+    async fn register_certificates(&mut self, cert_dir: &str) -> Result<()> {
+        info!("Registering arrow flight client certificates...");
+        let register_client_certificates_action = Action::new(
+            "register-client-certificates",  
+            serde_json::to_string(&RegisterArrowFlightClientCertificatePayload::new(
+                tokio::fs::read_to_string(format!("{}/{}", cert_dir, "trust_store.jks")).await?, 
+                tokio::fs::read_to_string(format!("{}/{}", cert_dir, "key_store.jks")).await?,
+                tokio::fs::read_to_string(format!("{}/{}", cert_dir, "cert_key.pem")).await?
+            ))?
+        );
+        self.client.do_action(register_client_certificates_action).await?;
+        info!("Arrow flight client certificates registered.");
+        Ok(())
+    }
+
+
+
 }
