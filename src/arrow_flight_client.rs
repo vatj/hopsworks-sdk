@@ -1,6 +1,6 @@
 use color_eyre::Result;
-use arrow_flight::{FlightClient, Action};
-
+use arrow_flight::{FlightClient, Action, FlightDescriptor, decode::FlightRecordBatchStream};
+use futures::stream::StreamExt;
 use log::info;
 use tonic::transport::{channel::ClientTlsConfig, Identity, Endpoint, Certificate};
 
@@ -92,6 +92,53 @@ impl HopsworksArrowFlightClient {
         info!("Arrow flight client certificates registered.");
         Ok(())
     }
+
+    pub async fn read_query(&mut self, query_object: &str) -> Result<()> {
+        let descriptor = FlightDescriptor::new_cmd(query_object.to_string());
+        self._get_dataset(descriptor).await?;
+        Ok(())
+    }
+
+    pub async fn read_path(&mut self, path: &str) -> Result<()> {
+        let descriptor = FlightDescriptor::new_path(vec![path.to_string()]);
+        self._get_dataset(descriptor).await?;
+        Ok(())
+    }
+
+    async fn _get_dataset(&mut self, descriptor: FlightDescriptor) -> Result<()> {
+        let flight_info = self.client.get_flight_info(descriptor).await?;
+        let opt_endpoint = flight_info.endpoint.get(0);
+
+        if let Some(endpoint) = opt_endpoint {
+            if let Some(ticket) = endpoint.ticket.clone() {
+                let flight_data_stream = self.client.do_get(ticket).await?.into_inner();
+                let mut record_batch_stream = FlightRecordBatchStream::new(
+                    flight_data_stream
+                );
+                
+                // Read back RecordBatches
+                while let Some(batch) = record_batch_stream.next().await {
+                    match batch {
+                    Ok(_) => { todo!() },
+                    Err(_) => { todo!() },
+                    };
+                }
+            } else {
+                let flight_descriptor_cmd: String;
+                if let Some(flight_descriptor) = flight_info.flight_descriptor {
+                    flight_descriptor_cmd = std::str::from_utf8(&flight_descriptor.cmd).unwrap().to_string();
+                } else {
+                    flight_descriptor_cmd = "(No flight descriptor in flight info)".to_string();
+                }
+                return Err(color_eyre::Report::msg(format!("No ticket found in flight {} endpoint.", flight_descriptor_cmd)));
+            }
+        } else {
+            return Err(color_eyre::Report::msg("No endpoint found"));
+        }
+        Ok(())
+    }
+
+
 
 
 

@@ -12,7 +12,9 @@ use polars::{prelude::*, lazy::dsl::col};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    color_eyre::install()?;
     env_logger::init();
+    let iteration = 1;
 
     // Load csv files into dataframes
     let mut trans_df = CsvReader::from_path("./example_data/transactions.csv")?
@@ -72,7 +74,7 @@ async fn main() -> Result<()> {
 
     let trans_fg = fs
         .get_or_create_feature_group(
-            "transactions_fg_3_rust",
+            format!("transactions_fraud_batch_fg_{iteration}_rust").as_str(),
             1,
             Some("Transactions data"),
             vec!["cc_num"],
@@ -87,7 +89,7 @@ async fn main() -> Result<()> {
 
     let window_aggs_fg = fs
         .get_or_create_feature_group(
-            format!("transactions_{}_aggs_fraud_batch_fg_3_rust", window_len).as_str(),
+            format!("transactions_{}_aggs_fraud_batch_fg_{iteration}rust", window_len).as_str(),
             1,
             Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
             vec!["cc_num"],
@@ -112,15 +114,15 @@ async fn main() -> Result<()> {
     transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap());
 
     let feature_view = fs
-        .create_feature_view("trans_view_3_rust", 1, query, transformation_functions)
+        .create_feature_view(format!("trans_view_{iteration}_rust").as_str(), 1, query, transformation_functions)
         .await?;
 
-    // let fetched_view = fs
-    //     .get_feature_view("trans_view_1_rust", Some(1))
-    //     .await?
-    //     .unwrap();
+    let fetched_view = fs
+        .get_feature_view(format!("trans_view_{iteration}_rust").as_str(), Some(1))
+        .await?
+        .unwrap();
 
-    // println!("The view: {:?}", fetched_view);
+    println!("The view: {:?}", fetched_view);
 
     create_training_dataset_attached_to_feature_view(feature_view).await?;
 

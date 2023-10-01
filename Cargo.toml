@@ -22,6 +22,7 @@ arrow2 = { version = "0.18.0" }
 chrono = { version = "0.4.31" }
 arrow-flight = { version = "47.0.0" } 
 tonic = { version = "0.10.2", features = ["transport", "tls"] }
+futures ={ version = "0.3.28" }
 
 [[example]]
 name = "basic_stream_feature_group"
