@@ -5,6 +5,7 @@ pub mod kafka_producer;
 pub mod minidf;
 pub mod repositories;
 pub mod arrow_flight_client;
+pub mod util;
 
 use api::project::entities::Project;
 use arrow_flight_client::HopsworksArrowFlightClient;

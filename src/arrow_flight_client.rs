@@ -4,7 +4,7 @@ use futures::stream::StreamExt;
 use log::info;
 use tonic::transport::{channel::ClientTlsConfig, Identity, Endpoint, Certificate};
 
-use crate::{get_hopsworks_client, repositories::{variables, credentials::entities::RegisterArrowFlightClientCertificatePayload, training_datasets::payloads::TrainingDatasetArrowFlightPayload}, api::{feature_view::entities::FeatureView, training_dataset::entities::TrainingDataset, query::entities::Query}};
+use crate::{get_hopsworks_client, repositories::{variables, credentials::entities::RegisterArrowFlightClientCertificatePayload, training_datasets::payloads::TrainingDatasetArrowFlightPayload, query::payloads::QueryArrowFlightPayload}, api::{feature_view::entities::FeatureView, training_dataset::entities::TrainingDataset, query::entities::Query, feature_group::entities::FeatureGroup}, util};
 
 #[derive(Debug, Clone, Default)]
 pub struct HopsworksArrowFlightClientBuilder {}
@@ -140,7 +140,7 @@ impl HopsworksArrowFlightClient {
 
     pub async fn create_training_dataset(&mut self, feature_view_obj: FeatureView, training_dataset_obj: TrainingDataset, query_obj: Query) -> Result<()> {
         let training_dataset_payload = TrainingDatasetArrowFlightPayload::new(
-            training_dataset_obj.feature_store_name,
+            util::strip_feature_store_suffix(&training_dataset_obj.feature_store_name),
             feature_view_obj.name,
             feature_view_obj.version,
             training_dataset_obj.version,
@@ -156,7 +156,13 @@ impl HopsworksArrowFlightClient {
             };
         }
         Ok(())
+    }    
+
+    pub fn create_query_object(&self, query: Query, query_str: String, on_demand_fg_aliases: Option<Vec<String>>) -> Result<QueryArrowFlightPayload> {
+        todo!()
     }
 
-
+    fn serialize_feature_group_name(&self, feature_group: FeatureGroup) -> Result<String> {
+        Ok(format!("{}.{}_{}", feature_group.get_project_name(), feature_group.name, feature_group.version))
+    }
 }
