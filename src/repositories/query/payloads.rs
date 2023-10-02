@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     api::query::entities::{JoinQuery, Query},
-    repositories::{feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO},
+    repositories::{feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO, storage_connector::payloads::ExternalFeatureGroupConnectorArrowFlightPayload},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -164,4 +164,24 @@ impl<'a> From<JoinQuery> for NewJoinQueryPayload<'a> {
             join_type: join_query.join_type,
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct QueryArrowFlightPayload {
+    pub query_string: String,
+    pub connectors: Option<Vec<ExternalFeatureGroupConnectorArrowFlightPayload>>,
+    pub filters: Option<Vec<FilterArrowFlightPayload>>,
+    pub features: Vec<String>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FilterArrowFlightPayload {
+    #[serde(rename = "type")]
+    pub filter_type: String,
+    pub logic_type: Option<String>,
+    pub left_filter: Option<Vec<FilterArrowFlightPayload>>,
+    pub right_filter: Option<Vec<FilterArrowFlightPayload>>,
+    pub condition: Option<String>,
+    pub value: Option<String>,
+    pub feature: Option<String>
 }

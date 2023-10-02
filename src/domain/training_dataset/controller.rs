@@ -76,7 +76,10 @@ pub async fn create_training_dataset_attached_to_feature_view(
 
     println!("The job :\n{:?}", job_dto);
 
-    Ok(TrainingDataset {})
+    Ok(TrainingDataset {
+        feature_store_name: training_dataset_dto.featurestore_name,
+        version: training_dataset_dto.version,
+    })
 }
 
 pub async fn compute_training_dataset_attached_to_feature_view(
