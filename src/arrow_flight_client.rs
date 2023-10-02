@@ -4,7 +4,7 @@ use futures::stream::StreamExt;
 use log::info;
 use tonic::transport::{channel::ClientTlsConfig, Identity, Endpoint, Certificate};
 
-use crate::{get_hopsworks_client, repositories::{variables, credentials::entities::RegisterArrowFlightClientCertificatePayload}};
+use crate::{get_hopsworks_client, repositories::{variables, credentials::entities::RegisterArrowFlightClientCertificatePayload, training_datasets::payloads::TrainingDatasetArrowFlightPayload}, api::{feature_view::entities::FeatureView, training_dataset::entities::TrainingDataset, query::entities::Query}};
 
 #[derive(Debug, Clone, Default)]
 pub struct HopsworksArrowFlightClientBuilder {}
@@ -138,8 +138,25 @@ impl HopsworksArrowFlightClient {
         Ok(())
     }
 
+    pub async fn create_training_dataset(&mut self, feature_view_obj: FeatureView, training_dataset_obj: TrainingDataset, query_obj: Query) -> Result<()> {
+        let training_dataset_payload = TrainingDatasetArrowFlightPayload::new(
+            training_dataset_obj.feature_store_name,
+            feature_view_obj.name,
+            feature_view_obj.version,
+            training_dataset_obj.version,
+            serde_json::to_string(&query_obj)?
+        );
 
-
+        let action = Action::new("create-training-dataset", serde_json::to_string(&training_dataset_payload)?);
+        let mut result = self.client.do_action(action).await?;
+        while let Some(batch) = result.next().await {
+            match batch {
+            Ok(_) => { todo!() },
+            Err(_) => { todo!() },
+            };
+        }
+        Ok(())
+    }
 
 
 }
