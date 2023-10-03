@@ -4,7 +4,7 @@ use futures::stream::StreamExt;
 use log::info;
 use tonic::transport::{channel::ClientTlsConfig, Identity, Endpoint, Certificate};
 
-use crate::{get_hopsworks_client, repositories::{variables, credentials::entities::RegisterArrowFlightClientCertificatePayload, training_datasets::payloads::TrainingDatasetArrowFlightPayload, query::payloads::QueryArrowFlightPayload}, api::{feature_view::entities::FeatureView, training_dataset::entities::TrainingDataset, query::entities::Query, feature_group::entities::FeatureGroup}, util};
+use crate::{get_hopsworks_client, repositories::{variables, credentials::entities::RegisterArrowFlightClientCertificatePayload, training_datasets::payloads::TrainingDatasetArrowFlightPayload, query::payloads::QueryArrowFlightPayload}, api::{feature_view::entities::FeatureView, training_dataset::entities::TrainingDataset, query::entities::Query, feature_group::entities::{FeatureGroup, Feature}}, util};
 
 #[derive(Debug, Clone, Default)]
 pub struct HopsworksArrowFlightClientBuilder {}
@@ -164,5 +164,18 @@ impl HopsworksArrowFlightClient {
 
     fn serialize_feature_group_name(&self, feature_group: FeatureGroup) -> Result<String> {
         Ok(format!("{}.{}_{}", feature_group.get_project_name(), feature_group.name, feature_group.version))
+    }
+
+    fn serialize_feature_name(&self, feature: Feature, query_obj: Query, short_name: bool) -> Result<String> {
+        if short_name {
+            Ok(feature.name)
+        } else {
+            let opt_fg = query_obj.get_feature_group_by_feature(feature.clone());
+            if let Some(fg) = opt_fg {
+                Ok(format!("{}.{}", self.serialize_feature_group_name(fg)?, feature.name))
+            } else {
+                Err(color_eyre::Report::msg(format!("Feature {} not found in query object", feature.name)))
+            }
+        }
     }
 }
