@@ -1,10 +1,10 @@
 use crate::api::feature_group::entities::{Feature, FeatureGroup};
 
-use super::entities::{Query, JoinQuery};
+use super::entities::{JoinQuery, Query, QueryFilterOrLogic};
 
 impl Query {
     pub(crate) fn get_feature_group_by_feature(&self, feature: Feature) -> Option<FeatureGroup> {
-        let feature_group= self.left_features.iter().find_map(|f| {
+        let feature_group = self.left_features.iter().find_map(|f| {
             if f.name == feature.name {
                 Some(self.left_feature_group.clone())
             } else {
@@ -24,13 +24,40 @@ impl Query {
                 }
                 None
             }
-        }        
+        }
+    }
+
+    pub fn feature_groups(&self) -> Vec<FeatureGroup> {
+        if let Some(joins) = &self.joins {
+            let mut feature_groups: Vec<FeatureGroup> = joins
+                .iter()
+                .map(|join| join.left_feature_group.clone())
+                .collect();
+            feature_groups.push(self.left_feature_group.clone());
+            feature_groups
+        } else {
+            vec![self.left_feature_group.clone()]
+        }
+    }
+
+    pub fn filters(&self) -> Vec<QueryFilterOrLogic> {
+        let mut filters = vec![];
+        if let Some(joins) = &self.joins {
+            for join in joins {
+                filters.push(join.filter.clone());
+            }
+        }
+        if self.filter.is_some() {
+            filters.push(self.filter.clone());
+        }
+        // Remove None values
+        filters.into_iter().flatten().collect()
     }
 }
 
 impl JoinQuery {
     pub(crate) fn get_feature_group_by_feature(&self, feature: Feature) -> Option<FeatureGroup> {
-        let feature_group= self.left_features.iter().find_map(|f| {
+        let feature_group = self.left_features.iter().find_map(|f| {
             if f.name == feature.name {
                 Some(self.left_feature_group.clone())
             } else {

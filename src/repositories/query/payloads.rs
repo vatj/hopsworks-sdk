@@ -4,7 +4,7 @@ use crate::{
     api::query::entities::{JoinQuery, Query},
     repositories::{
         feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO,
-        storage_connector::payloads::ExternalFeatureGroupConnectorArrowFlightPayload,
+        storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
     },
 };
 
@@ -172,9 +172,25 @@ impl<'a> From<JoinQuery> for NewJoinQueryPayload<'a> {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct QueryArrowFlightPayload {
     pub query_string: String,
-    pub connectors: Option<Vec<ExternalFeatureGroupConnectorArrowFlightPayload>>,
+    pub connectors: Option<Vec<FeatureGroupConnectorArrowFlightPayload>>,
     pub filters: Option<Vec<QueryFilterOrLogicArrowFlightPayload>>,
     pub features: Vec<String>,
+}
+
+impl QueryArrowFlightPayload {
+    pub fn new(
+        query_string: String,
+        connectors: Option<Vec<FeatureGroupConnectorArrowFlightPayload>>,
+        filters: Option<Vec<QueryFilterOrLogicArrowFlightPayload>>,
+        features: Vec<String>,
+    ) -> Self {
+        Self {
+            query_string,
+            connectors,
+            filters,
+            features,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
