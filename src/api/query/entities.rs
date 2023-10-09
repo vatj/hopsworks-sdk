@@ -128,12 +128,12 @@ impl<'de> Deserialize<'de> for QueryFilterOrLogic {
         let value = serde_json::Value::deserialize(deserializer)?;
         if value.is_object() {
             let filter = serde_json::from_value(value.clone());
-            if filter.is_ok() {
-                return Ok(QueryFilterOrLogic::Filter(filter.unwrap()));
+            if let Ok(filter) = filter {
+                return Ok(QueryFilterOrLogic::Filter(filter));
             }
             let logic = serde_json::from_value(value.clone());
-            if logic.is_ok() {
-                return Ok(QueryFilterOrLogic::Logic(logic.unwrap()));
+            if let Ok(logic) = logic {
+                return Ok(QueryFilterOrLogic::Logic(logic));
             }
             Err(serde::de::Error::custom(
                 "expected a JSON object for QueryFilterOrLogicArrowFlightPayload",

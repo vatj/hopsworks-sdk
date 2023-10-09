@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -172,23 +174,23 @@ impl<'a> From<JoinQuery> for NewJoinQueryPayload<'a> {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct QueryArrowFlightPayload {
     pub query_string: String,
-    pub connectors: Option<Vec<FeatureGroupConnectorArrowFlightPayload>>,
+    pub connectors: Option<HashMap<String, FeatureGroupConnectorArrowFlightPayload>>,
     pub filters: Option<Vec<QueryFilterOrLogicArrowFlightPayload>>,
-    pub features: Vec<String>,
+    pub features: HashMap<String, Vec<String>>, // key is feature_group_name, value is vec of feature names
 }
 
 impl QueryArrowFlightPayload {
     pub fn new(
-        query_string: String,
-        connectors: Option<Vec<FeatureGroupConnectorArrowFlightPayload>>,
-        filters: Option<Vec<QueryFilterOrLogicArrowFlightPayload>>,
-        features: Vec<String>,
+        duckdb_query_string: String,
+        serialized_feature_names: HashMap<String, Vec<String>>,
+        serialized_connectors: Option<HashMap<String, FeatureGroupConnectorArrowFlightPayload>>,
+        serialized_filters: Option<Vec<QueryFilterOrLogicArrowFlightPayload>>,
     ) -> Self {
         Self {
-            query_string,
-            connectors,
-            filters,
-            features,
+            query_string: duckdb_query_string,
+            connectors: serialized_connectors,
+            filters: serialized_filters,
+            features: serialized_feature_names,
         }
     }
 }
@@ -207,8 +209,8 @@ pub struct QueryLogicArrowFlightPayload {
     #[serde(rename = "type")]
     pub filter_type: String,
     pub logic_type: String,
-    pub left_filter: Vec<QueryFilterOrLogicArrowFlightPayload>,
-    pub right_filter: Vec<QueryFilterOrLogicArrowFlightPayload>,
+    pub left_filter: Option<Box<QueryFilterOrLogicArrowFlightPayload>>,
+    pub right_filter: Option<Box<QueryFilterOrLogicArrowFlightPayload>>,
 }
 
 impl QueryFilterArrowFlightPayload {
@@ -225,8 +227,8 @@ impl QueryFilterArrowFlightPayload {
 impl QueryLogicArrowFlightPayload {
     pub fn new(
         logic_type: String,
-        left_filter: Vec<QueryFilterOrLogicArrowFlightPayload>,
-        right_filter: Vec<QueryFilterOrLogicArrowFlightPayload>,
+        left_filter: Option<Box<QueryFilterOrLogicArrowFlightPayload>>,
+        right_filter: Option<Box<QueryFilterOrLogicArrowFlightPayload>>,
     ) -> Self {
         Self {
             filter_type: "logic".to_string(),
@@ -264,14 +266,12 @@ impl<'de> Deserialize<'de> for QueryFilterOrLogicArrowFlightPayload {
         let value = serde_json::Value::deserialize(deserializer)?;
         if value.is_object() {
             let filter = serde_json::from_value(value.clone());
-            if filter.is_ok() {
-                return Ok(QueryFilterOrLogicArrowFlightPayload::Filter(
-                    filter.unwrap(),
-                ));
+            if let Ok(filter) = filter {
+                return Ok(QueryFilterOrLogicArrowFlightPayload::Filter(filter));
             }
             let logic = serde_json::from_value(value.clone());
-            if logic.is_ok() {
-                return Ok(QueryFilterOrLogicArrowFlightPayload::Logic(logic.unwrap()));
+            if let Ok(logic) = logic {
+                return Ok(QueryFilterOrLogicArrowFlightPayload::Logic(logic));
             }
             Err(serde::de::Error::custom(
                 "expected a JSON object for QueryFilterOrLogicArrowFlightPayload",

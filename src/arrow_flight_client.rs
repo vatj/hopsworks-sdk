@@ -216,31 +216,40 @@ impl HopsworksArrowFlightClient {
         query_str: String,
         on_demand_fg_aliases: Option<Vec<String>>,
     ) -> Result<QueryArrowFlightPayload> {
-        let feature_names: HashMap<String, Vec<String>> = HashMap::new();
-        let connectors: HashMap<String, FeatureGroupConnectorArrowFlightPayload> = HashMap::new();
+        let mut feature_names: HashMap<String, Vec<String>> = HashMap::new();
+        let mut connectors: HashMap<String, FeatureGroupConnectorArrowFlightPayload> =
+            HashMap::new();
         for feature_group in query.feature_groups() {
-            let fg_name = self.serialize_feature_group_name(feature_group);
+            let fg_name = self.serialize_feature_group_name(feature_group.clone());
             feature_names.insert(
-                fg_name,
+                fg_name.clone(),
                 feature_group
                     .get_features()
                     .iter()
                     .map(|feature| feature.name.clone())
                     .collect(),
             );
-            let fg_connector =
-                self.serialize_feature_group_connector(feature_group, query, on_demand_fg_aliases)?;
+            let fg_connector = self.serialize_feature_group_connector(
+                feature_group,
+                query.clone(),
+                on_demand_fg_aliases.clone(),
+            )?;
             connectors.insert(fg_name, fg_connector);
         }
-        let filters = self.serialize_filter_expression(query.filters(), query, false)?;
-        Ok(QueryArrowFlightPayload::new(query_str, connectors, filters))
+        let filters = self.serialize_filter_expression(query.filters(), query.clone(), false)?;
+        Ok(QueryArrowFlightPayload::new(
+            self.translate_to_duckdb(query.clone(), query_str)?,
+            feature_names,
+            Some(connectors),
+            filters,
+        ))
     }
 
     fn serialize_feature_group_connector(
         &self,
-        feature_group: FeatureGroup,
-        query: Query,
-        on_demand_fg_aliases: Option<Vec<String>>,
+        _feature_group: FeatureGroup,
+        _query: Query,
+        _on_demand_fg_aliases: Option<Vec<String>>,
     ) -> Result<FeatureGroupConnectorArrowFlightPayload> {
         Ok(FeatureGroupConnectorArrowFlightPayload::new_hudi_connector())
     }
@@ -281,23 +290,31 @@ impl HopsworksArrowFlightClient {
 
     fn serialize_filter_expression(
         &self,
-        filters: Option<Vec<QueryFilterOrLogic>>,
+        filters: Vec<QueryFilterOrLogic>,
         query: Query,
         short_name: bool,
-    ) -> Result<Option<QueryFilterOrLogicArrowFlightPayload>> {
-        if let Some(filter) = filters {
+    ) -> Result<Option<Vec<QueryFilterOrLogicArrowFlightPayload>>> {
+        if filters.is_empty() {
+            return Ok(None);
+        }
+        let mut serialized_filters = vec![];
+        for filter in filters {
             match filter {
                 QueryFilterOrLogic::Filter(filter) => {
-                    return Ok(Some(QueryFilterOrLogicArrowFlightPayload::Filter(
-                        self.serialize_filter(filter, query, short_name)?,
-                    )));
+                    serialized_filters.push(QueryFilterOrLogicArrowFlightPayload::Filter(
+                        self.serialize_filter(filter, query.clone(), short_name)?,
+                    ));
                 }
                 QueryFilterOrLogic::Logic(logic) => {
-                    return Ok(Some(self.serialize_logic(logic, query, short_name)?));
+                    serialized_filters.push(self.serialize_logic(
+                        logic,
+                        query.clone(),
+                        short_name,
+                    )?);
                 }
             }
         }
-        Ok(None)
+        Ok(Some(serialized_filters))
     }
 
     fn serialize_filter(
@@ -319,42 +336,45 @@ impl HopsworksArrowFlightClient {
         query: Query,
         short_name: bool,
     ) -> Result<QueryFilterOrLogicArrowFlightPayload> {
+        let left_filter = self.serialize_filter_or_logic(
+            logic.left_filter,
+            logic.left_logic.as_deref().cloned(),
+            query.clone(),
+            short_name,
+        )?;
+        let right_filter = self.serialize_filter_or_logic(
+            logic.right_filter,
+            logic.right_logic.as_deref().cloned(),
+            query.clone(),
+            short_name,
+        )?;
         Ok(QueryFilterOrLogicArrowFlightPayload::Logic(
-            QueryLogicArrowFlightPayload::new(
-                logic.logic_type,
-                logic
-                    .left_filters
-                    .iter()
-                    .map(|f| self.serialize_filter_or_logic(f.clone(), query.clone(), short_name))
-                    .collect::<Result<Vec<QueryFilterOrLogicArrowFlightPayload>>>()?,
-                logic
-                    .right_filters
-                    .iter()
-                    .map(|l| self.serialize_logic(l.clone(), query.clone(), short_name))
-                    .collect::<Result<Vec<QueryFilterOrLogicArrowFlightPayload>>>()?,
-            ),
+            QueryLogicArrowFlightPayload::new(logic.logic_type, left_filter, right_filter),
         ))
     }
 
     fn serialize_filter_or_logic(
         &self,
-        opt_filter_or_logic: Option<QueryFilterOrLogic>,
+        opt_filter: Option<QueryFilter>,
+        opt_logic: Option<QueryLogic>,
         query: Query,
         short_name: bool,
-    ) -> Result<Option<QueryFilterOrLogicArrowFlightPayload>> {
-        if let Some(filter_or_logic) = opt_filter_or_logic {
-            match filter_or_logic {
-                QueryFilterOrLogic::Filter(filter) => {
-                    return Ok(Some(QueryFilterOrLogicArrowFlightPayload::Filter(
-                        self.serialize_filter(filter, query, short_name)?,
-                    )));
-                }
-                QueryFilterOrLogic::Logic(logic) => {
-                    Ok(Some(self.serialize_logic(logic, query, short_name)?))
-                }
-            }
+    ) -> Result<Option<Box<QueryFilterOrLogicArrowFlightPayload>>> {
+        if opt_filter.is_none() && opt_logic.is_none() {
+            return Ok(None);
         }
-        Ok(None)
+        if let Some(filter) = opt_filter {
+            return Ok(Some(Box::new(
+                QueryFilterOrLogicArrowFlightPayload::Filter(
+                    self.serialize_filter(filter, query, short_name)?,
+                ),
+            )));
+        }
+        Ok(Some(Box::new(self.serialize_logic(
+            opt_logic.unwrap(),
+            query,
+            short_name,
+        )?)))
     }
 
     fn translate_to_duckdb(&self, query: Query, query_str: String) -> Result<String> {
@@ -363,6 +383,6 @@ impl HopsworksArrowFlightClient {
                 format!("`{}`.`", query.left_feature_group.featurestore_name).as_str(),
                 format!("`{}`.", query.left_feature_group.get_project_name()).as_str(),
             )
-            .replace("`", '"'.to_string().as_str()))
+            .replace('`', '"'.to_string().as_str()))
     }
 }
