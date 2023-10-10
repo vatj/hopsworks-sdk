@@ -62,7 +62,12 @@ impl HopsworksClientBuilder {
             ));
         }
 
+        debug!(
+            "HopsworksClientBuilder: Building client with url: {}",
+            self.url.as_str()
+        );
         let client = HopsworksClient::new(self.url, self.cert_dir);
+
         client
             .set_api_key(Some(self.api_key.unwrap_or(api_key).as_str()))
             .await;

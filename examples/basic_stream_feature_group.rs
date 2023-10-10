@@ -1,4 +1,5 @@
 use color_eyre::Result;
+use hopsworks_rs::client::HopsworksClientBuilder;
 use hopsworks_rs::domain::job;
 use hopsworks_rs::domain::storage_connector::controller::get_feature_store_kafka_connector;
 use hopsworks_rs::minidf::get_mini_df;
@@ -11,9 +12,12 @@ use hopsworks_rs::kafka_producer;
 async fn main() -> Result<()> {
     env_logger::init();
 
-    let project = hopsworks_login()
-        .await
-        .expect("Error connecting to Hopsworks:\n");
+    let project = hopsworks_login(Some(
+        HopsworksClientBuilder::default()
+            .with_url(std::env::var("HOPSWORKS_URL").unwrap_or_default().as_str()),
+    ))
+    .await
+    .expect("Error connecting to Hopsworks:\n");
 
     let feature_store = project
         .get_feature_store()
@@ -32,11 +36,15 @@ async fn main() -> Result<()> {
         let topic = feature_group
             .get_online_topic_name()
             .unwrap_or_else(|| String::from(""));
-        let kafka_connector = get_feature_store_kafka_connector(feature_store.featurestore_id, true).await?;
+        let kafka_connector =
+            get_feature_store_kafka_connector(feature_store.featurestore_id, true).await?;
 
         let mut mini_df = get_mini_df().await?;
 
-        info!("producing to topic '{topic}' on broker '{}'", kafka_connector.bootstrap_servers);
+        info!(
+            "producing to topic '{topic}' on broker '{}'",
+            kafka_connector.bootstrap_servers
+        );
 
         let primary_keys = feature_group.get_primary_keys()?;
 
