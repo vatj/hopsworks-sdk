@@ -1,18 +1,19 @@
+use color_eyre::Result;
+use log::info;
+use polars::{lazy::dsl::col, prelude::*};
 use std::collections::HashMap;
 
-use color_eyre::Result;
-
 use hopsworks_rs::{
-    api::transformation_function::entities::TransformationFunction,
+    api::transformation_function::entities::TransformationFunction, client::HopsworksClientBuilder,
     domain::training_dataset::controller::create_training_dataset_attached_to_feature_view,
     hopsworks_login,
 };
-use log::info;
-use polars::{prelude::*, lazy::dsl::col};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    color_eyre::install()?;
     env_logger::init();
+    let iteration = 1;
 
     // Load csv files into dataframes
     let mut trans_df = CsvReader::from_path("./example_data/transactions.csv")?
@@ -53,7 +54,7 @@ async fn main() -> Result<()> {
     let window_agg_df = trans_df
         .select(["datetime", "amount", "cc_num"])?
         .lazy()
-        .group_by_rolling(col("cc_num"), [col("datetime")] , group_by_rolling_options)
+        .group_by_rolling(col("cc_num"), [col("datetime")], group_by_rolling_options)
         .agg([
             col("amount").mean().alias("trans_volume_mavg"),
             col("amount").std(1).alias("trans_volume_mstd"),
@@ -64,15 +65,18 @@ async fn main() -> Result<()> {
         ])
         .collect()?;
 
-    let project = hopsworks_login()
-        .await
-        .expect("Error connecting to Hopsworks:\n");
+    let project = hopsworks_login(Some(
+        HopsworksClientBuilder::default()
+            .with_url(std::env::var("HOPSWORKS_URL").unwrap_or_default().as_str()),
+    ))
+    .await
+    .expect("Error connecting to Hopsworks:\n");
 
     let fs = project.get_feature_store().await?;
 
     let trans_fg = fs
         .get_or_create_feature_group(
-            "transactions_fg_3_rust",
+            format!("transactions_fraud_batch_fg_{iteration}_rust").as_str(),
             1,
             Some("Transactions data"),
             vec!["cc_num"],
@@ -80,14 +84,21 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    info!("topic name : {:?}", trans_fg.online_topic_name.try_borrow().unwrap());
+    info!(
+        "topic name : {:?}",
+        trans_fg.online_topic_name.try_borrow().unwrap()
+    );
 
     let n_rows = 5000;
     trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
 
     let window_aggs_fg = fs
         .get_or_create_feature_group(
-            format!("transactions_{}_aggs_fraud_batch_fg_3_rust", window_len).as_str(),
+            format!(
+                "transactions_{}_aggs_fraud_batch_fg_{iteration}rust",
+                window_len
+            )
+            .as_str(),
             1,
             Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
             vec!["cc_num"],
@@ -112,15 +123,20 @@ async fn main() -> Result<()> {
     transformation_functions.insert("amount".to_owned(), min_max_scaler.unwrap());
 
     let feature_view = fs
-        .create_feature_view("trans_view_3_rust", 1, query, transformation_functions)
+        .create_feature_view(
+            format!("trans_view_{iteration}_rust").as_str(),
+            1,
+            query,
+            transformation_functions,
+        )
         .await?;
 
-    // let fetched_view = fs
-    //     .get_feature_view("trans_view_1_rust", Some(1))
-    //     .await?
-    //     .unwrap();
+    let fetched_view = fs
+        .get_feature_view(format!("trans_view_{iteration}_rust").as_str(), Some(1))
+        .await?
+        .unwrap();
 
-    // println!("The view: {:?}", fetched_view);
+    println!("The view: {:?}", fetched_view);
 
     create_training_dataset_attached_to_feature_view(feature_view).await?;
 

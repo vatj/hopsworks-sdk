@@ -2,7 +2,7 @@ use color_eyre::Result;
 use polars::prelude::{DataFrame, Schema};
 
 use crate::{
-    domain::{feature, job, kafka, storage_connector},
+    domain::{feature, job, storage_connector},
     kafka_producer::produce_df,
     repositories::{
         feature::payloads::NewFeaturePayload,

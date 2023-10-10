@@ -1,7 +1,7 @@
 use color_eyre::Result;
 use polars::prelude::DataFrame;
 
-use crate::{api::query::entities::Query, domain::feature_group};
+use crate::{api::query::entities::Query, domain::feature_group, util};
 
 use super::entities::{Feature, FeatureGroup, StatisticsConfig, User};
 
@@ -12,6 +12,10 @@ impl FeatureGroup {
 
     pub fn get_id(&self) -> Option<i32> {
         self.id.get()
+    }
+
+    pub fn get_project_name(&self) -> String {
+        util::strip_feature_store_suffix(&self.featurestore_name)
     }
 
     fn set_online_topic_name(&self, online_topic_name: Option<String>) {

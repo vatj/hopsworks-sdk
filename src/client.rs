@@ -62,7 +62,12 @@ impl HopsworksClientBuilder {
             ));
         }
 
+        debug!(
+            "HopsworksClientBuilder: Building client with url: {}",
+            self.url.as_str()
+        );
         let client = HopsworksClient::new(self.url, self.cert_dir);
+
         client
             .set_api_key(Some(self.api_key.unwrap_or(api_key).as_str()))
             .await;
@@ -73,8 +78,8 @@ impl HopsworksClientBuilder {
 #[derive(Debug, Clone)]
 pub struct HopsworksClient {
     client: reqwest::Client,
-    url: String,
-    cert_dir: String,
+    pub(crate) url: String,
+    pub(crate) cert_dir: String,
     api_key: Arc<Mutex<Option<HeaderValue>>>,
     project_id: Arc<Mutex<Option<i32>>>,
 }

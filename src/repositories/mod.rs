@@ -12,3 +12,4 @@ pub mod storage_connector;
 pub mod training_datasets;
 pub mod transformation_function;
 pub mod users;
+pub mod variables;
