@@ -21,7 +21,7 @@ use crate::{
             QueryFilterOrLogicArrowFlightPayload, QueryLogicArrowFlightPayload,
         },
         storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
-        training_datasets::payloads::TrainingDatasetArrowFlightPayload,
+        training_dataset::payloads::TrainingDatasetArrowFlightPayload,
         variables,
     },
     util,

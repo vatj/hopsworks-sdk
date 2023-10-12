@@ -85,6 +85,7 @@ impl FeatureGroup {
                         .collect(),
                     self.event_time.as_deref(),
                     dataframe.schema(),
+                    self.online_enabled,
                 )
                 .unwrap(),
             )

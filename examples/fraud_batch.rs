@@ -16,7 +16,8 @@ use hopsworks_rs::{
 async fn main() -> Result<()> {
     color_eyre::install()?;
     env_logger::init();
-    let iteration = 2;
+    let iteration =
+        std::env::var("HOPSWORKS_FRAUD_BATCH_ITERATION").unwrap_or_else(|_| "1".to_owned());
 
     // Load csv files into dataframes
     let mut trans_df = CsvReader::from_path("./example_data/transactions.csv")?
@@ -84,7 +85,7 @@ async fn main() -> Result<()> {
             Some("Transactions data"),
             vec!["cc_num"],
             "datetime",
-            false,
+            true,
         )
         .await?;
 
@@ -143,7 +144,7 @@ async fn main() -> Result<()> {
     create_training_dataset_attached_to_feature_view(feature_view).await?;
 
     let my_new_dataset = fs
-        .get_training_dataset_by_name_and_version("transactions_view_fraud_batch_fv_1", Some(1))
+        .get_training_dataset_by_name_and_version("trans_view_{iteration}_rust", Some(1))
         .await?;
 
     println!("The dataset: {:?}", my_new_dataset);
