@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use reqwest::{StatusCode, Method};
+use reqwest::{Method, StatusCode};
 
 use crate::get_hopsworks_client;
 
@@ -18,10 +18,10 @@ pub async fn get_training_dataset_by_name_and_version(
     let res = get_hopsworks_client()
         .await
         .request(
-            Method::GET, 
-            format!("featurestores/{feature_store_id}/trainingdatasets/{name}").as_str(), 
-            true, 
-            true
+            Method::GET,
+            format!("featurestores/{feature_store_id}/trainingdatasets/{name}").as_str(),
+            true,
+            true,
         )
         .await?
         .query(&query_params)

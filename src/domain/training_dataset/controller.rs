@@ -12,8 +12,9 @@ use crate::{
         feature_view::service as feature_view_service,
         job::entities::JobDTO,
         query::entities::QueryDTO,
-        training_datasets::payloads::{
-            NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload,
+        training_dataset::{
+            self,
+            payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
         },
         transformation_function::entities::TransformationFunctionDTO,
     },
@@ -99,4 +100,26 @@ pub async fn compute_training_dataset_attached_to_feature_view(
         job_config,
     )
     .await
+}
+
+pub async fn get_training_dataset_by_name_and_version(
+    feature_store_id: i32,
+    name: &str,
+    version: Option<i32>,
+) -> Result<Option<TrainingDataset>> {
+    let opt_training_dataset_dto =
+        training_dataset::service::get_training_dataset_by_name_and_version(
+            feature_store_id,
+            name,
+            version,
+        )
+        .await?;
+
+    match opt_training_dataset_dto {
+        Some(training_dataset_dto) => Ok(Some(TrainingDataset {
+            feature_store_name: training_dataset_dto.featurestore_name,
+            version: training_dataset_dto.version,
+        })),
+        None => Ok(None),
+    }
 }

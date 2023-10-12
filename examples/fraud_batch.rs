@@ -1,11 +1,14 @@
 use color_eyre::Result;
-use log::info;
 use polars::{lazy::dsl::col, prelude::*};
 use std::collections::HashMap;
 
 use hopsworks_rs::{
-    api::transformation_function::entities::TransformationFunction, client::HopsworksClientBuilder,
-    domain::training_dataset::controller::create_training_dataset_attached_to_feature_view,
+    api::transformation_function::entities::TransformationFunction,
+    client::HopsworksClientBuilder,
+    domain::{
+        query::controller::construct_query,
+        training_dataset::controller::create_training_dataset_attached_to_feature_view,
+    },
     hopsworks_login,
 };
 
@@ -13,7 +16,7 @@ use hopsworks_rs::{
 async fn main() -> Result<()> {
     color_eyre::install()?;
     env_logger::init();
-    let iteration = 1;
+    let iteration = 2;
 
     // Load csv files into dataframes
     let mut trans_df = CsvReader::from_path("./example_data/transactions.csv")?
@@ -81,13 +84,9 @@ async fn main() -> Result<()> {
             Some("Transactions data"),
             vec!["cc_num"],
             "datetime",
+            false,
         )
         .await?;
-
-    info!(
-        "topic name : {:?}",
-        trans_fg.online_topic_name.try_borrow().unwrap()
-    );
 
     let n_rows = 5000;
     trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
@@ -103,6 +102,7 @@ async fn main() -> Result<()> {
             Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
             vec!["cc_num"],
             "datetime",
+            false,
         )
         .await?;
 
@@ -111,6 +111,8 @@ async fn main() -> Result<()> {
         .await?;
 
     let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?;
+
+    println!("Query: {:#?}", construct_query(query.clone()).await?);
 
     let min_max_scaler = fs
         .get_transformation_function("min_max_scaler", None)
@@ -136,16 +138,15 @@ async fn main() -> Result<()> {
         .await?
         .unwrap();
 
-    println!("The view: {:?}", fetched_view);
+    println!("The fetched feature view: {:?}", fetched_view);
 
     create_training_dataset_attached_to_feature_view(feature_view).await?;
 
-    // let test_get = get_training_dataset_by_name_and_version(
-    //     fs.featurestore_id,
-    //     "transactions_view_fraud_batch_fv_1",
-    //     Some(1),
-    // )
-    // .await?;
+    let my_new_dataset = fs
+        .get_training_dataset_by_name_and_version("transactions_view_fraud_batch_fv_1", Some(1))
+        .await?;
+
+    println!("The dataset: {:?}", my_new_dataset);
 
     Ok(())
 }
