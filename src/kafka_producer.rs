@@ -10,10 +10,16 @@ use std::time::Duration;
 use tokio::task::JoinSet;
 
 use crate::domain::kafka::controller::get_kafka_topic_subject;
+use crate::get_hopsworks_client;
 use crate::repositories::kafka::entities::KafkaSubjectDTO;
+use crate::repositories::project::service::get_client_project;
 use crate::repositories::storage_connector::entities::FeatureStoreKafkaConnectorDTO;
 
-async fn setup_future_producer(kafka_connector: FeatureStoreKafkaConnectorDTO, project_name: &str) -> Result<FutureProducer> {
+async fn setup_future_producer(
+    kafka_connector: FeatureStoreKafkaConnectorDTO,
+) -> Result<FutureProducer> {
+    let cert_dir = get_hopsworks_client().await.cert_dir.clone();
+    let project_name = get_client_project().await?.project_name.clone();
     Ok(ClientConfig::new()
         .set("bootstrap.servers", kafka_connector.bootstrap_servers)
         .set("message.timeout.ms", "300000")
@@ -21,16 +27,28 @@ async fn setup_future_producer(kafka_connector: FeatureStoreKafkaConnectorDTO, p
         .set("ssl.endpoint.identification.algorithm", "none")
         .set(
             "ssl.ca.location",
-            format!("/tmp/{project_name}/ca_chain.pem"),
+            format!("{cert_dir}/{project_name}/ca_chain.pem"),
         )
         .set(
             "ssl.certificate.location",
-            format!("/tmp/{project_name}/client_cert.pem"),
+            format!("{cert_dir}/{project_name}/client_cert.pem"),
         )
         .set(
             "ssl.key.location",
-            format!("/tmp/{project_name}/client_key.pem"),
+            format!("{cert_dir}/{project_name}/client_key.pem"),
         )
+        // not supported by rdkafka, get cert key from Hopsworks client
+        // .set(
+        //     "ssl.truststore.location",
+        //     format!("/tmp/{project_name}/truststore.jks"),
+        // )
+        // .set("ssl.truststore.password", cert_key.as_str())
+        // .set(
+        //     "ssl.keystore.location",
+        //     format!("/tmp/{project_name}/keystore.jks"),
+        // )
+        // .set("ssl.keystore.password", cert_key.as_str())
+        // .set("ssl.key.password", cert_key.as_str())
         // .set("debug", "all")
         .create()
         .expect("Error setting up kafka producer"))
@@ -42,14 +60,24 @@ pub async fn produce_df(
     subject_name: &str,
     opt_version: Option<&str>,
     online_topic_name: &str,
-    project_name: &str,
     primary_keys: Vec<&str>,
+    feature_group_id: i32,
 ) -> Result<()> {
-    let producer: &FutureProducer = &setup_future_producer(kafka_connector, project_name).await?;
+    let producer: &FutureProducer = &setup_future_producer(kafka_connector).await?;
 
     let subject_dto: KafkaSubjectDTO = get_kafka_topic_subject(subject_name, opt_version).await?;
 
     let avro_schema = Schema::parse_str(subject_dto.schema.as_str()).unwrap();
+
+    let project_id = get_hopsworks_client()
+        .await
+        .get_project_id()
+        .lock()
+        .await
+        .unwrap()
+        .to_string();
+    let subject_id = subject_dto.id.to_string();
+    let feature_group_id = feature_group_id.to_string();
 
     df.as_single_chunk_par();
 
@@ -95,10 +123,21 @@ pub async fn produce_df(
 
         let producer = producer.clone();
         let topic_name = online_topic_name.to_string();
+        let project_id = project_id.clone();
+        let feature_group_id = feature_group_id.clone();
+        let subject_id = subject_id.clone();
 
         handles.spawn(async move {
             let produce_future = producer.send(
-                make_future_record_from_encoded(&the_key, &encoded_payload, &topic_name).unwrap(),
+                make_future_record_from_encoded(
+                    &the_key,
+                    &encoded_payload,
+                    &topic_name,
+                    &project_id,
+                    &feature_group_id,
+                    &subject_id,
+                )
+                .unwrap(),
                 Duration::from_secs(5),
             );
 
@@ -124,13 +163,31 @@ fn make_future_record_from_encoded<'a>(
     the_key: &'a String,
     encoded_payload: &'a Vec<u8>,
     topic_name: &'a str,
+    project_id: &str,
+    feature_group_id: &str,
+    subject_id: &str,
 ) -> Result<FutureRecord<'a, String, Vec<u8>>> {
     let version_str = String::from("1");
     Ok(FutureRecord::to(topic_name)
         .payload(encoded_payload)
         .key(the_key)
-        .headers(OwnedHeaders::new().insert(Header {
-            key: "version",
-            value: Some(&version_str),
-        })))
+        .headers(
+            OwnedHeaders::new()
+                .insert(Header {
+                    key: "version",
+                    value: Some(&version_str),
+                })
+                .insert(Header {
+                    key: "projectId",
+                    value: Some(project_id),
+                })
+                .insert(Header {
+                    key: "featureGroupId",
+                    value: Some(feature_group_id),
+                })
+                .insert(Header {
+                    key: "subjectId",
+                    value: Some(subject_id),
+                }),
+        ))
 }

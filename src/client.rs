@@ -82,6 +82,7 @@ pub struct HopsworksClient {
     pub(crate) cert_dir: String,
     api_key: Arc<Mutex<Option<HeaderValue>>>,
     project_id: Arc<Mutex<Option<i32>>>,
+    cert_key: Arc<Mutex<Option<String>>>,
 }
 
 impl Default for HopsworksClient {
@@ -92,6 +93,7 @@ impl Default for HopsworksClient {
             cert_dir: DEFAULT_CLIENT_CERT_DIR.to_string(),
             api_key: Arc::new(Mutex::new(None)),
             project_id: Arc::new(Mutex::new(None)),
+            cert_key: Arc::new(Mutex::new(None)),
         }
     }
 }
@@ -134,8 +136,12 @@ impl HopsworksClient {
             project.project_name, self.url
         );
 
-        write_locally_project_credentials_on_login(&project.project_name, self.cert_dir.as_str())
-            .await?;
+        let cert_key = write_locally_project_credentials_on_login(
+            &project.project_name,
+            self.cert_dir.as_str(),
+        )
+        .await?;
+        self.set_cert_key(Some(cert_key)).await;
 
         Ok(project)
     }
@@ -144,13 +150,22 @@ impl HopsworksClient {
         Arc::clone(&self.api_key)
     }
 
-    fn get_project_id(&self) -> Arc<Mutex<Option<i32>>> {
+    pub(crate) fn get_cert_key(&self) -> Arc<Mutex<Option<String>>> {
+        Arc::clone(&self.cert_key)
+    }
+
+    pub(crate) fn get_project_id(&self) -> Arc<Mutex<Option<i32>>> {
         Arc::clone(&self.project_id)
     }
 
     async fn set_project_id(&self, project_id: Option<i32>) {
         debug!("Setting HopsworksClient project id to {:?}", project_id);
         *self.get_project_id().lock().await = project_id;
+    }
+
+    async fn set_cert_key(&self, cert_key: Option<String>) {
+        debug!("Setting HopsworksClient cert_key");
+        *self.get_cert_key().lock().await = cert_key;
     }
 
     async fn set_api_key(&self, new_api_key: Option<&str>) {

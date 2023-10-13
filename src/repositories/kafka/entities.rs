@@ -13,10 +13,10 @@ pub struct KafkaTopicDTO {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct KafkaSubjectDTO {
-    id: i32,
+    pub(crate) id: i32,
     subject: String,
     version: i32,
-    pub schema: String,
+    pub(crate) schema: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

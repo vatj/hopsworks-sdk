@@ -115,6 +115,7 @@ impl FeatureGroup {
 
         feature_group::controller::insert_in_registered_feature_group(
             self.featurestore_id,
+            self.get_id().unwrap(),
             self.name.as_str(),
             self.version,
             self.get_online_topic_name().unwrap_or_default().as_str(),

@@ -139,15 +139,15 @@ async fn main() -> Result<()> {
         .await?
         .unwrap();
 
-    println!("The fetched feature view: {:?}", fetched_view);
+    println!("The fetched feature view: {:#?}", fetched_view);
 
     create_training_dataset_attached_to_feature_view(feature_view).await?;
 
-    let my_new_dataset = fs
-        .get_training_dataset_by_name_and_version("trans_view_{iteration}_rust", Some(1))
-        .await?;
+    // let my_new_dataset = fs
+    //     .get_training_dataset_by_name_and_version("trans_view_{iteration}_rust", Some(1))
+    //     .await?;
 
-    println!("The dataset: {:?}", my_new_dataset);
+    // println!("The dataset: {:#?}", my_new_dataset);
 
     Ok(())
 }
