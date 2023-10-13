@@ -8,21 +8,32 @@ edition = "2021"
 [dependencies]
 reqwest = { version = "0.11", features = ["json", "blocking"] }
 serde = { version = "1", features = ["derive"] }
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.33", features = ["full"] }
 log = { version = "0.4" }
 env_logger = { version = "0.10" }
 serde_json = { version = "1.0" }
 apache-avro = { version = "0.16", features = ["derive"] }
-polars = { version = "0.33.2", features = ["lazy", "avro", "strings", "dtype-full", "rows", "dynamic_group_by"] }
+polars = { version = "0.33.2", features = [
+    "lazy",
+    "avro",
+    "strings",
+    "dtype-full",
+    "rows",
+    "dynamic_group_by",
+] }
 color-eyre = { version = "0.6.2" }
 rdkafka = { version = "0.34.0", features = ["tokio", "libz", "ssl"] }
 indicatif = { version = "0.17.0" }
-connectorx = { version = "0.3.2" }
+connectorx = { version = "0.3.2", features = [
+    "src_mysql",
+    "dst_arrow2",
+    "dst_arrow",
+] }
 arrow2 = { version = "0.18.0" }
 chrono = { version = "0.4.31" }
-arrow-flight = { version = "47.0.0" } 
+arrow-flight = { version = "47.0.0" }
 tonic = { version = "0.10.2", features = ["transport", "tls"] }
-futures ={ version = "0.3.28" }
+futures = { version = "0.3.28" }
 
 [[example]]
 name = "basic_stream_feature_group"

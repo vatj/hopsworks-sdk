@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use hopsworks_rs::client::HopsworksClientBuilder;
+use hopsworks_rs::clients::rest_client::HopsworksClientBuilder;
 use hopsworks_rs::domain::job;
 use hopsworks_rs::domain::storage_connector::controller::get_feature_store_kafka_connector;
 use hopsworks_rs::minidf::get_mini_df;

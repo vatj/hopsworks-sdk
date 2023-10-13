@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use hopsworks_rs::{
     api::transformation_function::entities::TransformationFunction,
-    client::HopsworksClientBuilder,
+    clients::rest_client::HopsworksClientBuilder,
     domain::{
         query::controller::construct_query,
         training_dataset::controller::create_training_dataset_attached_to_feature_view,
