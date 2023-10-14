@@ -122,7 +122,7 @@ pub async fn save_feature_group_metadata(
 pub async fn read_feature_group_with_arrow_flight_client(query_object: Query) -> Result<()> {
     let mut arrow_flight_client = HopsworksArrowFlightClientBuilder::default().build().await?;
 
-    arrow_flight_client.read_query(query_object);
+    arrow_flight_client.read_query(query_object).await?;
 
     Ok(())
 }

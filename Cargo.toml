@@ -42,3 +42,7 @@ path = "examples/basic_stream_feature_group.rs"
 [[example]]
 name = "fraud_batch"
 path = "examples/fraud_batch.rs"
+
+[[example]]
+name = "read_fg_arrow_flight"
+path = "examples/read_fg_arrow_flight.rs"
