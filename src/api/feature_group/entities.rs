@@ -70,6 +70,7 @@ impl FeatureGroup {
         description: Option<&str>,
         primary_key: Vec<&str>,
         event_time: &str,
+        online_enabled: bool,
     ) -> Self {
         Self {
             featurestore_id: feature_store.featurestore_id,
@@ -84,7 +85,7 @@ impl FeatureGroup {
             location: RefCell::new(None),
             statistics_config: RefCell::new(None),
             features: RefCell::new(vec![]),
-            online_enabled: false,
+            online_enabled,
             time_travel_format: String::from("NONE"),
             online_topic_name: RefCell::new(None),
             primary_key: Some(primary_key.iter().map(|pk| pk.to_string()).collect()),

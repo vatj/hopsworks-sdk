@@ -7,7 +7,6 @@ use crate::{
     repositories::{
         feature::payloads::NewFeaturePayload,
         feature_group::{self, entities::FeatureGroupDTO, payloads::NewFeatureGroupPayload},
-        project::service::get_client_project,
     },
 };
 
@@ -33,23 +32,30 @@ pub fn make_new_feature_group_payload<'a>(
     description: Option<&'a str>,
     features: Vec<NewFeaturePayload>,
     event_time: Option<&'a str>,
+    online_enabled: bool,
 ) -> NewFeatureGroupPayload<'a> {
-    NewFeatureGroupPayload::new(name, version, description, features, event_time)
+    NewFeatureGroupPayload::new(
+        name,
+        version,
+        description,
+        features,
+        event_time,
+        online_enabled,
+    )
 }
 
 pub async fn insert_in_registered_feature_group(
     feature_store_id: i32,
+    feature_group_id: i32,
     feature_group_name: &str,
     feature_group_version: i32,
     online_topic_name: &str,
     dataframe: &mut DataFrame,
     primary_keys: Vec<String>,
 ) -> Result<()> {
-    let kafka_connector = storage_connector::controller::get_feature_store_kafka_connector(
-        feature_store_id,
-        true,
-    ).await?;
-    let project_name = get_client_project().await?.project_name;
+    let kafka_connector =
+        storage_connector::controller::get_feature_store_kafka_connector(feature_store_id, true)
+            .await?;
     let ref_primary_keys = primary_keys.iter().map(|key| key.as_str()).collect();
     let subject_name = format!("{}_{}", feature_group_name, feature_group_version);
 
@@ -59,8 +65,8 @@ pub async fn insert_in_registered_feature_group(
         subject_name.as_str(),
         None,
         online_topic_name,
-        project_name.as_str(),
         ref_primary_keys,
+        feature_group_id,
     )
     .await?;
 
@@ -81,6 +87,7 @@ pub fn build_new_feature_group_payload<'a>(
     primary_key: Vec<&'a str>,
     event_time: Option<&'a str>,
     schema: Schema,
+    online_enabled: bool,
 ) -> Result<NewFeatureGroupPayload<'a>> {
     let features =
         feature::controller::build_feature_payloads_from_schema_and_feature_group_options(
@@ -95,6 +102,7 @@ pub fn build_new_feature_group_payload<'a>(
         description,
         features,
         event_time,
+        online_enabled,
     ))
 }
 

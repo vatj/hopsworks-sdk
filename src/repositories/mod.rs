@@ -9,7 +9,7 @@ pub mod project;
 pub mod query;
 pub mod statistics_config;
 pub mod storage_connector;
-pub mod training_datasets;
+pub mod training_dataset;
 pub mod transformation_function;
 pub mod users;
 pub mod variables;

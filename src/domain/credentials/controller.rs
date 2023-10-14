@@ -9,7 +9,7 @@ use crate::repositories::credentials::service::get_hopsworks_credentials_for_pro
 pub async fn write_locally_project_credentials_on_login(
     project_name: &str,
     cert_dir: &str,
-) -> Result<()> {
+) -> Result<String> {
     let credentials_dto = get_hopsworks_credentials_for_project().await?;
 
     if !Path::new(cert_dir).join(project_name).exists() {
@@ -56,7 +56,15 @@ pub async fn write_locally_project_credentials_on_login(
     )
     .await?;
 
-    Ok(())
+    write_cert_to_file(
+        project_name,
+        "material_passwd",
+        cert_dir,
+        &credentials_dto.password,
+    )
+    .await?;
+
+    Ok(credentials_dto.password.clone())
 }
 
 async fn write_cert_to_file(

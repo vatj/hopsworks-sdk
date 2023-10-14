@@ -1,12 +1,12 @@
 use color_eyre::Result;
-use reqwest::{StatusCode, Method};
+use reqwest::{Method, StatusCode};
 
 use super::{entities::FeatureViewDTO, payloads::NewFeatureViewPayload};
 use crate::{
     get_hopsworks_client,
     repositories::{
         job::entities::JobDTO,
-        training_datasets::{
+        training_dataset::{
             entities::TrainingDatasetDTO,
             payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
         },
@@ -27,8 +27,7 @@ pub async fn get_feature_view_by_name_and_version(
 
     let res = get_hopsworks_client()
         .await
-        .request(
-            Method::GET, relative_url.as_str(), true, true)
+        .request(Method::GET, relative_url.as_str(), true, true)
         .await?
         .query(&query_params)
         .send()

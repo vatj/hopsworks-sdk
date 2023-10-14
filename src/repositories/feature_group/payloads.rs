@@ -12,6 +12,7 @@ pub struct NewFeatureGroupPayload<'a> {
     description: Option<&'a str>,
     features: Vec<NewFeaturePayload>,
     event_time: Option<&'a str>,
+    online_enabled: bool,
 }
 
 impl<'a> NewFeatureGroupPayload<'a> {
@@ -21,6 +22,7 @@ impl<'a> NewFeatureGroupPayload<'a> {
         description: Option<&'a str>,
         features: Vec<NewFeaturePayload>,
         event_time: Option<&'a str>,
+        online_enabled: bool,
     ) -> Self {
         Self {
             fg_type: "streamFeatureGroupDTO",
@@ -29,6 +31,7 @@ impl<'a> NewFeatureGroupPayload<'a> {
             description,
             features,
             event_time,
+            online_enabled,
         }
     }
 }
