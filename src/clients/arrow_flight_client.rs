@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use arrow_flight::{decode::FlightRecordBatchStream, Action, FlightClient, FlightDescriptor};
 use color_eyre::Result;
 use futures::stream::StreamExt;
-use log::info;
+use log::{debug, info};
+use serde::de;
 use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity};
 
 use crate::{
@@ -76,7 +77,7 @@ impl HopsworksArrowFlightClientBuilder {
         let arrow_flight_url = self.get_arrow_flight_url().await?;
 
         let endpoint = Endpoint::from_shared(arrow_flight_url)?.tls_config(
-            self.build_client_tls_config(hopsworks_client.cert_dir.as_str())
+            self.build_client_tls_config(hopsworks_client.get_cert_dir().lock().await.as_str())
                 .await?,
         )?;
         let channel = endpoint.connect().await?;
@@ -86,7 +87,7 @@ impl HopsworksArrowFlightClientBuilder {
         };
         hopsworks_arrow_client.health_check().await?;
         hopsworks_arrow_client
-            .register_certificates(hopsworks_client.cert_dir.as_str())
+            .register_certificates(hopsworks_client.get_cert_dir().lock().await.as_str())
             .await?;
 
         Ok(hopsworks_arrow_client)
@@ -126,8 +127,9 @@ impl HopsworksArrowFlightClient {
         Ok(())
     }
 
-    pub async fn read_query(&mut self, query_object: &str) -> Result<()> {
-        let descriptor = FlightDescriptor::new_cmd(query_object.to_string());
+    pub async fn read_query(&mut self, query_object: Query) -> Result<()> {
+        debug!("Reading query object: {:#?}", query_object);
+        let descriptor = FlightDescriptor::new_cmd(serde_json::to_string(&query_object)?);
         self._get_dataset(descriptor).await?;
         Ok(())
     }
@@ -139,11 +141,14 @@ impl HopsworksArrowFlightClient {
     }
 
     async fn _get_dataset(&mut self, descriptor: FlightDescriptor) -> Result<()> {
+        debug!("Getting dataset with descriptor: {:#?}", descriptor);
         let flight_info = self.client.get_flight_info(descriptor).await?;
         let opt_endpoint = flight_info.endpoint.get(0);
 
         if let Some(endpoint) = opt_endpoint {
+            debug!("Endpoint: {:#?}", endpoint);
             if let Some(ticket) = endpoint.ticket.clone() {
+                debug!("Ticket: {:#?}", ticket);
                 let flight_data_stream = self.client.do_get(ticket).await?.into_inner();
                 let mut record_batch_stream = FlightRecordBatchStream::new(flight_data_stream);
 
