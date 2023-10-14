@@ -20,8 +20,10 @@ async fn setup_future_producer(
 ) -> Result<FutureProducer> {
     let cert_dir = get_hopsworks_client().await.cert_dir.clone();
     let project_name = get_client_project().await?.project_name.clone();
+    let bootstrap_servers =
+        std::env::var("HOPSWORKS_KAFKA_BROKERS").unwrap_or(kafka_connector.bootstrap_servers);
     Ok(ClientConfig::new()
-        .set("bootstrap.servers", kafka_connector.bootstrap_servers)
+        .set("bootstrap.servers", bootstrap_servers)
         .set("message.timeout.ms", "300000")
         .set("security.protocol", "SSL")
         .set("ssl.endpoint.identification.algorithm", "none")

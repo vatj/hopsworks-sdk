@@ -88,7 +88,11 @@ pub struct HopsworksClient {
 impl Default for HopsworksClient {
     fn default() -> Self {
         HopsworksClient {
-            client: reqwest::Client::new(),
+            // client: reqwest::Client::new(),
+            client: reqwest::ClientBuilder::new()
+                .danger_accept_invalid_certs(true)
+                .build()
+                .unwrap(),
             url: DEFAULT_CLIENT_URL.to_string(),
             cert_dir: DEFAULT_CLIENT_CERT_DIR.to_string(),
             api_key: Arc::new(Mutex::new(None)),
