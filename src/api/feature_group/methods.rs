@@ -125,8 +125,15 @@ impl FeatureGroup {
         .await
     }
 
+    pub fn get_feature_names(&self) -> Vec<String> {
+        self.get_features()
+            .iter()
+            .map(|feature| feature.name.clone())
+            .collect()
+    }
+
     pub fn select(&self, feature_names: Vec<&str>) -> Result<Query> {
-        Ok(Query::new(
+        Ok(Query::new_no_joins_no_filter(
             self.clone(),
             self.get_features()
                 .iter()
@@ -139,5 +146,15 @@ impl FeatureGroup {
                 })
                 .collect(),
         ))
+    }
+
+    pub async fn read_with_arrow_flight_client(&self) -> Result<()> {
+        let query_object =
+            self.select(self.get_feature_names().iter().map(|s| s as &str).collect())?;
+        let read_df =
+            feature_group::controller::read_feature_group_with_arrow_flight_client(query_object)
+                .await?;
+
+        Ok(())
     }
 }

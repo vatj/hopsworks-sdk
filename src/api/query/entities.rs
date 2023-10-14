@@ -16,7 +16,10 @@ pub struct Query {
 }
 
 impl Query {
-    pub fn new(left_feature_group: FeatureGroup, left_features: Vec<Feature>) -> Self {
+    pub fn new_no_joins_no_filter(
+        left_feature_group: FeatureGroup,
+        left_features: Vec<Feature>,
+    ) -> Self {
         Self {
             feature_store_name: left_feature_group.featurestore_name.clone(),
             feature_store_id: left_feature_group.featurestore_id,

@@ -2,6 +2,8 @@ use color_eyre::Result;
 use polars::prelude::{DataFrame, Schema};
 
 use crate::{
+    api::query::entities::Query,
+    clients::arrow_flight_client::HopsworksArrowFlightClientBuilder,
     domain::{feature, job, storage_connector},
     kafka_producer::produce_df,
     repositories::{
@@ -115,4 +117,12 @@ pub async fn save_feature_group_metadata(
             .await?;
 
     Ok(feature_group_dto)
+}
+
+pub async fn read_feature_group_with_arrow_flight_client(query_object: Query) -> Result<()> {
+    let mut arrow_flight_client = HopsworksArrowFlightClientBuilder::default().build().await?;
+
+    arrow_flight_client.read_query(query_object);
+
+    Ok(())
 }
