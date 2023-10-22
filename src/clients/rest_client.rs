@@ -140,8 +140,9 @@ impl HopsworksClient {
             project.project_name, self.url
         );
 
+        let cert_dir = self.get_cert_dir().lock().await.clone();
         self.set_cert_dir(
-            Path::new(self.get_cert_dir().lock().await.as_str())
+            Path::new(cert_dir.as_str())
                 .join(&project.project_name)
                 .to_str()
                 .unwrap()
@@ -196,8 +197,8 @@ impl HopsworksClient {
         }
         let header_key = HeaderValue::from_str(format!("ApiKey {}", new_api_key.unwrap()).as_str());
 
-        if header_key.is_ok() {
-            *self.get_api_key().lock().await = Some(header_key.unwrap());
+        if let Ok(header_key) = header_key {
+            *self.get_api_key().lock().await = Some(header_key);
             info!("Setting HopsworksClient api key for authenticated request.");
         } else {
             warn!(

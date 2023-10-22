@@ -37,11 +37,12 @@ impl From<Query> for QueryDTO {
 #[serde(rename_all = "camelCase")]
 pub struct FeatureStoreQueryDTO {
     href: Option<String>,
-    query: String,
-    query_online: String,
-    pit_query: Option<String>,
-    hudi_cached_feature_groups: Vec<FeatureGroupDTO>,
-    on_demand_feature_groups: Vec<FeatureGroupDTO>,
+    pub(crate) query: String,
+    pub(crate) query_online: String,
+    pub(crate) pit_query: Option<String>,
+    pub(crate) pit_query_asof: Option<String>,
+    pub(crate) hudi_cached_feature_groups: Vec<FeatureGroupDTO>,
+    pub(crate) on_demand_feature_groups: Vec<FeatureGroupDTO>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

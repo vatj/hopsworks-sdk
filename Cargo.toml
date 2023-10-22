@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = { version = "0.11", features = ["json", "blocking"] }
+reqwest = { version = "0.11", features = ["json", "blocking", "native-tls"] }
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1.33", features = ["full"] }
 log = { version = "0.4" }
@@ -32,8 +32,30 @@ connectorx = { version = "0.3.2", features = [
 arrow2 = { version = "0.18.0" }
 chrono = { version = "0.4.31" }
 arrow-flight = { version = "47.0.0" }
-tonic = { version = "0.10.2", features = ["transport", "tls"] }
+tonic = { version = "0.10.2", features = ["transport", "tls", "channel"] }
 futures = { version = "0.3.28" }
+bytes = { version = "1.5.0" }
+
+
+# Cli related dependencies
+anyhow = { version = "1.0" }
+clap = { version = "4.4.6", default-features = false, features = [
+    "std",
+    "derive",
+    "env",
+    "help",
+    "error-context",
+    "usage",
+    "wrap_help",
+    "color",
+    "suggestions",
+] }
+tracing-log = { version = "0.1" }
+tracing-subscriber = { version = "0.3.1", default-features = false, features = [
+    "ansi",
+    "env-filter",
+    "fmt",
+] }
 
 [[example]]
 name = "basic_stream_feature_group"
