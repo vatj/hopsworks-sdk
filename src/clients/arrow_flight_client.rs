@@ -188,8 +188,8 @@ impl HopsworksArrowFlightClient {
                 // Read back RecordBatches
                 while let Some(batch) = record_batch_stream.next().await {
                     match batch {
-                        Ok(_) => {
-                            todo!()
+                        Ok(rec_batch) => {
+                            info!("Record batch: {:#?}", rec_batch);
                         }
                         Err(_) => {
                             todo!()
@@ -445,7 +445,7 @@ impl HopsworksArrowFlightClient {
         Ok(query_str
             .replace(
                 format!("`{}`.`", query.left_feature_group.featurestore_name).as_str(),
-                format!("`{}`.", query.left_feature_group.get_project_name()).as_str(),
+                format!("`{}.", query.left_feature_group.get_project_name()).as_str(),
             )
             .replace('`', '"'.to_string().as_str()))
     }
