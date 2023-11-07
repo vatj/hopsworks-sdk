@@ -1,9 +1,9 @@
-use arrow_flight::{decode::FlightRecordBatchStream, Action, FlightClient, FlightDescriptor};
+use arrow_flight::{Action, FlightClient, FlightDescriptor};
 use bytes::Bytes;
 use color_eyre::Result;
 use futures::stream::{StreamExt, TryStreamExt};
 use log::{debug, info};
-
+use polars::prelude::DataFrame;
 use std::collections::HashMap;
 use std::time::Duration;
 use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity};
@@ -15,6 +15,7 @@ use crate::{
         query::entities::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
         training_dataset::entities::TrainingDataset,
     },
+    clients::arrow_flight::arrow2_flight_decoder,
     get_hopsworks_client,
     repositories::{
         credentials::entities::RegisterArrowFlightClientCertificatePayload,
@@ -103,6 +104,7 @@ impl HopsworksArrowFlightClientBuilder {
         let mut hopsworks_arrow_client = HopsworksArrowFlightClient {
             client: FlightClient::new(channel),
         };
+
         hopsworks_arrow_client
             .client
             .add_header("grpc-accept-encoding", "identity, deflate, gzip")?;
@@ -158,22 +160,25 @@ impl HopsworksArrowFlightClient {
         Ok(())
     }
 
-    pub async fn read_query(&mut self, query_payload: QueryArrowFlightPayload) -> Result<()> {
+    pub async fn read_query(
+        &mut self,
+        query_payload: QueryArrowFlightPayload,
+    ) -> Result<DataFrame> {
         info!("Arrow flight client read_query");
         debug!("Query payload: {:#?}", query_payload);
         let descriptor = FlightDescriptor::new_cmd(serde_json::to_string(&query_payload)?);
-        self._get_dataset(descriptor).await?;
-        Ok(())
+        let df = self._get_dataset(descriptor).await?;
+        Ok(df)
     }
 
-    pub async fn read_path(&mut self, path: &str) -> Result<()> {
+    pub async fn read_path(&mut self, path: &str) -> Result<DataFrame> {
         info!("Arrow flight client read_path: {}", path);
         let descriptor = FlightDescriptor::new_path(vec![path.to_string()]);
-        self._get_dataset(descriptor).await?;
-        Ok(())
+        let df = self._get_dataset(descriptor).await?;
+        Ok(df)
     }
 
-    async fn _get_dataset(&mut self, descriptor: FlightDescriptor) -> Result<()> {
+    async fn _get_dataset(&mut self, descriptor: FlightDescriptor) -> Result<DataFrame> {
         debug!("Getting dataset with descriptor: {:#?}", descriptor);
         let flight_info = self.client.get_flight_info(descriptor).await?;
         let opt_endpoint = flight_info.endpoint.get(0);
@@ -182,20 +187,47 @@ impl HopsworksArrowFlightClient {
             debug!("Endpoint: {:#?}", endpoint);
             if let Some(ticket) = endpoint.ticket.clone() {
                 debug!("Ticket: {:#?}", ticket);
-                let flight_data_stream = self.client.do_get(ticket).await?.into_inner();
-                let mut record_batch_stream = FlightRecordBatchStream::new(flight_data_stream);
 
-                // Read back RecordBatches
-                while let Some(batch) = record_batch_stream.next().await {
-                    match batch {
-                        Ok(rec_batch) => {
-                            info!("Record batch: {:#?}", rec_batch);
+                let decoded = arrow2_flight_decoder::FlightDataDecoder::new(
+                    self.client
+                        .inner_mut()
+                        .do_get(ticket.clone())
+                        .await?
+                        .into_inner(),
+                );
+
+                let mut df_stream = arrow2_flight_decoder::FlightDataFrameStream::new(decoded);
+
+                if let Some(result_df) = df_stream.next().await {
+                    match result_df {
+                        Ok(df) => {
+                            info!("Retrieved polars df: {:#?}", df.head(Some(5)));
+                            return Ok(df);
                         }
-                        Err(_) => {
-                            todo!()
-                        }
-                    };
+                        Err(e) => return Err(color_eyre::Report::new(e)),
+                    }
                 }
+
+                Err(color_eyre::Report::msg(
+                    "No dataframe found in flight data stream",
+                ))
+
+                // let flight_data_stream = self.client.do_get(ticket).await?.into_inner();
+
+                // let mut record_batch_stream = FlightRecordBatchStream::new(flight_data_stream);
+
+                // // Read back RecordBatches
+                // while let Some(batch) = record_batch_stream.next().await {
+                //     // while let Some(batch) = flight_data_stream.next().await {
+                //     match batch {
+                //         Ok(rec_batch) => {
+                //             info!("Record batch: {:#?}", rec_batch);
+                //         }
+                //         Err(_) => {
+                //             todo!()
+                //         }
+                //     };
+                // }
             } else {
                 let flight_descriptor_cmd: String;
                 if let Some(flight_descriptor) = flight_info.flight_descriptor {
@@ -205,15 +237,15 @@ impl HopsworksArrowFlightClient {
                 } else {
                     flight_descriptor_cmd = "(No flight descriptor in flight info)".to_string();
                 }
-                return Err(color_eyre::Report::msg(format!(
+
+                Err(color_eyre::Report::msg(format!(
                     "No ticket found in flight {} endpoint.",
                     flight_descriptor_cmd
-                )));
+                )))
             }
         } else {
-            return Err(color_eyre::Report::msg("No endpoint found"));
+            Err(color_eyre::Report::msg("No endpoint found"))
         }
-        Ok(())
     }
 
     pub async fn create_training_dataset(

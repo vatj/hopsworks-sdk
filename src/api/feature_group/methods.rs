@@ -153,17 +153,17 @@ impl FeatureGroup {
         ))
     }
 
-    pub async fn read_with_arrow_flight_client(&self) -> Result<()> {
+    pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
         let query_object =
             self.select(self.get_feature_names().iter().map(|s| s as &str).collect())?;
         debug!(
             "Reading data from feature group {} with Arrow Flight client",
             self.name
         );
-        let _read_df =
+        let read_df =
             feature_group::controller::read_feature_group_with_arrow_flight_client(query_object)
                 .await?;
 
-        Ok(())
+        Ok(read_df)
     }
 }

@@ -1,6 +1,7 @@
 use anyhow::Context;
 use color_eyre::Result;
 use hopsworks_rs::{clients::rest_client::HopsworksClientBuilder, hopsworks_login};
+use std::time::Instant;
 
 fn setup_tracing_logging() -> Result<(), Box<dyn std::error::Error>> {
     use tracing_subscriber::{util::SubscriberInitExt, EnvFilter, FmtSubscriber};
@@ -36,7 +37,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_feature_group_by_name_and_version(fg_name.as_str(), 1)
         .await?
     {
-        let _read_df = feature_group.read_with_arrow_flight_client().await?;
+        let now = Instant::now();
+        let read_df = feature_group.read_with_arrow_flight_client().await?;
+        println!(
+            "Read feature group took {:.2?} seconds and returned :\n{:#?}",
+            now.elapsed(),
+            read_df
+        );
     }
 
     Ok(())

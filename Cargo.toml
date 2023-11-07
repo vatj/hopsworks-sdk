@@ -6,6 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+arrow-format = { version = "0.8.1", features = [
+    "flight-data",
+    "flight-service",
+] }
+arrow2 = { version = "0.18.0", features = ["io_flight", "default", "arrow"] }
 reqwest = { version = "0.11", features = ["json", "blocking", "native-tls"] }
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1.33", features = ["full"] }
@@ -14,43 +19,35 @@ env_logger = { version = "0.10" }
 serde_json = { version = "1.0" }
 apache-avro = { version = "0.16", features = ["derive"] }
 polars = { version = "0.33.2", features = [
+    "default",
     "lazy",
     "avro",
     "strings",
     "dtype-full",
     "rows",
     "dynamic_group_by",
+    "timezones",
 ] }
 color-eyre = { version = "0.6.2" }
-rdkafka = { version = "0.34.0", features = ["tokio", "libz", "ssl"] }
-indicatif = { version = "0.17.0" }
+rdkafka = { version = "0.35.0", features = ["tokio", "libz", "ssl"] }
+indicatif = { version = "0.17" }
 connectorx = { version = "0.3.2", features = [
     "src_mysql",
     "dst_arrow2",
     "dst_arrow",
 ] }
-arrow2 = { version = "0.18.0", features = ["io_flight", "io_ipc", "default"] }
-chrono = { version = "0.4.31" }
+arrow-schema = { version = "48.0.0" }
+arrow-ipc = { version = "48.0.0" }
+chrono = { version = "0.4" }
 arrow-flight = { version = "48.0.0" }
-tonic = { version = "0.10.2", features = ["transport", "tls", "channel"] }
-futures = { version = "0.3.28" }
+tonic = { version = "0.10.2", features = ["transport", "tls"] }
+futures = { version = "0.3" }
 bytes = { version = "1.5.0" }
-
+ahash = { version = "0.8.6" }
 
 # Cli related dependencies
 anyhow = { version = "1.0" }
-clap = { version = "4.4.6", default-features = false, features = [
-    "std",
-    "derive",
-    "env",
-    "help",
-    "error-context",
-    "usage",
-    "wrap_help",
-    "color",
-    "suggestions",
-] }
-tracing-log = { version = "0.1" }
+tracing-log = { version = "0.2" }
 tracing-subscriber = { version = "0.3.1", default-features = false, features = [
     "ansi",
     "env-filter",

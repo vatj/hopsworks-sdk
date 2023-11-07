@@ -3,7 +3,7 @@ use polars::prelude::{DataFrame, Schema};
 
 use crate::{
     api::query::entities::Query,
-    clients::arrow_flight_client::HopsworksArrowFlightClientBuilder,
+    clients::arrow_flight::arrow_flight_client::HopsworksArrowFlightClientBuilder,
     domain::{feature, job, query::controller::construct_query, storage_connector},
     kafka_producer::produce_df,
     repositories::{
@@ -119,7 +119,7 @@ pub async fn save_feature_group_metadata(
     Ok(feature_group_dto)
 }
 
-pub async fn read_feature_group_with_arrow_flight_client(query_object: Query) -> Result<()> {
+pub async fn read_feature_group_with_arrow_flight_client(query_object: Query) -> Result<DataFrame> {
     // Create Feature Store Query based on query object obtained via fg.select()
     let feature_store_query_dto = construct_query(query_object.clone()).await?;
 
@@ -152,7 +152,7 @@ pub async fn read_feature_group_with_arrow_flight_client(query_object: Query) ->
         on_demand_fg_aliases,
     )?;
 
-    arrow_flight_client.read_query(query_payload).await?;
+    let df = arrow_flight_client.read_query(query_payload).await?;
 
-    Ok(())
+    Ok(df)
 }
