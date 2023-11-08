@@ -1,4 +1,5 @@
 use color_eyre::Result;
+use log::debug;
 use polars::prelude::DataFrame;
 
 use crate::{api::query::entities::Query, domain::feature_group, util};
@@ -125,8 +126,19 @@ impl FeatureGroup {
         .await
     }
 
+    pub fn get_feature_names(&self) -> Vec<String> {
+        self.get_features()
+            .iter()
+            .map(|feature| feature.name.clone())
+            .collect()
+    }
+
     pub fn select(&self, feature_names: Vec<&str>) -> Result<Query> {
-        Ok(Query::new(
+        debug!(
+            "Selecting features {:?} from feature group {}, building query object",
+            feature_names, self.name
+        );
+        Ok(Query::new_no_joins_no_filter(
             self.clone(),
             self.get_features()
                 .iter()
@@ -139,5 +151,19 @@ impl FeatureGroup {
                 })
                 .collect(),
         ))
+    }
+
+    pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
+        let query_object =
+            self.select(self.get_feature_names().iter().map(|s| s as &str).collect())?;
+        debug!(
+            "Reading data from feature group {} with Arrow Flight client",
+            self.name
+        );
+        let read_df =
+            feature_group::controller::read_feature_group_with_arrow_flight_client(query_object)
+                .await?;
+
+        Ok(read_df)
     }
 }

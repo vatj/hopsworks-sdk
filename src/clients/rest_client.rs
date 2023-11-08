@@ -1,7 +1,7 @@
 use color_eyre::Result;
 use log::{debug, info, warn};
 use reqwest::{header::HeaderValue, Method};
-use std::sync::Arc;
+use std::{path::Path, sync::Arc};
 use tokio::sync::Mutex;
 
 use crate::{
@@ -79,7 +79,7 @@ impl HopsworksClientBuilder {
 pub struct HopsworksClient {
     client: reqwest::Client,
     pub(crate) url: String,
-    pub(crate) cert_dir: String,
+    pub(crate) cert_dir: Arc<Mutex<String>>,
     api_key: Arc<Mutex<Option<HeaderValue>>>,
     project_id: Arc<Mutex<Option<i32>>>,
     cert_key: Arc<Mutex<Option<String>>>,
@@ -94,7 +94,7 @@ impl Default for HopsworksClient {
                 .build()
                 .unwrap(),
             url: DEFAULT_CLIENT_URL.to_string(),
-            cert_dir: DEFAULT_CLIENT_CERT_DIR.to_string(),
+            cert_dir: Arc::new(Mutex::new(DEFAULT_CLIENT_CERT_DIR.to_string())),
             api_key: Arc::new(Mutex::new(None)),
             project_id: Arc::new(Mutex::new(None)),
             cert_key: Arc::new(Mutex::new(None)),
@@ -117,7 +117,7 @@ impl HopsworksClient {
                 "HopsworksClient: New client overrides default cert_dir with: {}",
                 cert_dir
             );
-            client.cert_dir = cert_dir;
+            client.cert_dir = Arc::new(Mutex::new(cert_dir));
         }
         client
     }
@@ -140,11 +140,19 @@ impl HopsworksClient {
             project.project_name, self.url
         );
 
-        let cert_key = write_locally_project_credentials_on_login(
-            &project.project_name,
-            self.cert_dir.as_str(),
+        let cert_dir = self.get_cert_dir().lock().await.clone();
+        self.set_cert_dir(
+            Path::new(cert_dir.as_str())
+                .join(&project.project_name)
+                .to_str()
+                .unwrap()
+                .to_string(),
         )
-        .await?;
+        .await;
+
+        let cert_key =
+            write_locally_project_credentials_on_login(self.get_cert_dir().lock().await.as_str())
+                .await?;
         self.set_cert_key(Some(cert_key)).await;
 
         Ok(project)
@@ -162,6 +170,10 @@ impl HopsworksClient {
         Arc::clone(&self.project_id)
     }
 
+    pub(crate) fn get_cert_dir(&self) -> Arc<Mutex<String>> {
+        Arc::clone(&self.cert_dir)
+    }
+
     async fn set_project_id(&self, project_id: Option<i32>) {
         debug!("Setting HopsworksClient project id to {:?}", project_id);
         *self.get_project_id().lock().await = project_id;
@@ -172,6 +184,11 @@ impl HopsworksClient {
         *self.get_cert_key().lock().await = cert_key;
     }
 
+    async fn set_cert_dir(&self, cert_dir: String) {
+        debug!("Setting HopsworksClient cert_dir");
+        *self.get_cert_dir().lock().await = cert_dir;
+    }
+
     async fn set_api_key(&self, new_api_key: Option<&str>) {
         if new_api_key.is_none() {
             debug!("Removing HopsworksClient API key.");
@@ -180,8 +197,8 @@ impl HopsworksClient {
         }
         let header_key = HeaderValue::from_str(format!("ApiKey {}", new_api_key.unwrap()).as_str());
 
-        if header_key.is_ok() {
-            *self.get_api_key().lock().await = Some(header_key.unwrap());
+        if let Ok(header_key) = header_key {
+            *self.get_api_key().lock().await = Some(header_key);
             info!("Setting HopsworksClient api key for authenticated request.");
         } else {
             warn!(

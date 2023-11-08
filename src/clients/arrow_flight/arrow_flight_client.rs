@@ -1,9 +1,11 @@
-use std::collections::HashMap;
-
-use arrow_flight::{decode::FlightRecordBatchStream, Action, FlightClient, FlightDescriptor};
+use arrow_flight::{Action, FlightClient, FlightDescriptor};
+use bytes::Bytes;
 use color_eyre::Result;
-use futures::stream::StreamExt;
-use log::info;
+use futures::stream::{StreamExt, TryStreamExt};
+use log::{debug, info};
+use polars::prelude::DataFrame;
+use std::collections::HashMap;
+use std::time::Duration;
 use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity};
 
 use crate::{
@@ -13,6 +15,7 @@ use crate::{
         query::entities::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
         training_dataset::entities::TrainingDataset,
     },
+    clients::arrow_flight::arrow2_flight_decoder,
     get_hopsworks_client,
     repositories::{
         credentials::entities::RegisterArrowFlightClientCertificatePayload,
@@ -36,14 +39,13 @@ impl HopsworksArrowFlightClientBuilder {
     }
 
     async fn build_client_tls_config(&self, cert_dir: &str) -> Result<ClientTlsConfig> {
-        let client_cert_content = Certificate::from_pem(
-            tokio::fs::read_to_string(format!("{}/{}", cert_dir, "client_cert.pem")).await?,
-        );
-        let client_key_content = Certificate::from_pem(
-            tokio::fs::read_to_string(format!("{}/{}", cert_dir, "client_key.pem")).await?,
-        );
+        debug!("my_cert_dir: {}/{}", cert_dir, "client_cert.pem");
+        let client_cert_content =
+            tokio::fs::read(format!("{}/{}", cert_dir, "client_cert.pem")).await?;
+        let client_key_content =
+            tokio::fs::read(format!("{}/{}", cert_dir, "client_key.pem")).await?;
         let ca_chain_content = Certificate::from_pem(
-            tokio::fs::read_to_string(format!("{}/{}", cert_dir, "ca_chain.pem")).await?,
+            tokio::fs::read(format!("{}/{}", cert_dir, "ca_chain.pem")).await?,
         );
 
         let identity = Identity::from_pem(client_cert_content, client_key_content);
@@ -65,7 +67,12 @@ impl HopsworksArrowFlightClientBuilder {
 
     async fn get_arrow_flight_url(&self) -> Result<String> {
         let load_balancer_url = variables::service::get_loadbalancer_external_domain().await?;
-        let arrow_flight_url = format!("grpc+tls://{load_balancer_url}:5005");
+        let load_balancer_url_from_env = std::env::var("HOPSWORKS_EXTERNAL_LOADBALANCER_URL");
+        let arrow_flight_url = format!(
+            "https://{}:5005",
+            load_balancer_url_from_env.unwrap_or(load_balancer_url)
+        );
+        debug!("Arrow flight url: {}", arrow_flight_url);
         Ok(arrow_flight_url)
     }
 
@@ -75,18 +82,40 @@ impl HopsworksArrowFlightClientBuilder {
         let hopsworks_client = get_hopsworks_client().await;
         let arrow_flight_url = self.get_arrow_flight_url().await?;
 
-        let endpoint = Endpoint::from_shared(arrow_flight_url)?.tls_config(
-            self.build_client_tls_config(hopsworks_client.cert_dir.as_str())
-                .await?,
-        )?;
-        let channel = endpoint.connect().await?;
+        let endpoint = Endpoint::from_shared(arrow_flight_url)?
+            .tls_config(
+                self.build_client_tls_config(hopsworks_client.get_cert_dir().lock().await.as_str())
+                    .await?,
+            )?
+            .connect_timeout(Duration::from_secs(20))
+            .timeout(Duration::from_secs(20))
+            .tcp_nodelay(true) // Disable Nagle's Algorithm since we don't want packets to wait
+            .tcp_keepalive(Option::Some(Duration::from_secs(3600)))
+            .http2_keep_alive_interval(Duration::from_secs(300))
+            .keep_alive_timeout(Duration::from_secs(20))
+            .keep_alive_while_idle(true);
+
+        debug!("Arrow flight endpoint: {:#?}", endpoint.uri().host());
+        let channel = endpoint
+            .connect()
+            .await
+            .expect("Tonic channel failed to connect to Arrow Flight server");
 
         let mut hopsworks_arrow_client = HopsworksArrowFlightClient {
             client: FlightClient::new(channel),
         };
+
+        hopsworks_arrow_client
+            .client
+            .add_header("grpc-accept-encoding", "identity, deflate, gzip")?;
+        info!(
+            "flight client metadata : {:#?}",
+            hopsworks_arrow_client.client.metadata()
+        );
+
         hopsworks_arrow_client.health_check().await?;
         hopsworks_arrow_client
-            .register_certificates(hopsworks_client.cert_dir.as_str())
+            .register_certificates(hopsworks_client.get_cert_dir().lock().await.as_str())
             .await?;
 
         Ok(hopsworks_arrow_client)
@@ -101,9 +130,11 @@ pub struct HopsworksArrowFlightClient {
 impl HopsworksArrowFlightClient {
     async fn health_check(&mut self) -> Result<()> {
         info!("Health checking arrow flight client...");
-        let _health_check = self
+        let _health_check: Vec<Bytes> = self
             .client
             .do_action(Action::new("healthcheck", ""))
+            .await?
+            .try_collect()
             .await?;
         info!("Arrow flight client health check successful.");
         Ok(())
@@ -116,48 +147,87 @@ impl HopsworksArrowFlightClient {
             serde_json::to_string(&RegisterArrowFlightClientCertificatePayload::new(
                 tokio::fs::read_to_string(format!("{}/{}", cert_dir, "trust_store.jks")).await?,
                 tokio::fs::read_to_string(format!("{}/{}", cert_dir, "key_store.jks")).await?,
-                tokio::fs::read_to_string(format!("{}/{}", cert_dir, "cert_key.pem")).await?,
+                tokio::fs::read_to_string(format!("{}/{}", cert_dir, "material_passwd")).await?,
             ))?,
         );
-        self.client
+        let _registration: Vec<Bytes> = self
+            .client
             .do_action(register_client_certificates_action)
+            .await?
+            .try_collect()
             .await?;
         info!("Arrow flight client certificates registered.");
         Ok(())
     }
 
-    pub async fn read_query(&mut self, query_object: &str) -> Result<()> {
-        let descriptor = FlightDescriptor::new_cmd(query_object.to_string());
-        self._get_dataset(descriptor).await?;
-        Ok(())
+    pub async fn read_query(
+        &mut self,
+        query_payload: QueryArrowFlightPayload,
+    ) -> Result<DataFrame> {
+        info!("Arrow flight client read_query");
+        debug!("Query payload: {:#?}", query_payload);
+        let descriptor = FlightDescriptor::new_cmd(serde_json::to_string(&query_payload)?);
+        let df = self._get_dataset(descriptor).await?;
+        Ok(df)
     }
 
-    pub async fn read_path(&mut self, path: &str) -> Result<()> {
+    pub async fn read_path(&mut self, path: &str) -> Result<DataFrame> {
+        info!("Arrow flight client read_path: {}", path);
         let descriptor = FlightDescriptor::new_path(vec![path.to_string()]);
-        self._get_dataset(descriptor).await?;
-        Ok(())
+        let df = self._get_dataset(descriptor).await?;
+        Ok(df)
     }
 
-    async fn _get_dataset(&mut self, descriptor: FlightDescriptor) -> Result<()> {
+    async fn _get_dataset(&mut self, descriptor: FlightDescriptor) -> Result<DataFrame> {
+        debug!("Getting dataset with descriptor: {:#?}", descriptor);
         let flight_info = self.client.get_flight_info(descriptor).await?;
         let opt_endpoint = flight_info.endpoint.get(0);
 
         if let Some(endpoint) = opt_endpoint {
+            debug!("Endpoint: {:#?}", endpoint);
             if let Some(ticket) = endpoint.ticket.clone() {
-                let flight_data_stream = self.client.do_get(ticket).await?.into_inner();
-                let mut record_batch_stream = FlightRecordBatchStream::new(flight_data_stream);
+                debug!("Ticket: {:#?}", ticket);
 
-                // Read back RecordBatches
-                while let Some(batch) = record_batch_stream.next().await {
-                    match batch {
-                        Ok(_) => {
-                            todo!()
+                let decoded = arrow2_flight_decoder::FlightDataDecoder::new(
+                    self.client
+                        .inner_mut()
+                        .do_get(ticket.clone())
+                        .await?
+                        .into_inner(),
+                );
+
+                let mut df_stream = arrow2_flight_decoder::FlightDataFrameStream::new(decoded);
+
+                if let Some(result_df) = df_stream.next().await {
+                    match result_df {
+                        Ok(df) => {
+                            info!("Retrieved polars df: {:#?}", df.head(Some(5)));
+                            return Ok(df);
                         }
-                        Err(_) => {
-                            todo!()
-                        }
-                    };
+                        Err(e) => return Err(color_eyre::Report::new(e)),
+                    }
                 }
+
+                Err(color_eyre::Report::msg(
+                    "No dataframe found in flight data stream",
+                ))
+
+                // let flight_data_stream = self.client.do_get(ticket).await?.into_inner();
+
+                // let mut record_batch_stream = FlightRecordBatchStream::new(flight_data_stream);
+
+                // // Read back RecordBatches
+                // while let Some(batch) = record_batch_stream.next().await {
+                //     // while let Some(batch) = flight_data_stream.next().await {
+                //     match batch {
+                //         Ok(rec_batch) => {
+                //             info!("Record batch: {:#?}", rec_batch);
+                //         }
+                //         Err(_) => {
+                //             todo!()
+                //         }
+                //     };
+                // }
             } else {
                 let flight_descriptor_cmd: String;
                 if let Some(flight_descriptor) = flight_info.flight_descriptor {
@@ -167,15 +237,15 @@ impl HopsworksArrowFlightClient {
                 } else {
                     flight_descriptor_cmd = "(No flight descriptor in flight info)".to_string();
                 }
-                return Err(color_eyre::Report::msg(format!(
+
+                Err(color_eyre::Report::msg(format!(
                     "No ticket found in flight {} endpoint.",
                     flight_descriptor_cmd
-                )));
+                )))
             }
         } else {
-            return Err(color_eyre::Report::msg("No endpoint found"));
+            Err(color_eyre::Report::msg("No endpoint found"))
         }
-        Ok(())
     }
 
     pub async fn create_training_dataset(
@@ -214,8 +284,12 @@ impl HopsworksArrowFlightClient {
         &self,
         query: Query,
         query_str: String,
-        on_demand_fg_aliases: Option<Vec<String>>,
+        on_demand_fg_aliases: Vec<String>,
     ) -> Result<QueryArrowFlightPayload> {
+        info!(
+            "Creating arrow flight query payload for query with left_feature_group {}",
+            query.left_feature_group.name.clone()
+        );
         let mut feature_names: HashMap<String, Vec<String>> = HashMap::new();
         let mut connectors: HashMap<String, FeatureGroupConnectorArrowFlightPayload> =
             HashMap::new();
@@ -249,7 +323,7 @@ impl HopsworksArrowFlightClient {
         &self,
         _feature_group: FeatureGroup,
         _query: Query,
-        _on_demand_fg_aliases: Option<Vec<String>>,
+        _on_demand_fg_aliases: Vec<String>,
     ) -> Result<FeatureGroupConnectorArrowFlightPayload> {
         Ok(FeatureGroupConnectorArrowFlightPayload::new_hudi_connector())
     }
@@ -270,15 +344,14 @@ impl HopsworksArrowFlightClient {
         short_name: bool,
     ) -> Result<String> {
         if short_name {
+            debug!("Serializing short feature name: {}", feature.name);
             Ok(feature.name)
         } else {
             let opt_fg = query_obj.get_feature_group_by_feature(feature.clone());
             if let Some(fg) = opt_fg {
-                Ok(format!(
-                    "{}.{}",
-                    self.serialize_feature_group_name(fg),
-                    feature.name
-                ))
+                let name = format!("{}.{}", self.serialize_feature_group_name(fg), feature.name);
+                debug!("Serializing full feature name: {}", name);
+                Ok(name)
             } else {
                 Err(color_eyre::Report::msg(format!(
                     "Feature {} not found in query object",
@@ -294,18 +367,25 @@ impl HopsworksArrowFlightClient {
         query: Query,
         short_name: bool,
     ) -> Result<Option<Vec<QueryFilterOrLogicArrowFlightPayload>>> {
+        debug!(
+            "Serializing list of query filters and logic: {:#?}",
+            filters
+        );
         if filters.is_empty() {
+            debug!("No filters found");
             return Ok(None);
         }
         let mut serialized_filters = vec![];
         for filter in filters {
             match filter {
                 QueryFilterOrLogic::Filter(filter) => {
+                    debug!("Found filter: {:#?}", filter);
                     serialized_filters.push(QueryFilterOrLogicArrowFlightPayload::Filter(
                         self.serialize_filter(filter, query.clone(), short_name)?,
                     ));
                 }
                 QueryFilterOrLogic::Logic(logic) => {
+                    debug!("Found logic: {:#?}", logic);
                     serialized_filters.push(self.serialize_logic(
                         logic,
                         query.clone(),
@@ -323,6 +403,10 @@ impl HopsworksArrowFlightClient {
         query: Query,
         short_name: bool,
     ) -> Result<QueryFilterArrowFlightPayload> {
+        debug!(
+            "Serializing query filter: {:#?}, with short_name: {}",
+            filter, short_name
+        );
         Ok(QueryFilterArrowFlightPayload::new(
             filter.condition,
             filter.value,
@@ -336,6 +420,10 @@ impl HopsworksArrowFlightClient {
         query: Query,
         short_name: bool,
     ) -> Result<QueryFilterOrLogicArrowFlightPayload> {
+        debug!(
+            "Serializing query logic: {:#?}, with short_name: {}",
+            logic, short_name
+        );
         let left_filter = self.serialize_filter_or_logic(
             logic.left_filter,
             logic.left_logic.as_deref().cloned(),
@@ -360,16 +448,23 @@ impl HopsworksArrowFlightClient {
         query: Query,
         short_name: bool,
     ) -> Result<Option<Box<QueryFilterOrLogicArrowFlightPayload>>> {
+        debug!(
+            "Serializing query filter or logic, with short_name: {}",
+            short_name
+        );
         if opt_filter.is_none() && opt_logic.is_none() {
+            debug!("No filter or logic found");
             return Ok(None);
         }
         if let Some(filter) = opt_filter {
+            debug!("Found filter: {:#?}", filter);
             return Ok(Some(Box::new(
                 QueryFilterOrLogicArrowFlightPayload::Filter(
                     self.serialize_filter(filter, query, short_name)?,
                 ),
             )));
         }
+        debug!("Found logic: {:#?}", opt_logic);
         Ok(Some(Box::new(self.serialize_logic(
             opt_logic.unwrap(),
             query,
@@ -378,10 +473,11 @@ impl HopsworksArrowFlightClient {
     }
 
     fn translate_to_duckdb(&self, query: Query, query_str: String) -> Result<String> {
+        debug!("Translating query to duckdb sql style: {:#?}", query);
         Ok(query_str
             .replace(
                 format!("`{}`.`", query.left_feature_group.featurestore_name).as_str(),
-                format!("`{}`.", query.left_feature_group.get_project_name()).as_str(),
+                format!("`{}.", query.left_feature_group.get_project_name()).as_str(),
             )
             .replace('`', '"'.to_string().as_str()))
     }

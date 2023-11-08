@@ -12,14 +12,17 @@ use tokio::task::JoinSet;
 use crate::domain::kafka::controller::get_kafka_topic_subject;
 use crate::get_hopsworks_client;
 use crate::repositories::kafka::entities::KafkaSubjectDTO;
-use crate::repositories::project::service::get_client_project;
 use crate::repositories::storage_connector::entities::FeatureStoreKafkaConnectorDTO;
 
 async fn setup_future_producer(
     kafka_connector: FeatureStoreKafkaConnectorDTO,
 ) -> Result<FutureProducer> {
-    let cert_dir = get_hopsworks_client().await.cert_dir.clone();
-    let project_name = get_client_project().await?.project_name.clone();
+    let cert_dir = get_hopsworks_client()
+        .await
+        .get_cert_dir()
+        .lock()
+        .await
+        .clone();
     let bootstrap_servers =
         std::env::var("HOPSWORKS_KAFKA_BROKERS").unwrap_or(kafka_connector.bootstrap_servers);
     Ok(ClientConfig::new()
@@ -27,30 +30,13 @@ async fn setup_future_producer(
         .set("message.timeout.ms", "300000")
         .set("security.protocol", "SSL")
         .set("ssl.endpoint.identification.algorithm", "none")
-        .set(
-            "ssl.ca.location",
-            format!("{cert_dir}/{project_name}/ca_chain.pem"),
-        )
+        .set("ssl.ca.location", format!("{cert_dir}/ca_chain.pem"))
         .set(
             "ssl.certificate.location",
-            format!("{cert_dir}/{project_name}/client_cert.pem"),
+            format!("{cert_dir}/client_cert.pem"),
         )
-        .set(
-            "ssl.key.location",
-            format!("{cert_dir}/{project_name}/client_key.pem"),
-        )
-        // not supported by rdkafka, get cert key from Hopsworks client
-        // .set(
-        //     "ssl.truststore.location",
-        //     format!("/tmp/{project_name}/truststore.jks"),
-        // )
-        // .set("ssl.truststore.password", cert_key.as_str())
-        // .set(
-        //     "ssl.keystore.location",
-        //     format!("/tmp/{project_name}/keystore.jks"),
-        // )
-        // .set("ssl.keystore.password", cert_key.as_str())
-        // .set("ssl.key.password", cert_key.as_str())
+        .set("ssl.key.location", format!("{cert_dir}/client_key.pem"))
+        // jks truststore not supported by rdkafka, get cert key from Hopsworks client
         // .set("debug", "all")
         .create()
         .expect("Error setting up kafka producer"))

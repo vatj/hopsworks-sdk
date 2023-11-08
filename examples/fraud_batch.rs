@@ -95,7 +95,7 @@ async fn main() -> Result<()> {
     let window_aggs_fg = fs
         .get_or_create_feature_group(
             format!(
-                "transactions_{}_aggs_fraud_batch_fg_{iteration}rust",
+                "transactions_{}_aggs_fraud_batch_fg_{iteration}_rust",
                 window_len
             )
             .as_str(),
