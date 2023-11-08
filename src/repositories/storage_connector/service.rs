@@ -40,6 +40,20 @@ pub async fn get_feature_store_online_connector(
         "Fetching online storage connector for feature store {}",
         feature_store_id
     );
+    let resp = get_hopsworks_client()
+        .await
+        .request(
+            Method::GET,
+            format!("featurestores/{feature_store_id}/storageconnectors/onlinefeaturestore")
+                .as_str(),
+            true,
+            true,
+        )
+        .await?
+        .send()
+        .await?;
+
+    debug!("Response: {:?}", resp.text_with_charset("utf-8").await?);
     Ok(get_hopsworks_client()
         .await
         .request(

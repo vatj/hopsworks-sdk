@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
     let window_agg_df = trans_df
         .select(["datetime", "amount", "cc_num"])?
         .lazy()
-        .group_by_rolling(col("cc_num"), [col("datetime")], group_by_rolling_options)
+        .groupby_rolling(col("cc_num"), [col("datetime")], group_by_rolling_options)
         .agg([
             col("amount").mean().alias("trans_volume_mavg"),
             col("amount").std(1).alias("trans_volume_mstd"),

@@ -6,11 +6,16 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+connectorx = { version = "0.3.2", features = [
+    "src_mysql",
+    "dst_arrow2",
+    "dst_arrow",
+] }
 arrow-format = { version = "0.8.1", features = [
     "flight-data",
     "flight-service",
 ] }
-arrow2 = { version = "0.18.0", features = ["io_flight", "default", "arrow"] }
+arrow2 = { version = "0.17", features = ["io_flight", "default", "arrow"] }
 reqwest = { version = "0.11", features = ["json", "blocking", "native-tls"] }
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1.33", features = ["full"] }
@@ -18,24 +23,18 @@ log = { version = "0.4" }
 env_logger = { version = "0.10" }
 serde_json = { version = "1.0" }
 apache-avro = { version = "0.16", features = ["derive"] }
-polars = { version = "0.33.2", features = [
-    "default",
+polars = { version = "0.32", features = [
     "lazy",
     "avro",
     "strings",
     "dtype-full",
     "rows",
-    "dynamic_group_by",
+    "dynamic_groupby",
     "timezones",
 ] }
 color-eyre = { version = "0.6.2" }
-rdkafka = { version = "0.35.0", features = ["tokio", "libz", "ssl"] }
+rdkafka = { version = "0.36.0", features = ["tokio", "libz", "ssl"] }
 indicatif = { version = "0.17" }
-connectorx = { version = "0.3.2", features = [
-    "src_mysql",
-    "dst_arrow2",
-    "dst_arrow",
-] }
 arrow-schema = { version = "48.0.0" }
 arrow-ipc = { version = "48.0.0" }
 chrono = { version = "0.4" }
@@ -65,3 +64,7 @@ path = "examples/fraud_batch.rs"
 [[example]]
 name = "read_fg_arrow_flight"
 path = "examples/read_fg_arrow_flight.rs"
+
+[[example]]
+name = "read_fg_online"
+path = "examples/read_fg_online.rs"

@@ -1,6 +1,18 @@
+use crate::repositories::storage_connector::{
+    entities::{FeatureStoreJdbcConnectorDTO, FeatureStoreKafkaConnectorDTO},
+    service,
+};
 use color_eyre::Result;
-use crate::repositories::storage_connector::{entities::FeatureStoreKafkaConnectorDTO, service};
 
-pub async fn get_feature_store_kafka_connector(feature_store_id: i32, external: bool) -> Result<FeatureStoreKafkaConnectorDTO> {
+pub async fn get_feature_store_kafka_connector(
+    feature_store_id: i32,
+    external: bool,
+) -> Result<FeatureStoreKafkaConnectorDTO> {
     service::get_feature_store_kafka_connector(feature_store_id, external).await
+}
+
+pub async fn get_feature_store_online_connector(
+    feature_store_id: i32,
+) -> Result<FeatureStoreJdbcConnectorDTO> {
+    service::get_feature_store_online_connector(feature_store_id).await
 }
