@@ -3,9 +3,11 @@ use connectorx::prelude::{Arrow2Destination, Dispatcher, MySQLSource};
 use connectorx::sources::mysql::BinaryProtocol;
 use connectorx::sql::CXQuery;
 use connectorx::transports::MySQLArrow2Transport;
+use log::debug;
 use polars::prelude::DataFrame;
 
 use crate::repositories::storage_connector::entities::FeatureStoreJdbcConnectorDTO;
+use crate::repositories::variables::service::get_loadbalancer_external_domain;
 use crate::{
     api::query::entities::Query,
     repositories::{
@@ -39,14 +41,20 @@ pub async fn read_query_from_online_feature_store(
         .expect("No user key found in online feature store connector arguments")
         .get("value")
         .expect("No user value found in online feature store connector arguments");
-    let connection_string = feature_store_jdbc_connector
+    let mut connection_string = feature_store_jdbc_connector
         .connection_string
-        .replace("jdbc:", "")
+        .replace("jdbc:", "");
+    let end_range = connection_string[8..].find(':').unwrap();
+    connection_string.replace_range(
+        8..(end_range + 8),
+        &get_loadbalancer_external_domain().await?,
+    );
+    connection_string = connection_string
         .replace(
             "mysql://",
             format!("mysql://{}:{}@", username, password).as_str(),
         )
-        .replace("useSSL=false&allowPublicKeyRetrieval=true", "");
+        .replace("?useSSL=false&allowPublicKeyRetrieval=true", "");
     let builder = MySQLSource::<BinaryProtocol>::new(connection_string.as_str(), 2).unwrap();
 
     let constructed_query = construct_query(query).await?;

@@ -44,21 +44,23 @@ async fn main() -> Result<()> {
             .cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
     )?;
 
+    trans_df.rename("datetime", "timber")?;
+
     let window_len = "4h";
     let group_by_rolling_options = RollingGroupOptions {
-        index_column: "datetime".into(),
+        index_column: "timber".into(),
         period: Duration::parse(window_len),
         offset: Duration::parse("0s"),
         closed_window: ClosedWindow::Left,
         check_sorted: true,
     };
 
-    trans_df.sort_in_place(["datetime"], vec![false], true)?;
+    trans_df.sort_in_place(["timber"], vec![false], true)?;
 
     let window_agg_df = trans_df
-        .select(["datetime", "amount", "cc_num"])?
+        .select(["timber", "amount", "cc_num"])?
         .lazy()
-        .groupby_rolling(col("cc_num"), [col("datetime")], group_by_rolling_options)
+        .groupby_rolling(col("cc_num"), [col("timber")], group_by_rolling_options)
         .agg([
             col("amount").mean().alias("trans_volume_mavg"),
             col("amount").std(1).alias("trans_volume_mstd"),
@@ -84,7 +86,7 @@ async fn main() -> Result<()> {
             1,
             Some("Transactions data"),
             vec!["cc_num"],
-            "datetime",
+            "timber",
             true,
         )
         .await?;
@@ -102,7 +104,7 @@ async fn main() -> Result<()> {
             1,
             Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
             vec!["cc_num"],
-            "datetime",
+            "timber",
             false,
         )
         .await?;
@@ -111,7 +113,7 @@ async fn main() -> Result<()> {
         .insert(&mut window_agg_df.head(Some(n_rows)))
         .await?;
 
-    let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?;
+    let query = trans_fg.select(vec!["cc_num", "timber", "amount"])?;
 
     println!("Query: {:#?}", construct_query(query.clone()).await?);
 

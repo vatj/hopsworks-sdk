@@ -142,7 +142,7 @@ pub async fn produce_df(
         res??;
     }
 
-    producer.flush(Duration::from_secs(0))?;
+    producer.flush(Duration::from_secs(1))?;
 
     Ok(())
 }
