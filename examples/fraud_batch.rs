@@ -5,10 +5,7 @@ use std::collections::HashMap;
 use hopsworks_rs::{
     api::transformation_function::entities::TransformationFunction,
     clients::rest_client::HopsworksClientBuilder,
-    domain::{
-        query::controller::construct_query,
-        training_dataset::controller::create_training_dataset_attached_to_feature_view,
-    },
+    domain::training_dataset::controller::create_training_dataset_attached_to_feature_view,
     hopsworks_login,
 };
 
@@ -33,34 +30,26 @@ async fn main() -> Result<()> {
     let age_df = trans_df.left_join(&profiles_df, ["cc_num"], ["cc_num"])?;
 
     trans_df
-        .with_column(
-            (&age_df["birthdate"] - &age_df["datetime"])
-                .cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
-        )?
+        .with_column(&age_df["birthdate"] - &age_df["datetime"])?
         .rename("birthdate", "age_at_transaction")?;
 
-    trans_df.with_column(
-        1e-3.mul(&trans_df["datetime"])
-            .cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
-    )?;
-
-    trans_df.rename("datetime", "timber")?;
+    trans_df.rename("datetime", "datetime")?;
 
     let window_len = "4h";
     let group_by_rolling_options = RollingGroupOptions {
-        index_column: "timber".into(),
+        index_column: "datetime".into(),
         period: Duration::parse(window_len),
         offset: Duration::parse("0s"),
         closed_window: ClosedWindow::Left,
         check_sorted: true,
     };
 
-    trans_df.sort_in_place(["timber"], vec![false], true)?;
+    trans_df.sort_in_place(["datetime"], vec![false], true)?;
 
     let window_agg_df = trans_df
-        .select(["timber", "amount", "cc_num"])?
+        .select(["datetime", "amount", "cc_num"])?
         .lazy()
-        .groupby_rolling(col("cc_num"), [col("timber")], group_by_rolling_options)
+        .groupby_rolling(col("cc_num"), [col("datetime")], group_by_rolling_options)
         .agg([
             col("amount").mean().alias("trans_volume_mavg"),
             col("amount").std(1).alias("trans_volume_mstd"),
@@ -86,12 +75,12 @@ async fn main() -> Result<()> {
             1,
             Some("Transactions data"),
             vec!["cc_num"],
-            "timber",
+            "datetime",
             true,
         )
         .await?;
 
-    let n_rows = 5000;
+    let n_rows = 10;
     trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
 
     let window_aggs_fg = fs
@@ -104,7 +93,7 @@ async fn main() -> Result<()> {
             1,
             Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
             vec!["cc_num"],
-            "timber",
+            "datetime",
             false,
         )
         .await?;
@@ -113,9 +102,7 @@ async fn main() -> Result<()> {
         .insert(&mut window_agg_df.head(Some(n_rows)))
         .await?;
 
-    let query = trans_fg.select(vec!["cc_num", "timber", "amount"])?;
-
-    println!("Query: {:#?}", construct_query(query.clone()).await?);
+    let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?;
 
     let min_max_scaler = fs
         .get_transformation_function("min_max_scaler", None)
