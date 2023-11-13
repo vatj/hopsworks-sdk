@@ -64,7 +64,7 @@ pub struct QuotaDTO {
     yarn_quota_in_secs: f64,
     yarn_used_quota_in_secs: f64,
     kafka_num_topics: i32,
-    kafka_max_num_topics: i32
+    kafka_max_num_topics: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -88,6 +88,7 @@ pub struct ProjectUserDTO {
     mode: String,
     password_changed: String,
     max_num_projects: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     num_created_projects: Option<i32>,
     num_active_projects: i32,
     tours_state: i32,
