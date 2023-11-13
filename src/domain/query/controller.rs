@@ -45,16 +45,18 @@ pub async fn read_query_from_online_feature_store(
         .connection_string
         .replace("jdbc:", "");
     let end_range = connection_string[8..].find(':').unwrap();
-    connection_string.replace_range(
-        8..(end_range + 8),
-        &get_loadbalancer_external_domain().await?,
-    );
+    let mut host = get_loadbalancer_external_domain().await?;
+    if host.is_empty() {
+        host = std::env::var("HOPSWORKS_EXTERNAL_HOST").unwrap();
+    }
+    connection_string.replace_range(8..(end_range + 8), &host);
     connection_string = connection_string
         .replace(
             "mysql://",
             format!("mysql://{}:{}@", username, password).as_str(),
         )
         .replace("?useSSL=false&allowPublicKeyRetrieval=true", "");
+    debug!("Connection string: {}", connection_string);
     let builder = MySQLSource::<BinaryProtocol>::new(connection_string.as_str(), 2).unwrap();
 
     let constructed_query = construct_query(query).await?;
