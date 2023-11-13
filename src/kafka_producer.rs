@@ -81,7 +81,10 @@ pub async fn produce_df(
 
         for (jdx, value) in row.0.iter().enumerate() {
             if value.dtype() == DataType::Int64
+                || value.dtype() == DataType::Datetime(TimeUnit::Microseconds, None)
                 || value.dtype() == DataType::Datetime(TimeUnit::Nanoseconds, None)
+                || value.dtype() == DataType::Duration(TimeUnit::Microseconds)
+                || value.dtype() == DataType::Duration(TimeUnit::Nanoseconds)
             {
                 record.put(column_names[jdx], Some(value.try_extract::<i64>()?));
                 if primary_keys.contains(&column_names[jdx]) {
