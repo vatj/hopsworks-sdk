@@ -1,4 +1,5 @@
 use color_eyre::Result;
+use log::debug;
 
 use crate::{
     api::{
@@ -64,7 +65,7 @@ pub async fn create_training_dataset_attached_to_feature_view(
         )
         .await?;
 
-    println!("The training dataset :\n{:?}", training_dataset_dto);
+    debug!("The training dataset :\n{:#?}", training_dataset_dto);
 
     let job_dto = compute_training_dataset_attached_to_feature_view(
         feature_view.feature_store_id,
@@ -75,7 +76,7 @@ pub async fn create_training_dataset_attached_to_feature_view(
     )
     .await?;
 
-    println!("The job :\n{:?}", job_dto);
+    debug!("The job :\n{:?}", job_dto);
 
     Ok(TrainingDataset {
         feature_store_name: training_dataset_dto.featurestore_name,

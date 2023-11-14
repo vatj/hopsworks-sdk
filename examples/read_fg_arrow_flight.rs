@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!(
             "Read feature group took {:.2?} seconds and returned :\n{:#?}",
             now.elapsed(),
-            read_df
+            read_df.head(Some(10))
         );
     }
 
