@@ -94,6 +94,12 @@ impl FeatureGroup {
     }
 }
 
+impl From<FeatureGroupDTO> for FeatureGroup {
+    fn from(feature_group_dto: FeatureGroupDTO) -> Self {
+        FeatureGroup::new_from_dto(feature_group_dto)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     pub email: String,
@@ -129,6 +135,12 @@ impl User {
     }
 }
 
+impl From<UserDTO> for User {
+    fn from(user_dto: UserDTO) -> Self {
+        User::new_from_dto(user_dto)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Feature {
     pub name: String,
@@ -154,6 +166,12 @@ impl Feature {
     }
 }
 
+impl From<FeatureDTO> for Feature {
+    fn from(feature_dto: FeatureDTO) -> Self {
+        Feature::new_from_dto(feature_dto)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct StatisticsConfig {
     pub enabled: bool,
@@ -172,5 +190,11 @@ impl StatisticsConfig {
             exact_uniqueness: statistics_config_dto.exact_uniqueness,
             columns: statistics_config_dto.columns,
         }
+    }
+}
+
+impl From<StatisticsConfigDTO> for StatisticsConfig {
+    fn from(statistics_config_dto: StatisticsConfigDTO) -> Self {
+        StatisticsConfig::new_from_dto(statistics_config_dto)
     }
 }
