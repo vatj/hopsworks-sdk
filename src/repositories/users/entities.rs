@@ -13,6 +13,7 @@ pub struct UserDTO {
     pub two_factor: bool,
     pub tours_state: i32,
     pub max_num_projects: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub num_created_projects: Option<i32>,
     pub test_user: bool,
     pub num_active_projects: i32,
@@ -36,7 +37,7 @@ impl UserDTO {
             two_factor: user.two_factor,
             tours_state: user.tours_state,
             max_num_projects: user.max_num_projects,
-            num_created_projects: user.num_created_projects,
+            num_created_projects: None,
             test_user: user.test_user,
             num_active_projects: user.num_active_projects,
             num_remaining_projects: user.num_remaining_projects,

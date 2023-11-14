@@ -1,24 +1,11 @@
-use anyhow::Context;
 use color_eyre::Result;
 use hopsworks_rs::{clients::rest_client::HopsworksClientBuilder, hopsworks_login};
 use std::time::Instant;
 
-fn setup_tracing_logging() -> Result<(), Box<dyn std::error::Error>> {
-    use tracing_subscriber::{util::SubscriberInitExt, EnvFilter, FmtSubscriber};
-    tracing_log::LogTracer::init().context("tracing log init")?;
-
-    let filter = std::env::var("TRACING_LOG").unwrap_or_else(|_| "debug".to_string());
-    let filter = EnvFilter::try_new(filter).context("set up log env filter")?;
-
-    let subscriber = FmtSubscriber::builder().with_env_filter(filter).finish();
-    subscriber.try_init().context("init logging subscriber")?;
-
-    Ok(())
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    setup_tracing_logging()?;
+    color_eyre::install()?;
+    env_logger::init();
 
     let project = hopsworks_login(Some(
         HopsworksClientBuilder::default()
@@ -35,12 +22,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_feature_group_by_name_and_version(fg_name.as_str(), 1)
         .await?
     {
+        let query = feature_group.select(
+            feature_group
+                .get_feature_names()
+                .iter()
+                .map(|s| s.as_ref())
+                .collect(),
+        )?;
         let now = Instant::now();
-        let read_df = feature_group.read_with_arrow_flight_client().await?;
+        let read_df = query.read_from_online_feature_store().await?;
         println!(
             "Read feature group took {:.2?} seconds and returned :\n{:#?}",
             now.elapsed(),
-            read_df.head(Some(10))
+            read_df
         );
     }
 

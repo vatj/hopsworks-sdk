@@ -41,10 +41,11 @@ pub struct FeatureStoreJdbcConnectorDTO {
     id: i32,
     description: String,
     name: String,
+    #[serde(rename = "featurestoreId")]
     feature_store_id: i32,
     storage_connector_type: String,
-    connection_string: String,
-    arguments: HashMap<String, String>,
+    pub(crate) connection_string: String,
+    pub(crate) arguments: Vec<HashMap<String, String>>,
 }
 
 pub enum StorageConnectorDTO {

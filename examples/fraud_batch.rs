@@ -5,10 +5,7 @@ use std::collections::HashMap;
 use hopsworks_rs::{
     api::transformation_function::entities::TransformationFunction,
     clients::rest_client::HopsworksClientBuilder,
-    domain::{
-        query::controller::construct_query,
-        training_dataset::controller::create_training_dataset_attached_to_feature_view,
-    },
+    domain::training_dataset::controller::create_training_dataset_attached_to_feature_view,
     hopsworks_login,
 };
 
@@ -33,16 +30,10 @@ async fn main() -> Result<()> {
     let age_df = trans_df.left_join(&profiles_df, ["cc_num"], ["cc_num"])?;
 
     trans_df
-        .with_column(
-            (&age_df["birthdate"] - &age_df["datetime"])
-                .cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
-        )?
+        .with_column(&age_df["birthdate"] - &age_df["datetime"])?
         .rename("birthdate", "age_at_transaction")?;
 
-    trans_df.with_column(
-        1e-3.mul(&trans_df["datetime"])
-            .cast(&DataType::Datetime(TimeUnit::Nanoseconds, None))?,
-    )?;
+    trans_df.rename("datetime", "datetime")?;
 
     let window_len = "4h";
     let group_by_rolling_options = RollingGroupOptions {
@@ -58,7 +49,7 @@ async fn main() -> Result<()> {
     let window_agg_df = trans_df
         .select(["datetime", "amount", "cc_num"])?
         .lazy()
-        .group_by_rolling(col("cc_num"), [col("datetime")], group_by_rolling_options)
+        .groupby_rolling(col("cc_num"), [col("datetime")], group_by_rolling_options)
         .agg([
             col("amount").mean().alias("trans_volume_mavg"),
             col("amount").std(1).alias("trans_volume_mstd"),
@@ -89,7 +80,7 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    let n_rows = 5000;
+    let n_rows = 10;
     trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
 
     let window_aggs_fg = fs
@@ -112,8 +103,6 @@ async fn main() -> Result<()> {
         .await?;
 
     let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?;
-
-    println!("Query: {:#?}", construct_query(query.clone()).await?);
 
     let min_max_scaler = fs
         .get_transformation_function("min_max_scaler", None)
