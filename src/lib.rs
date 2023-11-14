@@ -1,10 +1,9 @@
 pub mod api;
 pub mod clients;
-pub mod domain;
-pub mod kafka_producer;
-pub mod minidf;
-pub mod repositories;
-pub mod util;
+pub(crate) mod domain;
+pub(crate) mod kafka_producer;
+pub(crate) mod repositories;
+pub(crate) mod util;
 
 use api::project::entities::Project;
 use clients::rest_client::{HopsworksClient, HopsworksClientBuilder};

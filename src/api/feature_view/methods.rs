@@ -17,4 +17,16 @@ impl FeatureView {
         training_dataset::controller::create_train_test_split().await?;
         Ok(())
     }
+
+    pub async fn create_attached_training_dataset(
+        &self,
+        // start: &str,
+        // end: &str,
+        // data_format: &str,
+        // coalesce: bool,
+    ) -> Result<()> {
+        training_dataset::controller::create_training_dataset_attached_to_feature_view(self)
+            .await?;
+        Ok(())
+    }
 }

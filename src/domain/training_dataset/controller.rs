@@ -26,7 +26,7 @@ pub async fn create_train_test_split() -> Result<()> {
 }
 
 pub async fn create_training_dataset_attached_to_feature_view(
-    feature_view: FeatureView,
+    feature_view: &FeatureView,
 ) -> Result<TrainingDataset> {
     let features = feature_view
         .query

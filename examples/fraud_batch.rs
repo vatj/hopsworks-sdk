@@ -4,9 +4,7 @@ use std::collections::HashMap;
 
 use hopsworks_rs::{
     api::transformation_function::entities::TransformationFunction,
-    clients::rest_client::HopsworksClientBuilder,
-    domain::training_dataset::controller::create_training_dataset_attached_to_feature_view,
-    hopsworks_login,
+    clients::rest_client::HopsworksClientBuilder, hopsworks_login,
 };
 
 #[tokio::main]
@@ -130,7 +128,7 @@ async fn main() -> Result<()> {
 
     println!("The fetched feature view: {:#?}", fetched_view);
 
-    create_training_dataset_attached_to_feature_view(feature_view).await?;
+    feature_view.create_attached_training_dataset().await?;
 
     // let my_new_dataset = fs
     //     .get_training_dataset_by_name_and_version("trans_view_{iteration}_rust", Some(1))

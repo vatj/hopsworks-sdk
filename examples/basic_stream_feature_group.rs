@@ -1,12 +1,8 @@
 use color_eyre::Result;
 use hopsworks_rs::clients::rest_client::HopsworksClientBuilder;
-use hopsworks_rs::domain::job;
-use hopsworks_rs::domain::storage_connector::controller::get_feature_store_kafka_connector;
-use hopsworks_rs::minidf::get_mini_df;
-use log::info;
 
 use hopsworks_rs::hopsworks_login;
-use hopsworks_rs::kafka_producer;
+use polars::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -24,47 +20,24 @@ async fn main() -> Result<()> {
         .await
         .expect("All projects should have a default feature store");
 
-    info!("{}", serde_json::to_string_pretty(&feature_store).unwrap());
+    println!("{:#?}", feature_store);
 
     if let Some(feature_group) = feature_store
-        .get_feature_group_by_name_and_version("bob", 1)
+        .get_feature_group_by_name_and_version(
+            std::env::var("HOPSWORKS_FEATURE_GROUP_NAME")
+                .unwrap_or_default()
+                .as_str(),
+            1,
+        )
         .await?
     {
-        info!("{}", serde_json::to_string_pretty(&feature_group).unwrap());
+        println!("{:#?}", feature_group);
 
-        // kafka
-        let topic = feature_group
-            .get_online_topic_name()
-            .unwrap_or_else(|| String::from(""));
-        let kafka_connector =
-            get_feature_store_kafka_connector(feature_store.featurestore_id, true).await?;
-
-        let mut mini_df = get_mini_df().await?;
-
-        info!(
-            "producing to topic '{topic}' on broker '{}'",
-            kafka_connector.bootstrap_servers
-        );
-
-        let primary_keys = feature_group.get_primary_keys()?;
-
-        kafka_producer::produce_df(
-            &mut mini_df,
-            kafka_connector,
-            topic.as_ref(),
-            None,
-            &project.project_name,
-            primary_keys.iter().map(|key| key.as_str()).collect(),
-            feature_group.get_id().unwrap(),
-        )
-        .await?;
-
-        let job_name = format!(
-            "{}_{}_offline_fg_materialization",
-            feature_group.name, feature_group.version
-        );
-
-        let _running_job_dto = job::controller::run_job_with_name(job_name.as_str()).await?;
+        let mut mini_df = df! [
+            "number" => [2i64, 3i64],
+            "word" => ["charlie", "dylan"]
+        ]?;
+        feature_group.insert(&mut mini_df).await?;
     }
 
     Ok(())
