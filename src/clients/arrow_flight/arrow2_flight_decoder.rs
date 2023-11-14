@@ -70,10 +70,11 @@ pub type Dictionaries = AHashMap<i64, Box<dyn Array>>;
 /// // make a do_get request
 /// use arrow_flight::{
 ///   error::Result,
-///   decode::FlightDataFrameStream,
 ///   Ticket,
 ///   flight_service_client::FlightServiceClient
 /// };
+/// use hopsworks_rs::clients::arrow_flight::arrow2_flight_decoder::FlightDataFrameStream;
+///
 /// use tonic::transport::Channel;
 /// use futures::stream::{StreamExt, TryStreamExt};
 ///
@@ -90,16 +91,16 @@ pub type Dictionaries = AHashMap<i64, Box<dyn Array>>;
 ///   .await?
 ///   .into_inner();
 ///
-/// // Decode stream of FlightData to RecordBatches
-/// let record_batch_stream = FlightRecordBatchStream::new_from_flight_data(
+/// // Decode stream of FlightData to polars DataFrames
+/// let dataframe_stream = FlightDataFrameStream::new_from_flight_data(
 ///   // convert tonic::Status to FlightError
 ///   flight_data_stream.map_err(|e| e.into())
 /// );
 ///
-/// // Read back RecordBatches
-/// while let Some(batch) = record_batch_stream.next().await {
-///   match batch {
-///     Ok(batch) => { /* process batch */ },
+/// // Read back DataFrames
+/// while let Some(df) = dataframe_stream.next().await {
+///   match df {
+///     Ok(df) => { /* process dataframe */ },
 ///     Err(e) => { /* handle error */ },
 ///   };
 /// }
@@ -119,7 +120,7 @@ pub struct FlightDataFrameStream {
 }
 
 impl FlightDataFrameStream {
-    /// Create a new [`FlightRecordBatchStream`] from a decoded stream
+    /// Create a new [`FlightDataFrameStream`] from a decoded stream
     pub fn new(inner: FlightDataDecoder) -> Self {
         Self {
             inner,
@@ -128,7 +129,7 @@ impl FlightDataFrameStream {
         }
     }
 
-    /// Create a new [`FlightRecordBatchStream`] from a stream of [`FlightData`]
+    /// Create a new [`FlightDataFrameStream`] from a stream of [`FlightData`]
     pub fn new_from_flight_data<S>(inner: S) -> Self
     where
         S: Stream<Item = std::result::Result<arrow_flight::FlightData, tonic::Status>>
@@ -193,7 +194,7 @@ impl FlightDataFrameStream {
 impl futures::Stream for FlightDataFrameStream {
     type Item = std::result::Result<DataFrame, tonic::Status>;
 
-    /// Returns the next [`RecordBatch`] available in this stream, or `None` if
+    /// Returns the next [`DataFrame`] available in this stream, or `None` if
     /// there are no further results available.
     fn poll_next(
         mut self: Pin<&mut Self>,
@@ -235,7 +236,7 @@ impl futures::Stream for FlightDataFrameStream {
 
 /// Wrapper around a stream of [`FlightData`] that handles the details
 /// of decoding low level Flight messages into [`Schema`] and
-/// [`RecordBatch`]es, including details such as dictionaries.
+/// [`DataFrame`]s, including details such as dictionaries.
 ///
 /// # Protocol Details
 ///
@@ -251,7 +252,7 @@ impl futures::Stream for FlightDataFrameStream {
 ///   dictionary for the same column will be overwritten. This
 ///   message is NOT visible.
 ///
-/// - **Record Batch:** Record batch is created based on the current
+/// - **Record Batch:** A dataframe is created based on the current
 ///   schema and dictionaries. This fails if no schema was transmitted
 ///   yet.
 ///
