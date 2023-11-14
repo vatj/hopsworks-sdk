@@ -1,4 +1,10 @@
-use crate::api::feature_group::entities::{Feature, FeatureGroup};
+use color_eyre::Result;
+use polars::frame::DataFrame;
+
+use crate::{
+    api::feature_group::entities::{Feature, FeatureGroup},
+    domain::query::controller::read_query_from_online_feature_store,
+};
 
 use super::entities::{JoinQuery, Query, QueryFilterOrLogic};
 
@@ -52,6 +58,10 @@ impl Query {
         }
         // Remove None values
         filters.into_iter().flatten().collect()
+    }
+
+    pub async fn read_from_online_feature_store(&self) -> Result<DataFrame> {
+        read_query_from_online_feature_store(self).await
     }
 }
 

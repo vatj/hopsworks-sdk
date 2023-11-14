@@ -18,8 +18,6 @@ fn setup_tracing_logging() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // color_eyre::install()?;
-    // env_logger::init();
     setup_tracing_logging()?;
 
     let project = hopsworks_login(Some(

@@ -6,7 +6,7 @@ use connectorx::transports::MySQLArrow2Transport;
 use log::debug;
 use polars::prelude::DataFrame;
 
-use crate::repositories::storage_connector::entities::FeatureStoreJdbcConnectorDTO;
+use crate::domain::storage_connector;
 use crate::repositories::variables::service::get_loadbalancer_external_domain;
 use crate::{
     api::query::entities::Query,
@@ -22,11 +22,12 @@ pub async fn construct_query(query: Query) -> Result<FeatureStoreQueryDTO> {
     query::service::construct_query(query_payload).await
 }
 
-pub async fn read_query_from_online_feature_store(
-    query: Query,
-    feature_store_jdbc_connector: FeatureStoreJdbcConnectorDTO,
-) -> Result<DataFrame> {
-    let password = feature_store_jdbc_connector
+pub async fn build_mysql_connection_url_from_storage_connector(
+    feature_store_id: i32,
+) -> Result<String> {
+    let online_storage_connector =
+        storage_connector::controller::get_feature_store_online_connector(feature_store_id).await?;
+    let password = online_storage_connector
         .arguments
         .iter()
         .find(|arg| arg.get("name") == Some(&String::from("password")))
@@ -34,14 +35,14 @@ pub async fn read_query_from_online_feature_store(
         .get("value")
         .expect("No password value found in online feature store connector arguments")
         .clone();
-    let username = feature_store_jdbc_connector
+    let username = online_storage_connector
         .arguments
         .iter()
         .find(|arg| arg.get("name") == Some(&String::from("user")))
         .expect("No user key found in online feature store connector arguments")
         .get("value")
         .expect("No user value found in online feature store connector arguments");
-    let mut connection_string = feature_store_jdbc_connector
+    let mut connection_string = online_storage_connector
         .connection_string
         .replace("jdbc:", "");
     let end_range = connection_string[8..].find(':').unwrap();
@@ -57,9 +58,17 @@ pub async fn read_query_from_online_feature_store(
         )
         .replace("?useSSL=false&allowPublicKeyRetrieval=true", "");
     debug!("Connection string: {}", connection_string);
+
+    Ok(connection_string)
+}
+
+pub async fn read_query_from_online_feature_store(query: &Query) -> Result<DataFrame> {
+    let connection_string =
+        build_mysql_connection_url_from_storage_connector(query.left_feature_group.featurestore_id)
+            .await?;
     let builder = MySQLSource::<BinaryProtocol>::new(connection_string.as_str(), 2).unwrap();
 
-    let constructed_query = construct_query(query).await?;
+    let constructed_query = construct_query(query.clone()).await?;
     let queries = vec![CXQuery::from(&constructed_query.query_online)];
     let mut destination = Arrow2Destination::new();
 

@@ -1,9 +1,5 @@
 use color_eyre::Result;
-use hopsworks_rs::{
-    clients::rest_client::HopsworksClientBuilder,
-    domain::{query::controller::read_query_from_online_feature_store, storage_connector},
-    hopsworks_login,
-};
+use hopsworks_rs::{clients::rest_client::HopsworksClientBuilder, hopsworks_login};
 use std::time::Instant;
 
 #[tokio::main]
@@ -33,13 +29,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .map(|s| s.as_ref())
                 .collect(),
         )?;
-        let online_storage_connector =
-            storage_connector::controller::get_feature_store_online_connector(
-                feature_group.featurestore_id,
-            )
-            .await?;
         let now = Instant::now();
-        let read_df = read_query_from_online_feature_store(query, online_storage_connector).await?;
+        let read_df = query.read_from_online_feature_store().await?;
         println!(
             "Read feature group took {:.2?} seconds and returned :\n{:#?}",
             now.elapsed(),
