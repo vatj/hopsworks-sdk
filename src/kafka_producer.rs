@@ -80,30 +80,83 @@ pub async fn produce_df(
         df.get_row_amortized(idx, &mut row)?;
 
         for (jdx, value) in row.0.iter().enumerate() {
-            if value.dtype() == DataType::Int64
-                || value.dtype() == DataType::Datetime(TimeUnit::Microseconds, None)
-                || value.dtype() == DataType::Datetime(TimeUnit::Nanoseconds, None)
-                || value.dtype() == DataType::Duration(TimeUnit::Microseconds)
-                || value.dtype() == DataType::Duration(TimeUnit::Nanoseconds)
-            {
-                record.put(column_names[jdx], Some(value.try_extract::<i64>()?));
-                if primary_keys.contains(&column_names[jdx]) {
-                    composite_key.push(value.to_string())
+            match value.dtype() {
+                DataType::Boolean => {
+                    record.put(column_names[jdx], Some(value.try_extract::<i8>()? != 0))
                 }
+                DataType::Int8 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
+                DataType::Int16 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
+                DataType::Int32 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
+                DataType::Int64 => record.put(column_names[jdx], Some(value.try_extract::<i64>()?)),
+                DataType::UInt8 => {
+                    record.put(column_names[jdx], Some(value.try_extract::<u8>()? as usize))
+                }
+                DataType::UInt16 => record.put(
+                    column_names[jdx],
+                    Some(value.try_extract::<u16>()? as usize),
+                ),
+                DataType::UInt32 => record.put(
+                    column_names[jdx],
+                    Some(value.try_extract::<u32>()? as usize),
+                ),
+                DataType::UInt64 => record.put(
+                    column_names[jdx],
+                    Some(value.try_extract::<u64>()? as usize),
+                ),
+                DataType::Duration(TimeUnit::Nanoseconds) => {
+                    record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
+                }
+                DataType::Duration(TimeUnit::Microseconds) => {
+                    record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
+                }
+                DataType::Duration(TimeUnit::Milliseconds) => {
+                    record.put(column_names[jdx], Some(value.try_extract::<i32>()?))
+                }
+                DataType::Float32 => {
+                    record.put(column_names[jdx], Some(value.try_extract::<f32>()?))
+                }
+                DataType::Float64 => {
+                    record.put(column_names[jdx], Some(value.try_extract::<f64>()?))
+                }
+                DataType::Utf8 => record.put(column_names[jdx], Some(value.to_string())),
+                DataType::Datetime(TimeUnit::Microseconds, None) => {
+                    record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
+                }
+                DataType::Datetime(TimeUnit::Nanoseconds, None) => {
+                    record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
+                }
+                DataType::Datetime(TimeUnit::Milliseconds, None) => {
+                    record.put(column_names[jdx], Some(value.try_extract::<i32>()?))
+                }
+                DataType::Datetime(TimeUnit::Microseconds, Some(_)) => {
+                    return Err(color_eyre::Report::msg(
+                        "Datetime with timezone not supported",
+                    ));
+                }
+                DataType::Datetime(TimeUnit::Nanoseconds, Some(_)) => {
+                    return Err(color_eyre::Report::msg(
+                        "Datetime with timezone not supported",
+                    ));
+                }
+                DataType::Datetime(TimeUnit::Milliseconds, Some(_)) => {
+                    return Err(color_eyre::Report::msg(
+                        "Datetime with timezone not supported",
+                    ));
+                }
+                DataType::Date => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
+                DataType::Time => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
+                DataType::Null => record.put(column_names[jdx], None::<()>),
+                DataType::Decimal(_, _) => todo!(),
+                DataType::Binary => todo!(),
+                DataType::Array(_, _) => todo!(),
+                DataType::List(_) => todo!(),
+                DataType::Categorical(_) => todo!(),
+                DataType::Struct(_) => todo!(),
+                DataType::Unknown => todo!(),
             }
 
-            if value.dtype() == DataType::Utf8 {
-                record.put(column_names[jdx], Some(value.to_string()));
-                if primary_keys.contains(&column_names[jdx]) {
-                    composite_key.push(value.to_string())
-                }
-            }
-
-            if value.dtype() == DataType::Float64 {
-                record.put(column_names[jdx], Some(value.try_extract::<f64>()?));
-                if primary_keys.contains(&column_names[jdx]) {
-                    composite_key.push(value.to_string())
-                }
+            if primary_keys.contains(&column_names[jdx]) {
+                composite_key.push(value.to_string())
             }
         }
 
