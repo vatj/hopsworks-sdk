@@ -3,7 +3,7 @@ use polars::prelude::{DataFrame, Schema};
 
 use crate::{
     api::query::entities::Query,
-    clients::arrow_flight::arrow_flight_client::HopsworksArrowFlightClientBuilder,
+    clients::arrow_flight::client::HopsworksArrowFlightClientBuilder,
     domain::{feature, job, query::controller::construct_query, storage_connector},
     kafka_producer::produce_df,
     repositories::{
