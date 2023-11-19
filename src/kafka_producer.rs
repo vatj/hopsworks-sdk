@@ -2,12 +2,13 @@ use apache_avro::types::Record;
 use apache_avro::Schema;
 use color_eyre::Result;
 use indicatif::ProgressBar;
+use polars::frame::row::Row;
 use polars::prelude::*;
 use rdkafka::message::{Header, OwnedHeaders};
 use rdkafka::producer::{FutureProducer, FutureRecord, Producer};
 use rdkafka::ClientConfig;
 use std::time::Duration;
-use tokio::task::JoinSet;
+use tokio::task::JoinHandle;
 
 use crate::domain::kafka::controller::get_kafka_topic_subject;
 use crate::get_hopsworks_client;
@@ -42,167 +43,6 @@ async fn setup_future_producer(
         .expect("Error setting up kafka producer"))
 }
 
-pub async fn produce_df(
-    df: &mut polars::prelude::DataFrame,
-    kafka_connector: FeatureStoreKafkaConnectorDTO,
-    subject_name: &str,
-    opt_version: Option<&str>,
-    online_topic_name: &str,
-    primary_keys: Vec<&str>,
-    feature_group_id: i32,
-) -> Result<()> {
-    let producer: &FutureProducer = &setup_future_producer(kafka_connector).await?;
-
-    let subject_dto: KafkaSubjectDTO = get_kafka_topic_subject(subject_name, opt_version).await?;
-
-    let avro_schema = Schema::parse_str(subject_dto.schema.as_str()).unwrap();
-
-    let project_id = get_hopsworks_client()
-        .await
-        .get_project_id()
-        .lock()
-        .await
-        .unwrap()
-        .to_string();
-    let subject_id = subject_dto.id.to_string();
-    let feature_group_id = feature_group_id.to_string();
-
-    df.as_single_chunk_par();
-
-    let column_names = df.get_column_names();
-
-    let mut composite_key: Vec<String> = vec![];
-    let mut row = df.get_row(0)?;
-    let mut handles = JoinSet::new();
-
-    for idx in 0..df.height() {
-        let mut record = Record::new(&avro_schema).unwrap();
-        df.get_row_amortized(idx, &mut row)?;
-
-        for (jdx, value) in row.0.iter().enumerate() {
-            match value.dtype() {
-                DataType::Boolean => {
-                    record.put(column_names[jdx], Some(value.try_extract::<i8>()? != 0))
-                }
-                DataType::Int8 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
-                DataType::Int16 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
-                DataType::Int32 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
-                DataType::Int64 => record.put(column_names[jdx], Some(value.try_extract::<i64>()?)),
-                DataType::UInt8 => {
-                    record.put(column_names[jdx], Some(value.try_extract::<u8>()? as usize))
-                }
-                DataType::UInt16 => record.put(
-                    column_names[jdx],
-                    Some(value.try_extract::<u16>()? as usize),
-                ),
-                DataType::UInt32 => record.put(
-                    column_names[jdx],
-                    Some(value.try_extract::<u32>()? as usize),
-                ),
-                DataType::UInt64 => record.put(
-                    column_names[jdx],
-                    Some(value.try_extract::<u64>()? as usize),
-                ),
-                DataType::Duration(TimeUnit::Nanoseconds) => {
-                    record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
-                }
-                DataType::Duration(TimeUnit::Microseconds) => {
-                    record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
-                }
-                DataType::Duration(TimeUnit::Milliseconds) => {
-                    record.put(column_names[jdx], Some(value.try_extract::<i32>()?))
-                }
-                DataType::Float32 => {
-                    record.put(column_names[jdx], Some(value.try_extract::<f32>()?))
-                }
-                DataType::Float64 => {
-                    record.put(column_names[jdx], Some(value.try_extract::<f64>()?))
-                }
-                DataType::Utf8 => record.put(column_names[jdx], Some(value.to_string())),
-                DataType::Datetime(TimeUnit::Microseconds, None) => {
-                    record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
-                }
-                DataType::Datetime(TimeUnit::Nanoseconds, None) => {
-                    record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
-                }
-                DataType::Datetime(TimeUnit::Milliseconds, None) => {
-                    record.put(column_names[jdx], Some(value.try_extract::<i32>()?))
-                }
-                DataType::Datetime(TimeUnit::Microseconds, Some(_)) => {
-                    return Err(color_eyre::Report::msg(
-                        "Datetime with timezone not supported",
-                    ));
-                }
-                DataType::Datetime(TimeUnit::Nanoseconds, Some(_)) => {
-                    return Err(color_eyre::Report::msg(
-                        "Datetime with timezone not supported",
-                    ));
-                }
-                DataType::Datetime(TimeUnit::Milliseconds, Some(_)) => {
-                    return Err(color_eyre::Report::msg(
-                        "Datetime with timezone not supported",
-                    ));
-                }
-                DataType::Date => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
-                DataType::Time => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
-                DataType::Null => record.put(column_names[jdx], None::<()>),
-                DataType::Decimal(_, _) => todo!(),
-                DataType::Binary => todo!(),
-                DataType::Array(_, _) => todo!(),
-                DataType::List(_) => todo!(),
-                DataType::Categorical(_) => todo!(),
-                DataType::Struct(_) => todo!(),
-                DataType::Unknown => todo!(),
-            }
-
-            if primary_keys.contains(&column_names[jdx]) {
-                composite_key.push(value.to_string())
-            }
-        }
-
-        let encoded_payload = apache_avro::to_avro_datum(&avro_schema, record.clone())?;
-        let the_key = composite_key.join("_");
-
-        composite_key.clear();
-
-        let producer = producer.clone();
-        let topic_name = online_topic_name.to_string();
-        let project_id = project_id.clone();
-        let feature_group_id = feature_group_id.clone();
-        let subject_id = subject_id.clone();
-
-        handles.spawn(async move {
-            let produce_future = producer.send(
-                make_future_record_from_encoded(
-                    &the_key,
-                    &encoded_payload,
-                    &topic_name,
-                    &project_id,
-                    &feature_group_id,
-                    &subject_id,
-                )
-                .unwrap(),
-                Duration::from_secs(5),
-            );
-
-            match produce_future.await {
-                Ok(_delivery) => Ok(()),
-                Err((e, _)) => Err(e),
-            }
-        });
-    }
-
-    let progress_bar = ProgressBar::new(df.height() as u64);
-    while let Some(res) = handles.join_next().await {
-        progress_bar.inc(1);
-        res??;
-    }
-
-    producer.flush(Duration::from_secs(1))?;
-
-    Ok(())
-}
-
 fn make_future_record_from_encoded<'a>(
     the_key: &'a String,
     encoded_payload: &'a Vec<u8>,
@@ -234,4 +74,210 @@ fn make_future_record_from_encoded<'a>(
                     value: Some(subject_id),
                 }),
         ))
+}
+
+fn convert_df_row_to_avro_record<'a>(
+    avro_schema: &Schema,
+    column_names: &[String],
+    primary_keys: &Vec<String>,
+    row: &Row<'_>,
+) -> Result<(Record<'a>, String)> {
+    let mut composite_key: Vec<String> = vec![];
+    let mut record = Record::new(avro_schema).unwrap();
+
+    for (jdx, value) in row.0.iter().enumerate() {
+        match value.dtype() {
+            DataType::Boolean => {
+                record.put(&column_names[jdx], Some(value.try_extract::<i8>()? != 0))
+            }
+            DataType::Int8 => record.put(&column_names[jdx], Some(value.try_extract::<i32>()?)),
+            DataType::Int16 => record.put(&column_names[jdx], Some(value.try_extract::<i32>()?)),
+            DataType::Int32 => record.put(&column_names[jdx], Some(value.try_extract::<i32>()?)),
+            DataType::Int64 => record.put(&column_names[jdx], Some(value.try_extract::<i64>()?)),
+            DataType::UInt8 => record.put(
+                &column_names[jdx],
+                Some(value.try_extract::<u8>()? as usize),
+            ),
+            DataType::UInt16 => record.put(
+                &column_names[jdx],
+                Some(value.try_extract::<u16>()? as usize),
+            ),
+            DataType::UInt32 => record.put(
+                &column_names[jdx],
+                Some(value.try_extract::<u32>()? as usize),
+            ),
+            DataType::UInt64 => record.put(
+                &column_names[jdx],
+                Some(value.try_extract::<u64>()? as usize),
+            ),
+            DataType::Duration(TimeUnit::Nanoseconds) => {
+                record.put(&column_names[jdx], Some(value.try_extract::<i64>()?))
+            }
+            DataType::Duration(TimeUnit::Microseconds) => {
+                record.put(&column_names[jdx], Some(value.try_extract::<i64>()?))
+            }
+            DataType::Duration(TimeUnit::Milliseconds) => {
+                record.put(&column_names[jdx], Some(value.try_extract::<i32>()?))
+            }
+            DataType::Float32 => record.put(&column_names[jdx], Some(value.try_extract::<f32>()?)),
+            DataType::Float64 => record.put(&column_names[jdx], Some(value.try_extract::<f64>()?)),
+            DataType::Utf8 => record.put(&column_names[jdx], Some(value.to_string())),
+            DataType::Datetime(TimeUnit::Microseconds, None) => {
+                record.put(&column_names[jdx], Some(value.try_extract::<i64>()?))
+            }
+            DataType::Datetime(TimeUnit::Nanoseconds, None) => {
+                record.put(&column_names[jdx], Some(value.try_extract::<i64>()?))
+            }
+            DataType::Datetime(TimeUnit::Milliseconds, None) => {
+                record.put(&column_names[jdx], Some(value.try_extract::<i32>()?))
+            }
+            DataType::Datetime(TimeUnit::Microseconds, Some(_)) => {
+                return Err(color_eyre::Report::msg(
+                    "Datetime with timezone not supported",
+                ));
+            }
+            DataType::Datetime(TimeUnit::Nanoseconds, Some(_)) => {
+                return Err(color_eyre::Report::msg(
+                    "Datetime with timezone not supported",
+                ));
+            }
+            DataType::Datetime(TimeUnit::Milliseconds, Some(_)) => {
+                return Err(color_eyre::Report::msg(
+                    "Datetime with timezone not supported",
+                ));
+            }
+            DataType::Date => record.put(&column_names[jdx], Some(value.try_extract::<i32>()?)),
+            DataType::Time => record.put(&column_names[jdx], Some(value.try_extract::<i32>()?)),
+            DataType::Null => record.put(&column_names[jdx], None::<()>),
+            DataType::Decimal(_, _) => todo!(),
+            DataType::Binary => todo!(),
+            DataType::Array(_, _) => todo!(),
+            DataType::List(_) => todo!(),
+            DataType::Categorical(_) => todo!(),
+            DataType::Struct(_) => todo!(),
+            DataType::Unknown => todo!(),
+        }
+
+        if primary_keys.contains(&column_names[jdx]) {
+            composite_key.push(value.to_string())
+        }
+    }
+
+    Ok((record, composite_key.join("_")))
+}
+
+// Function to produce a single Avro record
+async fn produce_avro_record(
+    producer: &FutureProducer,
+    avro_schema: &Schema,
+    column_names: &[String],
+    row: Row<'_>,
+    online_topic_name: &str,
+    project_id: &str,
+    feature_group_id: &str,
+    subject_id: &str,
+    primary_keys: &Vec<String>,
+) -> Result<()> {
+    let (record, composite_key) =
+        convert_df_row_to_avro_record(&avro_schema, &column_names, &primary_keys, &row)?;
+    let encoded_payload = apache_avro::to_avro_datum(&avro_schema, record)?;
+
+    let produce_future = producer.send(
+        make_future_record_from_encoded(
+            &composite_key,
+            &encoded_payload,
+            &online_topic_name,
+            &project_id,
+            &feature_group_id,
+            &subject_id,
+        )
+        .unwrap(),
+        Duration::from_secs(5),
+    );
+
+    match produce_future.await {
+        Ok(_delivery) => Ok(()),
+        Err((e, _)) => Err(color_eyre::Report::msg(e.to_string())),
+    }
+}
+
+pub async fn produce_df(
+    df: &mut polars::prelude::DataFrame,
+    kafka_connector: FeatureStoreKafkaConnectorDTO,
+    subject_name: &str,
+    opt_version: Option<&str>,
+    online_topic_name: &str,
+    primary_keys: Vec<&str>,
+    feature_group_id: i32,
+) -> Result<()> {
+    let producer: &FutureProducer = &setup_future_producer(kafka_connector).await?;
+    let subject_dto: KafkaSubjectDTO = get_kafka_topic_subject(subject_name, opt_version).await?;
+
+    // This value are wrapped into an Arc to allow read-only access across threads
+    // meaning clone only increases the ref count, no extra-memory is allocated
+    let avro_schema = Arc::new(Schema::parse_str(subject_dto.schema.as_str())?);
+
+    let project_id = Arc::new(
+        get_hopsworks_client()
+            .await
+            .get_project_id()
+            .lock()
+            .await
+            .unwrap()
+            .to_string(),
+    );
+    let subject_id = Arc::new(subject_dto.id.to_string());
+    let feature_group_id = Arc::new(feature_group_id.to_string());
+
+    let column_names: Arc<Vec<String>> = Arc::new(
+        df.get_column_names()
+            .iter()
+            .map(|s| s.to_string())
+            .collect(),
+    );
+    let primary_keys: Arc<Vec<String>> =
+        Arc::new(primary_keys.iter().map(|s| s.to_string()).collect());
+
+    df.as_single_chunk_par();
+    let mut row = df.get_row(0)?;
+
+    let mut handles: Vec<JoinHandle<Result<()>>> = Vec::new();
+
+    for idx in 0..df.height() {
+        let producer = producer.clone();
+        let avro_schema = avro_schema.clone();
+        let online_topic_name = online_topic_name.to_string();
+        let project_id = project_id.clone();
+        let feature_group_id = feature_group_id.clone();
+        let subject_id = subject_id.clone();
+        let primary_keys = primary_keys.clone();
+        let column_names = column_names.clone();
+
+        let handle = tokio::spawn(async move {
+            produce_avro_record(
+                &producer,
+                &avro_schema,
+                &column_names,
+                df.get_row(idx)?,
+                &online_topic_name,
+                &project_id,
+                &feature_group_id.clone(),
+                &subject_id,
+                &primary_keys,
+            )
+            .await
+        });
+
+        handles.push(handle);
+    }
+
+    let progress_bar = ProgressBar::new(df.height() as u64);
+    for handle in handles {
+        progress_bar.inc(1);
+        handle.await??;
+    }
+
+    producer.flush(Duration::from_secs(1))?;
+
+    Ok(())
 }
