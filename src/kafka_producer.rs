@@ -43,43 +43,10 @@ async fn setup_future_producer(
         .expect("Error setting up kafka producer"))
 }
 
-fn make_future_record_from_encoded<'a>(
-    the_key: &'a String,
-    encoded_payload: &'a Vec<u8>,
-    topic_name: &'a str,
-    project_id: &str,
-    feature_group_id: &str,
-    subject_id: &str,
-) -> Result<FutureRecord<'a, String, Vec<u8>>> {
-    let version_str = String::from("1");
-    Ok(FutureRecord::to(topic_name)
-        .payload(encoded_payload)
-        .key(the_key)
-        .headers(
-            OwnedHeaders::new()
-                .insert(Header {
-                    key: "version",
-                    value: Some(&version_str),
-                })
-                .insert(Header {
-                    key: "projectId",
-                    value: Some(project_id),
-                })
-                .insert(Header {
-                    key: "featureGroupId",
-                    value: Some(feature_group_id),
-                })
-                .insert(Header {
-                    key: "subjectId",
-                    value: Some(subject_id),
-                }),
-        ))
-}
-
 fn convert_df_row_to_avro_record<'a>(
-    avro_schema: &Schema,
+    avro_schema: &'a Schema,
     column_names: &[String],
-    primary_keys: &Vec<String>,
+    primary_keys: &[String],
     row: &Row<'_>,
 ) -> Result<(Record<'a>, String)> {
     let mut composite_key: Vec<String> = vec![];
@@ -166,32 +133,58 @@ fn convert_df_row_to_avro_record<'a>(
     Ok((record, composite_key.join("_")))
 }
 
+fn make_future_record_from_encoded<'a>(
+    the_key: &'a str,
+    encoded_payload: &'a Vec<u8>,
+    topic_name: &'a str,
+    project_id: &str,
+    feature_group_id: &str,
+    subject_id: &str,
+) -> Result<FutureRecord<'a, str, Vec<u8>>> {
+    let version_str = String::from("1");
+    Ok(FutureRecord::to(topic_name)
+        .payload(encoded_payload)
+        .key(the_key)
+        .headers(
+            OwnedHeaders::new()
+                .insert(Header {
+                    key: "version",
+                    value: Some(&version_str),
+                })
+                .insert(Header {
+                    key: "projectId",
+                    value: Some(project_id),
+                })
+                .insert(Header {
+                    key: "featureGroupId",
+                    value: Some(feature_group_id),
+                })
+                .insert(Header {
+                    key: "subjectId",
+                    value: Some(subject_id),
+                }),
+        ))
+}
+
 // Function to produce a single Avro record
 async fn produce_avro_record(
     producer: &FutureProducer,
-    avro_schema: &Schema,
-    column_names: &[String],
-    row: Row<'_>,
+    composite_key: &str,
+    encoded_payload: Vec<u8>,
     online_topic_name: &str,
     project_id: &str,
     feature_group_id: &str,
     subject_id: &str,
-    primary_keys: &Vec<String>,
 ) -> Result<()> {
-    let (record, composite_key) =
-        convert_df_row_to_avro_record(&avro_schema, &column_names, &primary_keys, &row)?;
-    let encoded_payload = apache_avro::to_avro_datum(&avro_schema, record)?;
-
     let produce_future = producer.send(
         make_future_record_from_encoded(
-            &composite_key,
+            composite_key,
             &encoded_payload,
-            &online_topic_name,
-            &project_id,
-            &feature_group_id,
-            &subject_id,
-        )
-        .unwrap(),
+            online_topic_name,
+            project_id,
+            feature_group_id,
+            subject_id,
+        )?,
         Duration::from_secs(5),
     );
 
@@ -213,10 +206,10 @@ pub async fn produce_df(
     let producer: &FutureProducer = &setup_future_producer(kafka_connector).await?;
     let subject_dto: KafkaSubjectDTO = get_kafka_topic_subject(subject_name, opt_version).await?;
 
+    let avro_schema = Schema::parse_str(subject_dto.schema.as_str())?;
+
     // This value are wrapped into an Arc to allow read-only access across threads
     // meaning clone only increases the ref count, no extra-memory is allocated
-    let avro_schema = Arc::new(Schema::parse_str(subject_dto.schema.as_str())?);
-
     let project_id = Arc::new(
         get_hopsworks_client()
             .await
@@ -228,15 +221,14 @@ pub async fn produce_df(
     );
     let subject_id = Arc::new(subject_dto.id.to_string());
     let feature_group_id = Arc::new(feature_group_id.to_string());
+    let topic_name = Arc::new(online_topic_name);
 
-    let column_names: Arc<Vec<String>> = Arc::new(
-        df.get_column_names()
-            .iter()
-            .map(|s| s.to_string())
-            .collect(),
-    );
-    let primary_keys: Arc<Vec<String>> =
-        Arc::new(primary_keys.iter().map(|s| s.to_string()).collect());
+    let column_names: Vec<String> = df
+        .get_column_names()
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+    let primary_keys: Vec<String> = primary_keys.iter().map(|s| s.to_string()).collect();
 
     df.as_single_chunk_par();
     let mut row = df.get_row(0)?;
@@ -244,26 +236,26 @@ pub async fn produce_df(
     let mut handles: Vec<JoinHandle<Result<()>>> = Vec::new();
 
     for idx in 0..df.height() {
+        df.get_row_amortized(idx, &mut row)?;
+        let (record, composite_key) =
+            convert_df_row_to_avro_record(&avro_schema, &column_names, &primary_keys, &row)?;
+        let encoded_payload = apache_avro::to_avro_datum(&avro_schema, record)?;
+
         let producer = producer.clone();
-        let avro_schema = avro_schema.clone();
-        let online_topic_name = online_topic_name.to_string();
+        let topic_name = topic_name.to_string();
         let project_id = project_id.clone();
         let feature_group_id = feature_group_id.clone();
         let subject_id = subject_id.clone();
-        let primary_keys = primary_keys.clone();
-        let column_names = column_names.clone();
 
         let handle = tokio::spawn(async move {
             produce_avro_record(
                 &producer,
-                &avro_schema,
-                &column_names,
-                df.get_row(idx)?,
-                &online_topic_name,
+                &composite_key,
+                encoded_payload,
+                &topic_name,
                 &project_id,
-                &feature_group_id.clone(),
+                &feature_group_id,
                 &subject_id,
-                &primary_keys,
             )
             .await
         });
