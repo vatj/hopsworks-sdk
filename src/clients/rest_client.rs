@@ -452,17 +452,21 @@ mod tests {
         Ok(())
     }
 
-    // Multi-thread test to bypass env variable unset side-effects
-    #[tokio::test(flavor = "multi_thread")]
+    #[tokio::test]
     #[should_panic(
         expected = "No API key provided. Provide an API key using the HOPSWORKS_API_KEY environment variable or the with_api_key() method."
     )]
     async fn test_default_builder() {
+        let api_key = std::env::var(DEFAULT_ENV_HOPSWORKS_API_KEY).unwrap_or_default();
         std::env::remove_var(DEFAULT_ENV_HOPSWORKS_API_KEY);
 
         let builder = HopsworksClientBuilder::new();
 
+        let client = builder.build().await;
+
+        std::env::set_var(DEFAULT_ENV_HOPSWORKS_API_KEY, api_key);
+
         // Unwrap Panic because the builder does not have an API key.
-        builder.build().await.unwrap();
+        client.unwrap();
     }
 }

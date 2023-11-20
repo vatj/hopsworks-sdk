@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct KafkaTopicDTO {
     href: String,
-    pub name: String,
+    pub(crate) name: String,
     schema_name: String,
     schema_version: i32,
     shared: bool,
@@ -15,7 +15,7 @@ pub struct KafkaTopicDTO {
 pub struct KafkaSubjectDTO {
     pub(crate) id: i32,
     subject: String,
-    version: i32,
+    pub(crate) version: i32,
     pub(crate) schema: String,
 }
 

@@ -45,8 +45,8 @@ async fn setup_future_producer(
 
 fn convert_df_row_to_avro_record<'a>(
     avro_schema: &'a Schema,
-    column_names: &[String],
-    primary_keys: &[String],
+    column_names: &[&str],
+    primary_keys: &[&str],
     row: &Row<'_>,
 ) -> Result<(Record<'a>, String)> {
     let mut composite_key: Vec<String> = vec![];
@@ -55,48 +55,47 @@ fn convert_df_row_to_avro_record<'a>(
     for (jdx, value) in row.0.iter().enumerate() {
         match value.dtype() {
             DataType::Boolean => {
-                record.put(&column_names[jdx], Some(value.try_extract::<i8>()? != 0))
+                record.put(column_names[jdx], Some(value.try_extract::<i8>()? != 0))
             }
-            DataType::Int8 => record.put(&column_names[jdx], Some(value.try_extract::<i32>()?)),
-            DataType::Int16 => record.put(&column_names[jdx], Some(value.try_extract::<i32>()?)),
-            DataType::Int32 => record.put(&column_names[jdx], Some(value.try_extract::<i32>()?)),
-            DataType::Int64 => record.put(&column_names[jdx], Some(value.try_extract::<i64>()?)),
-            DataType::UInt8 => record.put(
-                &column_names[jdx],
-                Some(value.try_extract::<u8>()? as usize),
-            ),
+            DataType::Int8 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
+            DataType::Int16 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
+            DataType::Int32 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
+            DataType::Int64 => record.put(column_names[jdx], Some(value.try_extract::<i64>()?)),
+            DataType::UInt8 => {
+                record.put(column_names[jdx], Some(value.try_extract::<u8>()? as usize))
+            }
             DataType::UInt16 => record.put(
-                &column_names[jdx],
+                column_names[jdx],
                 Some(value.try_extract::<u16>()? as usize),
             ),
             DataType::UInt32 => record.put(
-                &column_names[jdx],
+                column_names[jdx],
                 Some(value.try_extract::<u32>()? as usize),
             ),
             DataType::UInt64 => record.put(
-                &column_names[jdx],
+                column_names[jdx],
                 Some(value.try_extract::<u64>()? as usize),
             ),
             DataType::Duration(TimeUnit::Nanoseconds) => {
-                record.put(&column_names[jdx], Some(value.try_extract::<i64>()?))
+                record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
             }
             DataType::Duration(TimeUnit::Microseconds) => {
-                record.put(&column_names[jdx], Some(value.try_extract::<i64>()?))
+                record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
             }
             DataType::Duration(TimeUnit::Milliseconds) => {
-                record.put(&column_names[jdx], Some(value.try_extract::<i32>()?))
+                record.put(column_names[jdx], Some(value.try_extract::<i32>()?))
             }
-            DataType::Float32 => record.put(&column_names[jdx], Some(value.try_extract::<f32>()?)),
-            DataType::Float64 => record.put(&column_names[jdx], Some(value.try_extract::<f64>()?)),
-            DataType::Utf8 => record.put(&column_names[jdx], Some(value.to_string())),
+            DataType::Float32 => record.put(column_names[jdx], Some(value.try_extract::<f32>()?)),
+            DataType::Float64 => record.put(column_names[jdx], Some(value.try_extract::<f64>()?)),
+            DataType::Utf8 => record.put(column_names[jdx], Some(value.to_string())),
             DataType::Datetime(TimeUnit::Microseconds, None) => {
-                record.put(&column_names[jdx], Some(value.try_extract::<i64>()?))
+                record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
             }
             DataType::Datetime(TimeUnit::Nanoseconds, None) => {
-                record.put(&column_names[jdx], Some(value.try_extract::<i64>()?))
+                record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
             }
             DataType::Datetime(TimeUnit::Milliseconds, None) => {
-                record.put(&column_names[jdx], Some(value.try_extract::<i32>()?))
+                record.put(column_names[jdx], Some(value.try_extract::<i32>()?))
             }
             DataType::Datetime(TimeUnit::Microseconds, Some(_)) => {
                 return Err(color_eyre::Report::msg(
@@ -113,9 +112,9 @@ fn convert_df_row_to_avro_record<'a>(
                     "Datetime with timezone not supported",
                 ));
             }
-            DataType::Date => record.put(&column_names[jdx], Some(value.try_extract::<i32>()?)),
-            DataType::Time => record.put(&column_names[jdx], Some(value.try_extract::<i32>()?)),
-            DataType::Null => record.put(&column_names[jdx], None::<()>),
+            DataType::Date => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
+            DataType::Time => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
+            DataType::Null => record.put(column_names[jdx], None::<()>),
             DataType::Decimal(_, _) => todo!(),
             DataType::Binary => todo!(),
             DataType::Array(_, _) => todo!(),
@@ -134,22 +133,22 @@ fn convert_df_row_to_avro_record<'a>(
 }
 
 fn make_future_record_from_encoded<'a>(
-    the_key: &'a str,
+    composite_key: &'a str,
     encoded_payload: &'a Vec<u8>,
     topic_name: &'a str,
     project_id: &str,
     feature_group_id: &str,
     subject_id: &str,
+    version: &str,
 ) -> Result<FutureRecord<'a, str, Vec<u8>>> {
-    let version_str = String::from("1");
     Ok(FutureRecord::to(topic_name)
         .payload(encoded_payload)
-        .key(the_key)
+        .key(composite_key)
         .headers(
             OwnedHeaders::new()
                 .insert(Header {
                     key: "version",
-                    value: Some(&version_str),
+                    value: Some(version),
                 })
                 .insert(Header {
                     key: "projectId",
@@ -164,34 +163,6 @@ fn make_future_record_from_encoded<'a>(
                     value: Some(subject_id),
                 }),
         ))
-}
-
-// Function to produce a single Avro record
-async fn produce_avro_record(
-    producer: &FutureProducer,
-    composite_key: &str,
-    encoded_payload: Vec<u8>,
-    online_topic_name: &str,
-    project_id: &str,
-    feature_group_id: &str,
-    subject_id: &str,
-) -> Result<()> {
-    let produce_future = producer.send(
-        make_future_record_from_encoded(
-            composite_key,
-            &encoded_payload,
-            online_topic_name,
-            project_id,
-            feature_group_id,
-            subject_id,
-        )?,
-        Duration::from_secs(5),
-    );
-
-    match produce_future.await {
-        Ok(_delivery) => Ok(()),
-        Err((e, _)) => Err(color_eyre::Report::msg(e.to_string())),
-    }
 }
 
 pub async fn produce_df(
@@ -222,15 +193,11 @@ pub async fn produce_df(
     let subject_id = Arc::new(subject_dto.id.to_string());
     let feature_group_id = Arc::new(feature_group_id.to_string());
     let topic_name = Arc::new(online_topic_name);
-
-    let column_names: Vec<String> = df
-        .get_column_names()
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
-    let primary_keys: Vec<String> = primary_keys.iter().map(|s| s.to_string()).collect();
+    let version = Arc::new(subject_dto.version.to_string());
 
     df.as_single_chunk_par();
+
+    let column_names: Vec<&str> = df.get_column_names();
     let mut row = df.get_row(0)?;
 
     let mut handles: Vec<JoinHandle<Result<()>>> = Vec::new();
@@ -241,23 +208,33 @@ pub async fn produce_df(
             convert_df_row_to_avro_record(&avro_schema, &column_names, &primary_keys, &row)?;
         let encoded_payload = apache_avro::to_avro_datum(&avro_schema, record)?;
 
+        // Need to clone the values to move them into the spawned thread
+        // Thanks to Arc no data should be copied
         let producer = producer.clone();
         let topic_name = topic_name.to_string();
         let project_id = project_id.clone();
         let feature_group_id = feature_group_id.clone();
         let subject_id = subject_id.clone();
+        let version = version.clone();
 
         let handle = tokio::spawn(async move {
-            produce_avro_record(
-                &producer,
-                &composite_key,
-                encoded_payload,
-                &topic_name,
-                &project_id,
-                &feature_group_id,
-                &subject_id,
-            )
-            .await
+            let produce_future = producer.send(
+                make_future_record_from_encoded(
+                    &composite_key,
+                    &encoded_payload,
+                    &topic_name,
+                    &project_id,
+                    &feature_group_id,
+                    &subject_id,
+                    &version,
+                )?,
+                Duration::from_secs(5),
+            );
+
+            match produce_future.await {
+                Ok(_delivery) => Ok(()),
+                Err((e, _)) => Err(color_eyre::Report::msg(e.to_string())),
+            }
         });
 
         handles.push(handle);
@@ -272,4 +249,166 @@ pub async fn produce_df(
     producer.flush(Duration::from_secs(1))?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{clients::rest_client::HopsworksClientBuilder, hopsworks_login};
+
+    use super::*;
+    use apache_avro::Schema;
+    use rdkafka::message::Headers;
+
+    #[tokio::test]
+    async fn test_convert_df_row_to_avro_record() {
+        // Define your Avro schema based on the expected structure
+        let avro_schema = Schema::parse_str(
+            "{
+                \"type\" : \"record\",
+                \"namespace\" : \"df\",
+                \"name\" : \"fg\",
+                \"fields\" : [
+                    { \"name\" : \"i8\" , \"type\" : \"int\" },
+                    { \"name\" : \"i16\" , \"type\" : \"int\" },
+                    { \"name\" : \"i32\", \"type\": \"int\" },
+                    { \"name\" : \"i64\" , \"type\" : \"long\" },
+                    { \"name\" : \"u8\" , \"type\" : \"int\" },
+                    { \"name\" : \"u16\", \"type\": \"int\" },
+                    { \"name\" : \"u32\" , \"type\" : \"int\" },
+                    { \"name\" : \"u64\", \"type\": \"long\" },
+                    { \"name\" : \"f32\" , \"type\" : \"float\" },
+                    { \"name\" : \"f64\" , \"type\" : \"double\" },
+                    { \"name\" : \"utf8\" , \"type\" : \"string\" },
+                    { \"name\" : \"bool\" , \"type\" : \"boolean\" },
+                    { \"name\" : \"date\" , \"type\" : { \"type\" : \"int\", \"logicalType\" : \"date\" } },
+                    { \"name\" : \"time\" , \"type\" : { \"type\" : \"int\", \"logicalType\" : \"time-millis\" } },
+                    { \"name\" : \"datetime\" , \"type\" : { \"type\" : \"long\", \"logicalType\" : \"timestamp-micros\" } },
+                    { \"name\" : \"duration\" , \"type\" : { \"type\" : \"fixed\", \"size\":12, \"name\": \"DataBlockDuration\" } }
+                ]
+            }",
+        )
+        .unwrap();
+
+        let col_names = vec![
+            "i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "f32", "f64", "utf8", "bool",
+            "date", "time", "datetime", "duration",
+        ];
+        let primary_keys = vec!["i64", "utf8"];
+        // Create a sample Polars DataFrame row
+        let mut df = DataFrame::new(vec![
+            Series::new(col_names[0], &[1i8]),
+            Series::new(col_names[1], &[1i16]),
+            Series::new(col_names[2], &[1i32]),
+            Series::new(col_names[3], &[1i64]),
+            Series::new(col_names[4], &[1u8]),
+            Series::new(col_names[5], &[1u16]),
+            Series::new(col_names[6], &[1u32]),
+            Series::new(col_names[7], &[1u64]),
+            Series::new(col_names[8], &[1f32]),
+            Series::new(col_names[9], &[1f64]),
+            Series::new(col_names[10], &["test"]),
+            Series::new(col_names[11], &[true]),
+            Series::new(col_names[12], &[1i32])
+                .cast(&DataType::Date)
+                .unwrap(),
+            Series::new(col_names[13], &[1i32])
+                .cast(&DataType::Time)
+                .unwrap(),
+            Series::new(col_names[14], &[1i64])
+                .cast(&DataType::Datetime(TimeUnit::Microseconds, None))
+                .unwrap(),
+            Series::new(col_names[15], &[1i64])
+                .cast(&DataType::Duration(TimeUnit::Microseconds))
+                .unwrap(),
+        ])
+        .unwrap();
+
+        df.as_single_chunk();
+
+        let row = df.get_row(0).unwrap();
+        let result = convert_df_row_to_avro_record(&avro_schema, &col_names, &primary_keys, &row);
+
+        assert!(result.is_ok());
+
+        let (avro_record, composite_key) = result.unwrap();
+
+        assert_eq!(composite_key, "1_\"test\"");
+
+        // Assert specific values in the Avro record based on your expectations
+        for name in col_names {
+            assert!(avro_record.fields.iter().any(|field| field.0 == name));
+        }
+    }
+
+    #[tokio::test]
+    async fn test_make_future_record_from_encoded() {
+        // Arrange
+        let composite_key = "some_key";
+        let encoded_payload = vec![1, 2, 3];
+        let topic_name = "test_topic";
+        let project_id = "project123";
+        let feature_group_id = "feature_group_1";
+        let subject_id = "subject_1";
+        let version = "1";
+
+        // Act
+        let result = make_future_record_from_encoded(
+            composite_key,
+            &encoded_payload,
+            topic_name,
+            project_id,
+            feature_group_id,
+            subject_id,
+            version,
+        );
+
+        // Assert
+        assert!(result.is_ok());
+
+        let future_record = result.unwrap();
+
+        assert_eq!(future_record.key, Some(composite_key));
+        assert_eq!(future_record.payload, Some(&encoded_payload));
+        assert_eq!(future_record.topic, topic_name);
+
+        assert!(future_record.headers.is_some());
+        future_record
+            .headers
+            .unwrap()
+            .iter()
+            .for_each(|header| match header.key {
+                "version" => assert_eq!(header.value, Some(version.as_bytes())),
+                "projectId" => assert_eq!(header.value, Some(project_id.as_bytes())),
+                "featureGroupId" => assert_eq!(header.value, Some(feature_group_id.as_bytes())),
+                "subjectId" => assert_eq!(header.value, Some(subject_id.as_bytes())),
+                _ => panic!("Unexpected header"),
+            });
+    }
+
+    #[tokio::test]
+    async fn test_setup_future_producer() {
+        // Arrange
+        let _ = hopsworks_login(Some(HopsworksClientBuilder::default()))
+            .await
+            .unwrap();
+        let kafka_connector = FeatureStoreKafkaConnectorDTO {
+            bootstrap_servers: "localhost:9092".to_string(),
+            _type: "kafka".to_string(),
+            security_protocol: "ssl".to_string(),
+            ssl_endpoint_identification_algorithm: "none".to_string(),
+            options: vec![],
+            external_kafka: true,
+            id: 1,
+            description: "empty".to_string(),
+            name: "kafka_connector_1".to_string(),
+            featurestore_id: 1,
+            storage_connector_type: "kafka".to_string(),
+        };
+
+        // Act
+        let result = setup_future_producer(kafka_connector).await;
+
+        // Assert
+        assert!(result.is_ok());
+    }
 }

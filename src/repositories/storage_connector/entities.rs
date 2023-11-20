@@ -6,17 +6,17 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct FeatureStoreKafkaConnectorDTO {
     #[serde(rename = "type")]
-    _type: String,
-    pub bootstrap_servers: String,
-    security_protocol: String,
-    ssl_endpoint_identification_algorithm: String,
-    options: Vec<String>,
-    external_kafka: bool,
-    id: i32,
-    description: String,
-    name: String,
-    featurestore_id: i32,
-    storage_connector_type: String,
+    pub(crate) _type: String,
+    pub(crate) bootstrap_servers: String,
+    pub(crate) security_protocol: String,
+    pub(crate) ssl_endpoint_identification_algorithm: String,
+    pub(crate) options: Vec<String>,
+    pub(crate) external_kafka: bool,
+    pub(crate) id: i32,
+    pub(crate) description: String,
+    pub(crate) name: String,
+    pub(crate) featurestore_id: i32,
+    pub(crate) storage_connector_type: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
