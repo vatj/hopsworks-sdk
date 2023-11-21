@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::api::feature_group::entities::User;
+use crate::api::platform::user::User;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

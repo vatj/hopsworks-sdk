@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::api::feature_group::entities::StatisticsConfig;
+use crate::api::feature_group::statistics_config::StatisticsConfig;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

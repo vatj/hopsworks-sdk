@@ -3,7 +3,7 @@ use log::debug;
 
 use crate::{
     api::{
-        feature_group::entities::{Feature, FeatureGroup},
+        feature_group::{feature::Feature, FeatureGroup},
         query::entities::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
     },
     repositories::{

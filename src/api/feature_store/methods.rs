@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::entities::FeatureStore;
-use crate::api::feature_group::entities::FeatureGroup;
+use crate::api::feature_group::FeatureGroup;
 use crate::api::feature_view::entities::FeatureView;
 use crate::api::query::entities::Query;
 use crate::api::training_dataset::entities::TrainingDataset;

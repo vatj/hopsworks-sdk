@@ -2,7 +2,7 @@ use color_eyre::Result;
 use polars::frame::DataFrame;
 
 use crate::{
-    api::feature_group::entities::{Feature, FeatureGroup},
+    api::feature_group::{feature::Feature, FeatureGroup},
     domain::query::controller::read_query_from_online_feature_store,
 };
 
