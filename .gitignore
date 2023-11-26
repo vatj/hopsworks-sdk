@@ -17,8 +17,6 @@ Cargo.lock
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
-# ignore test certs dir
-example_data/
 # ignore output logs
 nohup.log
 
@@ -26,6 +24,9 @@ nohup.log
 .DS_Store
 
 # Config files
-managed-config.toml
-staging-config.toml
-dev-config.toml
+configs/*
+!configs/README.md
+!configs/config-template.toml
+
+# Example data
+examples/data

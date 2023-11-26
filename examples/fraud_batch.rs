@@ -15,13 +15,13 @@ async fn main() -> Result<()> {
         std::env::var("HOPSWORKS_FRAUD_BATCH_ITERATION").unwrap_or_else(|_| "1".to_owned());
 
     // Load csv files into dataframes
-    let mut trans_df = CsvReader::from_path("./example_data/transactions.csv")?
+    let mut trans_df = CsvReader::from_path("./examples/data/transactions.csv")?
         .with_try_parse_dates(true)
         .finish()?;
 
-    let _credit_cards_df = CsvReader::from_path("./example_data/credit_cards.csv")?.finish()?;
+    let _credit_cards_df = CsvReader::from_path("./examples/data/credit_cards.csv")?.finish()?;
 
-    let profiles_df = CsvReader::from_path("./example_data/profiles.csv")?
+    let profiles_df = CsvReader::from_path("./examples/data/profiles.csv")?
         .with_try_parse_dates(true)
         .finish()?;
 
