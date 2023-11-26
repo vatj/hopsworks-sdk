@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::api::transformation_function::entities::TransformationFunction;
+use crate::api::feature_view::transformation_function::TransformationFunction;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

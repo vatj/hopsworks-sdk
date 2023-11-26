@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use super::entities::FeatureStore;
 use crate::api::feature_group::FeatureGroup;
 use crate::api::feature_view::entities::FeatureView;
+use crate::api::feature_view::training_dataset::TrainingDataset;
+use crate::api::feature_view::transformation_function::TransformationFunction;
 use crate::api::query::entities::Query;
-use crate::api::training_dataset::entities::TrainingDataset;
-use crate::api::transformation_function::entities::TransformationFunction;
 use crate::domain::{feature_group, feature_view, training_dataset, transformation_function};
 use color_eyre::Result;
 

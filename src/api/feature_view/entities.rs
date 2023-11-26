@@ -2,10 +2,8 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    api::{query::entities::Query, transformation_function::entities::TransformationFunction},
-    repositories::feature_view::entities::FeatureViewDTO,
-};
+use super::transformation_function::TransformationFunction;
+use crate::{api::query::entities::Query, repositories::feature_view::entities::FeatureViewDTO};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureView {

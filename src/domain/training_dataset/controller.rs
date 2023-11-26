@@ -3,8 +3,8 @@ use log::debug;
 
 use crate::{
     api::{
-        feature_view::entities::FeatureView, query::entities::Query,
-        training_dataset::entities::TrainingDataset,
+        feature_view::{entities::FeatureView, training_dataset::TrainingDataset},
+        query::entities::Query,
     },
     domain::query::controller::construct_query,
     repositories::{
