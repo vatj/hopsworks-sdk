@@ -19,6 +19,7 @@ use std::cell::{Cell, RefCell};
 use crate::{
     api::{feature_store::entities::FeatureStore, query::entities::Query},
     domain::feature_group,
+    domain::query::controller::read_feature_group_with_arrow_flight_client,
     repositories::feature_group::entities::FeatureGroupDTO,
     util,
 };
@@ -219,6 +220,43 @@ impl FeatureGroup {
         Ok(primary_keys)
     }
 
+    /// Inserts or upserts data into the Feature Group table.
+    ///
+    /// Dataframe is written row by row to the project Kafka topic.
+    /// A Hudi job is then triggered to materialize the data into the offline Feature Group table.
+    ///
+    /// If the Feature Group is online enabled, Hopsworks onlineFS service
+    /// writes rows by primary key to RonDB. Only the most recent value for a primary key
+    /// is stored.
+    ///
+    /// # Arguments
+    /// * `dataframe` - A mutable reference to a Polars DataFrame containing the data to insert.
+    ///
+    /// # Example
+    /// ```no_run
+    /// use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    /// use polars::prelude::*;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   let project = hopsworks_login(None).await?;
+    ///   let feature_store = project.get_feature_store().await?;
+    ///
+    ///   let feature_group = feature_store
+    ///     .get_feature_group_by_name_and_version("my_feature_group", 1)
+    ///     .await?;
+    ///
+    ///   let mut mini_df = df! [
+    ///     "number" => [2i64, 3i64],
+    ///     "word" => ["charlie", "dylan"]
+    ///   ]?;
+    ///
+    ///  feature_group.insert(&mut mini_df).await?;
+    ///
+    ///  Ok(())
+    /// }
+    /// ```
     pub async fn insert(&self, dataframe: &mut DataFrame) -> Result<()> {
         if self.get_id().is_none() {
             let feature_group_dto = feature_group::controller::save_feature_group_metadata(
@@ -245,10 +283,6 @@ impl FeatureGroup {
             self.set_online_topic_name(feature_group_dto.online_topic_name);
             self.set_creator(Some(User::from(feature_group_dto.creator)));
             self.set_location(Some(feature_group_dto.location));
-            // self.set_statisctics_config(match feature_group_dto.statistics_config {
-            //     Some(config) => Some(StatisticsConfig::from(config)),
-            //     None => None,
-            // });
             self.set_statisctics_config(
                 feature_group_dto
                     .statistics_config
@@ -282,6 +316,33 @@ impl FeatureGroup {
             .collect()
     }
 
+    /// Selects a subset of features from the feature group and returns a query object.
+    /// The query object can be used to read data from the feature group.
+    /// # Arguments
+    /// * `feature_names` - A vector of feature names to select from the feature group.
+    ///
+    /// # Example
+    /// ```no_run
+    /// use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    /// use polars::prelude::*;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///  let project = hopsworks_login(None).await?;
+    ///  let feature_store = project.get_feature_store().await?;
+    ///
+    ///  let feature_group = feature_store
+    ///    .get_feature_group_by_name_and_version("my_feature_group", 1)
+    ///    .await?;
+    ///
+    ///  let query = feature_group.select(vec!["number", "word"])?;
+    ///
+    ///  let df = query.read_with_arrow_flight_client().await?;
+    ///
+    ///  Ok(())
+    /// }
+    /// ```
     pub fn select(&self, feature_names: Vec<&str>) -> Result<Query> {
         debug!(
             "Selecting features {:?} from feature group {}, building query object",
@@ -302,16 +363,35 @@ impl FeatureGroup {
         ))
     }
 
+    /// Reads feature group data from Hopsworks via the Arrow Flight client.
+    ///
+    /// # Example
+    /// ```no_run
+    /// use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    /// use polars::prelude::*;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///  let project = hopsworks_login(None).await?;
+    ///  let feature_store = project.get_feature_store().await?;
+    ///  
+    ///  let feature_group = feature_store
+    ///    .get_feature_group_by_name_and_version("my_feature_group", 1)
+    ///    .await?;
+    ///
+    ///  let df = feature_group.read_with_arrow_flight_client().await?;
+    ///
+    ///  Ok(())
+    /// }
+    /// ```
     pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
-        let query_object =
-            self.select(self.get_feature_names().iter().map(|s| s as &str).collect())?;
+        let query = self.select(self.get_feature_names().iter().map(|s| s as &str).collect())?;
         debug!(
             "Reading data from feature group {} with Arrow Flight client",
             self.name
         );
-        let read_df =
-            feature_group::controller::read_feature_group_with_arrow_flight_client(query_object)
-                .await?;
+        let read_df = read_feature_group_with_arrow_flight_client(query).await?;
 
         Ok(read_df)
     }

@@ -6,6 +6,7 @@ use connectorx::transports::MySQLArrow2Transport;
 use log::debug;
 use polars::prelude::DataFrame;
 
+use crate::clients::arrow_flight::client::HopsworksArrowFlightClientBuilder;
 use crate::domain::storage_connector;
 use crate::repositories::variables::service::get_loadbalancer_external_domain;
 use crate::{
@@ -80,6 +81,44 @@ pub async fn read_query_from_online_feature_store(query: &Query) -> Result<DataF
     dispatcher.run().unwrap();
 
     let df: DataFrame = destination.polars().unwrap();
+
+    Ok(df)
+}
+
+pub async fn read_feature_group_with_arrow_flight_client(query_object: Query) -> Result<DataFrame> {
+    // Create Feature Store Query based on query object obtained via fg.select()
+    let feature_store_query_dto = construct_query(query_object.clone()).await?;
+
+    // Create Arrow Flight Client
+    let mut arrow_flight_client = HopsworksArrowFlightClientBuilder::default().build().await?;
+
+    // Extract relevant query string
+    let query_str = feature_store_query_dto
+        .pit_query_asof
+        .clone()
+        .or(Some(feature_store_query_dto.query.clone()))
+        .unwrap_or_else(|| {
+            panic!(
+                "No query string found in Feature Store Query DTO {:#?}.",
+                feature_store_query_dto
+            )
+        });
+
+    // Extract on-demand feature group aliases
+    let on_demand_fg_aliases = feature_store_query_dto
+        .on_demand_feature_groups
+        .iter()
+        .map(|fg| fg.name.clone())
+        .collect();
+
+    // Use arrow flight client methods to convert query to arrow flight payload
+    let query_payload = arrow_flight_client.create_query_object(
+        query_object.clone(),
+        query_str,
+        on_demand_fg_aliases,
+    )?;
+
+    let df = arrow_flight_client.read_query(query_payload).await?;
 
     Ok(df)
 }
