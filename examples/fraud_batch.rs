@@ -3,8 +3,8 @@ use polars::{lazy::dsl::col, prelude::*};
 use std::collections::HashMap;
 
 use hopsworks_rs::{
-    api::transformation_function::entities::TransformationFunction,
-    clients::rest_client::HopsworksClientBuilder, hopsworks_login,
+    api::transformation_function::entities::TransformationFunction, hopsworks_login,
+    HopsworksClientBuilder,
 };
 
 #[tokio::main]

@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use hopsworks_rs::clients::rest_client::HopsworksClientBuilder;
+use hopsworks_rs::HopsworksClientBuilder;
 
 use hopsworks_rs::hopsworks_login;
 use polars::prelude::*;

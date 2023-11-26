@@ -1,12 +1,13 @@
 pub mod api;
-pub mod clients;
+pub(crate) mod clients;
 pub(crate) mod domain;
 pub(crate) mod kafka_producer;
 pub(crate) mod repositories;
 pub(crate) mod util;
+pub use clients::rest_client::HopsworksClientBuilder;
 
-use api::project::entities::Project;
-use clients::rest_client::{HopsworksClient, HopsworksClientBuilder};
+use api::platform::project::Project;
+use clients::rest_client::HopsworksClient;
 use color_eyre::Result;
 use log::{debug, info};
 use tokio::sync::OnceCell;

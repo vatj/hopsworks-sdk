@@ -5,7 +5,7 @@ use std::{path::Path, sync::Arc};
 use tokio::sync::Mutex;
 
 use crate::{
-    api::project::entities::Project,
+    api::platform::project::Project,
     domain::{
         credentials::controller::write_locally_project_credentials_on_login,
         project::controller::get_project_list,

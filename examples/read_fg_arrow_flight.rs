@@ -1,6 +1,6 @@
 use anyhow::Context;
 use color_eyre::Result;
-use hopsworks_rs::{clients::rest_client::HopsworksClientBuilder, hopsworks_login};
+use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
 use std::time::Instant;
 
 fn setup_tracing_logging() -> Result<(), Box<dyn std::error::Error>> {
