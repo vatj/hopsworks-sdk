@@ -2,11 +2,11 @@ use color_eyre::Result;
 use log::debug;
 
 use crate::{
-    api::{
+    api::feature_store::{
         feature_group::{feature::Feature, FeatureGroup},
         query::entities::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
     },
-    repositories::{
+    repositories::feature_store::{
         query::payloads::{
             QueryFilterArrowFlightPayload, QueryFilterOrLogicArrowFlightPayload,
             QueryLogicArrowFlightPayload,

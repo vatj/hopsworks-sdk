@@ -6,11 +6,10 @@ use tokio::sync::Mutex;
 
 use crate::{
     api::platform::project::Project,
-    domain::{
-        credentials::controller::write_locally_project_credentials_on_login,
-        project::controller::get_project_list,
+    core::platform::{
+        credentials::write_locally_project_credentials_on_login, project::get_project_list,
     },
-    repositories::project::entities::ProjectDTO,
+    repositories::platform::project::entities::ProjectDTO,
 };
 
 pub const DEFAULT_CLIENT_URL: &str = "https://c.app.hopsworks.ai/hopsworks-api/api";

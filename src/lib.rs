@@ -1,6 +1,6 @@
 pub mod api;
 pub(crate) mod clients;
-pub(crate) mod domain;
+pub(crate) mod core;
 pub(crate) mod kafka_producer;
 pub(crate) mod repositories;
 pub(crate) mod util;

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::users::entities::UserDTO;
+use crate::repositories::platform::users::entities::UserDTO;
 
 /// User entity in Hopsworks Feature Store.
 ///

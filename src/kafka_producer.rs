@@ -10,10 +10,10 @@ use rdkafka::ClientConfig;
 use std::time::Duration;
 use tokio::task::JoinHandle;
 
-use crate::domain::kafka::controller::get_kafka_topic_subject;
+use crate::core::platform::kafka::get_kafka_topic_subject;
 use crate::get_hopsworks_client;
-use crate::repositories::kafka::entities::KafkaSubjectDTO;
-use crate::repositories::storage_connector::entities::FeatureStoreKafkaConnectorDTO;
+use crate::repositories::feature_store::storage_connector::entities::FeatureStoreKafkaConnectorDTO;
+use crate::repositories::platform::kafka::entities::KafkaSubjectDTO;
 
 async fn setup_future_producer(
     kafka_connector: FeatureStoreKafkaConnectorDTO,
