@@ -3,7 +3,7 @@ use log::debug;
 
 use crate::{
     api::{
-        feature_view::{entities::FeatureView, training_dataset::TrainingDataset},
+        feature_view::{training_dataset::TrainingDataset, FeatureView},
         query::entities::Query,
     },
     domain::query::controller::construct_query,
@@ -22,7 +22,7 @@ use crate::{
 };
 
 pub async fn create_train_test_split() -> Result<()> {
-    todo!("create_train_test_spli is not implemented");
+    todo!("create_train_test_split is not implemented");
 }
 
 pub async fn create_training_dataset_attached_to_feature_view(

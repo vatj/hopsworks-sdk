@@ -10,7 +10,7 @@ use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity
 
 use crate::{
     api::{
-        feature_view::entities::FeatureView, feature_view::training_dataset::TrainingDataset,
+        feature_view::training_dataset::TrainingDataset, feature_view::FeatureView,
         query::entities::Query,
     },
     clients::arrow_flight::{decoder, utils},

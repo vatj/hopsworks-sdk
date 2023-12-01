@@ -4,7 +4,7 @@ use color_eyre::Result;
 
 use crate::{
     api::{
-        feature_view::{entities::FeatureView, transformation_function::TransformationFunction},
+        feature_view::{transformation_function::TransformationFunction, FeatureView},
         query::entities::Query,
     },
     domain::query::controller::construct_query,
