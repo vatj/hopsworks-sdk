@@ -1,4 +1,4 @@
-//! Feature group API module
+//! Feature Group API
 //!
 //! Feature Groups are a central abstractions in Hopsworks. They represent a logical grouping of features
 //! and serve as the primary interface through which one can ingest Feature data to the Feature Store.
