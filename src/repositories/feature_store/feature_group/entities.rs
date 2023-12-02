@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    api::feature_store::feature_group::FeatureGroup,
+    feature_store::feature_group::FeatureGroup,
     repositories::{
         feature_store::{
             feature::entities::FeatureDTO, statistics_config::entities::StatisticsConfigDTO,

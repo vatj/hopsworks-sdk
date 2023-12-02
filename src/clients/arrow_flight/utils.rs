@@ -2,7 +2,7 @@ use color_eyre::Result;
 use log::debug;
 
 use crate::{
-    api::feature_store::{
+    feature_store::{
         feature_group::{feature::Feature, FeatureGroup},
         query::entities::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
     },

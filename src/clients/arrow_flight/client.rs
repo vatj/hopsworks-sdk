@@ -9,11 +9,11 @@ use std::time::Duration;
 use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity};
 
 use crate::{
-    api::feature_store::{
+    clients::arrow_flight::{decoder, utils},
+    feature_store::{
         feature_view::training_dataset::TrainingDataset, feature_view::FeatureView,
         query::entities::Query,
     },
-    clients::arrow_flight::{decoder, utils},
     get_hopsworks_client,
     repositories::{
         feature_store::{

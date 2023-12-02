@@ -2,7 +2,7 @@
 
 Hopsworks-rs is a Rust SDK to interact with the Hopsworks Platform and Feature Store. It is intended to be used in conjunction with the [Hopsworks Feature Store](https://www.hopsworks.ai/the-ml-platform-for-batch-and-real-time-data) to build end-to-end machine learning pipelines. Using Rust and Hopsworks-rs you can put real-time data pipelines, feature engineering, model training and serving in the same system and leverage the power of the Feature Store to build and deploy AI/ML systems faster.
 
-As of now the SDK is in early development and only supports a subset of Hopsworks capabilities. It is a community project and contributions are welcome. For production use-case you can checkout the [python or java SDK](https://pypi.org/project/hopsworks/). Much of the implementation is based on the python SDK and can therefore sometimes feel a bit unidiomatic for Rust developers.
+As of now the SDK is in early development and only supports a subset of Hopsworks capabilities. The public api should not be considered stable, as it is still unclear whether it will evolve to be more idiomatic Rust or stay closer to the Python SDK for simplicity. The aim is to kickstart a community project. As such contributions are welcome. For production use-case you can checkout the [python or java SDK](https://pypi.org/project/hopsworks/). Much of the implementation is based on the python SDK and can therefore sometimes feel a bit unidiomatic for Rust developers.
 
 ## Quickstart
 

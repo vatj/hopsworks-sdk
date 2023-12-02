@@ -5,10 +5,10 @@ use std::{path::Path, sync::Arc};
 use tokio::sync::Mutex;
 
 use crate::{
-    api::platform::project::Project,
     core::platform::{
         credentials::write_locally_project_credentials_on_login, project::get_project_list,
     },
+    platform::project::Project,
     repositories::platform::project::entities::ProjectDTO,
 };
 

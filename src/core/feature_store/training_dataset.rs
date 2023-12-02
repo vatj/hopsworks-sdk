@@ -2,10 +2,6 @@ use color_eyre::Result;
 use log::debug;
 
 use crate::{
-    api::{
-        feature_store::feature_view::{training_dataset::TrainingDataset, FeatureView},
-        feature_store::query::entities::Query,
-    },
     core::feature_store::query::construct_query,
     repositories::{
         feature_store::{
@@ -20,6 +16,10 @@ use crate::{
             transformation_function::entities::TransformationFunctionDTO,
         },
         platform::job::entities::JobDTO,
+    },
+    {
+        feature_store::feature_view::{training_dataset::TrainingDataset, FeatureView},
+        feature_store::query::entities::Query,
     },
 };
 

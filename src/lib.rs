@@ -1,15 +1,18 @@
-pub mod api;
 pub(crate) mod clients;
 pub(crate) mod core;
 pub(crate) mod kafka_producer;
 pub(crate) mod repositories;
 pub(crate) mod util;
+
+pub mod feature_store;
+pub mod platform;
+
 pub use clients::rest_client::HopsworksClientBuilder;
 
-use api::platform::project::Project;
 use clients::rest_client::HopsworksClient;
 use color_eyre::Result;
 use log::{debug, info};
+use platform::project::Project;
 use tokio::sync::OnceCell;
 
 static HOPSWORKS_CLIENT: OnceCell<HopsworksClient> = OnceCell::const_new();

@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use color_eyre::Result;
 
 use crate::{
-    api::feature_store::{
+    core::feature_store::query::construct_query,
+    feature_store::{
         feature_view::{transformation_function::TransformationFunction, FeatureView},
         query::entities::Query,
     },
-    core::feature_store::query::construct_query,
     repositories::feature_store::{
         feature::entities::{FeatureDTO, TrainingDatasetFeatureDTO},
         feature_group::entities::FeatureGroupDTO,

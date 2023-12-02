@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    api::feature_store::query::entities::{JoinQuery, Query},
+    feature_store::query::entities::{JoinQuery, Query},
     repositories::feature_store::{
         feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO,
         storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,

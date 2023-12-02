@@ -1,7 +1,7 @@
 use color_eyre::Result;
 
 use crate::{
-    api::feature_store::feature_view::transformation_function::TransformationFunction,
+    feature_store::feature_view::transformation_function::TransformationFunction,
     repositories::feature_store::transformation_function,
 };
 
