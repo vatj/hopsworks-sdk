@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    api::feature_store::feature_group::{feature::Feature, FeatureGroup},
+    feature_store::feature_group::{feature::Feature, FeatureGroup},
     repositories::feature_store::query::entities::QueryDTO,
 };
 

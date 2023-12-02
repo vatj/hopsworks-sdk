@@ -28,7 +28,7 @@ async fn get_hopsworks_client() -> &'static HopsworksClient {
 }
 
 /// Login to Hopsworks and return the chosen project.
-/// If no client builder is provided, a default client builder to connect to https://app.hopsworks.ai is used.
+/// If no client builder is provided, a default client builder to connect to [Hopsworks Serverless App](https://app.hopsworks.ai) is used.
 ///
 /// # Requirements
 /// You must provide an API key to login into Hopsworks either via the `HOPSWORKS_API_KEY`

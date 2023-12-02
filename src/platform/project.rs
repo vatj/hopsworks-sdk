@@ -1,8 +1,8 @@
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::api::feature_store::FeatureStore;
 use crate::core::feature_store;
+use crate::feature_store::FeatureStore;
 use crate::repositories::platform::project::entities::ProjectDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

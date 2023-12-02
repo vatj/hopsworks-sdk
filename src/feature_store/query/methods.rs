@@ -2,8 +2,8 @@ use color_eyre::Result;
 use polars::frame::DataFrame;
 
 use crate::{
-    api::feature_store::feature_group::{feature::Feature, FeatureGroup},
     core::feature_store::query::read_query_from_online_feature_store,
+    feature_store::feature_group::{feature::Feature, FeatureGroup},
 };
 
 use super::entities::{JoinQuery, Query, QueryFilterOrLogic};

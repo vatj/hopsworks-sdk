@@ -17,16 +17,16 @@ use serde::{Deserialize, Serialize};
 use std::cell::{Cell, RefCell};
 
 use crate::{
-    api::feature_store::{query::entities::Query, FeatureStore},
     core::feature_store::feature_group,
     core::feature_store::query::read_feature_group_with_arrow_flight_client,
+    feature_store::{query::entities::Query, FeatureStore},
     repositories::feature_store::feature_group::entities::FeatureGroupDTO,
     util,
 };
 
 use self::{feature::Feature, statistics_config::StatisticsConfig};
 
-use crate::api::platform::user::User;
+use crate::platform::user::User;
 
 /// Feature Group are metadata objects describing a table in the Feature Store.
 /// They are the primary interface through which one can ingest Feature data to the Feature Store.

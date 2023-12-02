@@ -18,10 +18,10 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    api::feature_store::query::entities::Query,
     core::feature_store::training_dataset::{
         create_train_test_split, create_training_dataset_attached_to_feature_view,
     },
+    feature_store::query::entities::Query,
     repositories::feature_store::feature_view::entities::FeatureViewDTO,
 };
 use std::collections::HashMap;
