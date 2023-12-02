@@ -1,3 +1,13 @@
+//! Feature Store to write, read and manage Feature data.
+//!
+//! The `FeatureStore` lies at the heart of the Hopsworks MLOps platform.
+//! It is a centralized repository of Feature data that can be used both for training
+//! and serving machine learning models. [`FeatureGroup`](crate::feature_store::feature_group::FeatureGroup)
+//! is the perfect sink for all Feature Engineering pipelines, allowing you to easily share Features across teams and projects.
+//! [`FeatureView`](crate::feature_store::feature_view::FeatureView)s allow you to group these Features
+//! to serve as schema for a ML model and a convenient interface to read data from the `FeatureStore`.
+//! They provide methods to read or materialize on-disk training datasets, serve Features in real-time and
+//! define transformations to apply to the raw data before serving it to the model.
 pub mod feature_group;
 pub mod feature_view;
 pub mod query;
