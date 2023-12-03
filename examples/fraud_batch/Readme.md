@@ -37,17 +37,17 @@ In short, a feature store enables data scientists to reuse features across diffe
 
 In `hospworks-rs`, entities, methods and functions to interact with the feature store are located under `hopsworks-rs::feature_store`. It is analoguous to the `hsfs` library which serves as the Python interface to the feature store.
 
-### Feature Group
+## Feature Group
 
 A [Feature Group](https://docs.hopsworks.ai/latest/concepts/fs/feature_group/fg_overview/) is a collection of conceptually related features that typically originate from the same data source. It is really up to the user (perhaps a data scientist) to decide which features should be grouped together into a feature group, so the process is subjective. Apart from conceptual relatedness or stemming from the same data source, another way to think about a feature group might be to consider features that are collected at the same rate (e.g. hourly, daily, monthly) to belong to the same feature group.
 
 A feature group is stored in the feature store and can exist in several versions. New data can be freely inserted or upserted to a feature group, as long as it conforms to its schema. To change the schema of a feature group, visit the [Hopsworks UI](https://app.hopsworks.ai).
 
-### Data Validation
+## Data Validation
 
 As of now there is no immediate plan to implement data validation in the Rust API. Hopsworks provides some integration with Great Expectations to support data validation in the python or spark API. However Great Expectations does not have a drop-in Rust equivalent, which means it is left as future work to investigate a suitable library.
 
-### Feature Engineering
+## Feature Engineering
 
 Typically it does not suffice to train a model using raw data sources alone. There can for instance be data problems such as missing values and duplicate entries that need to be dealt with. Moreover, model training could be facilitated by preprocessing raw features, or creating new features using raw features.
 
@@ -55,7 +55,7 @@ Feature engineering can be considered a whole subfield by itself and there are g
 
 The Feature Store often serves as a sink to Feature Engineering pipelines. A generic pipeline would load raw data are from a datawarehouse, process and transform them as needed. The resulting dataframe would be inserted/upserted into a Feature Group to be stored in the Feature Store. Hopsworks supports both batch writing and continuous ingestion of data into feature groups via Kafka.
 
-### Feature View and Training Dataset
+## Feature View and Training Dataset
 
 The [Feature View](https://docs.hopsworks.ai/latest/concepts/fs/feature_view/fv_overview/) makes it easy to select Features from various Feature Groups to create training datasets adapted to your specific use case. A Feature View is a logical view of a set of features, and is defined by a query that selects and joins features from one or more feature groups. This base query serves to read data from the feature store and materialize a [Training Datasets](https://docs.hopsworks.ai/latest/concepts/fs/feature_view/offline_api/). This query is saved as metadata in the dataset, which makes it easy to see the dependencies between the dataset and the feature groups it originates from. The Hopsworks UI contains a dataset provenance graph that shows this.
 
