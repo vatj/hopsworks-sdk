@@ -73,7 +73,7 @@ async fn main() -> Result<()> {
             1,
             Some("Transactions data"),
             vec!["cc_num"],
-            "datetime",
+            Some("datetime"),
             true,
         )
         .await?;
@@ -91,7 +91,7 @@ async fn main() -> Result<()> {
             1,
             Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
             vec!["cc_num"],
-            "datetime",
+            Some("datetime"),
             false,
         )
         .await?;

@@ -166,3 +166,11 @@ impl std::fmt::Debug for QueryFilterOrLogic {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct JoinOptions {
+    pub on: Vec<String>,
+    pub left_on: Vec<String>,
+    pub right_on: Vec<String>,
+    pub join_type: String,
+}

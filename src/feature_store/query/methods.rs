@@ -8,7 +8,7 @@ use crate::{
     feature_store::feature_group::{feature::Feature, FeatureGroup},
 };
 
-use super::entities::{JoinQuery, Query, QueryFilterOrLogic};
+use super::entities::{JoinOptions, JoinQuery, Query, QueryFilterOrLogic};
 
 impl Query {
     pub(crate) fn get_feature_group_by_feature(&self, feature: Feature) -> Option<FeatureGroup> {
@@ -68,6 +68,33 @@ impl Query {
 
     pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
         read_with_arrow_flight_client(self.clone()).await
+    }
+
+    pub fn join(mut self, query: Query, join_options: Option<JoinOptions>) -> Self {
+        if self.joins.is_none() {
+            self.joins = Some(vec![]);
+        }
+        self.joins
+            .as_mut()
+            .unwrap()
+            .push(query.to_join_query(join_options));
+
+        self
+    }
+
+    fn to_join_query(&self, _join_options: Option<JoinOptions>) -> JoinQuery {
+        JoinQuery {
+            left_feature_group: self.left_feature_group.clone(),
+            left_features: self.left_features.clone(),
+            feature_store_name: self.feature_store_name.clone(),
+            feature_store_id: self.feature_store_id,
+            joins: vec![],
+            filter: self.filter.clone(),
+            on: vec![],
+            left_on: vec![],
+            right_on: vec![],
+            join_type: "inner".to_owned(),
+        }
     }
 }
 

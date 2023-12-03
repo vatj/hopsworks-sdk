@@ -99,7 +99,7 @@ impl FeatureStore {
         version: i32,
         description: Option<&str>,
         primary_key: Vec<&str>,
-        event_time: &str,
+        event_time: Option<&str>,
         online_enabled: bool,
     ) -> Result<feature_group::FeatureGroup> {
         if let Some(feature_group) = self
@@ -110,8 +110,7 @@ impl FeatureStore {
         }
 
         // If FG does not exist in backend, create a local Feature Group entity not registered with Hopsworks
-        Ok(feature_group::FeatureGroup::new_local(
-            self,
+        Ok(self.create_feature_group(
             name,
             version,
             description,
@@ -119,6 +118,26 @@ impl FeatureStore {
             event_time,
             online_enabled,
         ))
+    }
+
+    pub fn create_feature_group(
+        &self,
+        name: &str,
+        version: i32,
+        description: Option<&str>,
+        primary_key: Vec<&str>,
+        event_time: Option<&str>,
+        online_enabled: bool,
+    ) -> feature_group::FeatureGroup {
+        feature_group::FeatureGroup::new_local(
+            self,
+            name,
+            version,
+            description,
+            primary_key,
+            event_time,
+            online_enabled,
+        )
     }
 
     pub async fn create_feature_view(

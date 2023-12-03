@@ -64,7 +64,7 @@ pub type Dictionaries = AHashMap<i64, Box<dyn Array>>;
 /// and use the [`FlightDataDecoder`] directly.
 ///
 /// # Example:
-/// ```no_run
+/// ```ignore
 /// # async fn f() -> Result<(), arrow_flight::error::FlightError>{
 /// # use bytes::Bytes;
 /// // make a do_get request

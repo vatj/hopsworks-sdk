@@ -46,7 +46,7 @@
 //! ### Connect to a different Hopsworks Cluster
 //! ```no_run
 //! # use color_eyre::Result;
-//! use hopsworks::{hopsworks_login, HopsworksClientBuilder};
+//! use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
@@ -65,7 +65,7 @@
 //! ### Create a Feature Group and insert a Polars DataFrame
 //! ```no_run
 //! # use color_eyre::Result;
-//! # use hopsworks::hopsworks_login;
+//! # use hopsworks_rs::hopsworks_login;
 //! # use polars::prelude::*;
 //!
 //! # async fn run() -> Result<()> {
@@ -73,10 +73,17 @@
 //!    let fs = hopsworks_login(None).await?.get_feature_store().await?;
 //!
 //!    // Create a new feature group
-//!    let fg = fs.create_feature_group("my_fg", 1).await?;
+//!    let fg = fs.create_feature_group(
+//!       "my_fg",
+//!       1,
+//!       None,
+//!       vec!["primary_key_feature_name(s)"],
+//!       Some("event_time_feature_name"),
+//!       false
+//!    );
 //!
 //!    // Ingest data from a CSV file
-//!    let mut df = CsvReader::from_path("data.csv")?;
+//!    let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
 //!
 //!    // Insert data into the feature group
 //!    fg.insert(&mut df).await?;
@@ -95,15 +102,16 @@
 //!   let fs = hopsworks_login(None).await?.get_feature_store().await?;
 //!
 //!  // Get Feature Groups by name and version
-//!  let fg1 = fs.get_feature_group("fg1", 1).await?.expect("Feature Group not found");
-//!  let fg2 = fs.get_feature_group("fg2", 1).await?.expect("Feature Group not found");
+//!  let fg1 = fs.get_feature_group_by_name_and_version("fg1", 1).await?.expect("Feature Group not found");
+//!  let fg2 = fs.get_feature_group_by_name_and_version("fg2", 1).await?.expect("Feature Group not found");
 //!
 //!  // Create a Feature View
-//!  let query = fg1.select(vec!["feature1", "feature2"])?.join(fg2.select(vec!["feature3"])?)?;
-//!  let feature_view = fs.create_feature_view("my_feature_view", 1, query).await?;
+//!  let query = fg1.select(vec!["feature1", "feature2"])?
+//!     .join(fg2.select(vec!["feature3"])?, None);
+//!  let feature_view = fs.create_feature_view("my_feature_view", 1, query, None).await?;
 //!
 //!  // Read data from the Feature View
-//!  let df = feature_view.read_from_arrow_flight().await?;
+//!  let df = feature_view.read_with_arrow_flight_client().await?;
 //! #  Ok(())
 //! # }
 //! ```
@@ -111,17 +119,18 @@
 //! ### Create a Training Dataset
 //! ```no_run
 //! # use color_eyre::Result;
-//! # use hopsworks::hopsworks_login;
+//! # use hopsworks_rs::hopsworks_login;
 //!
 //! # async fn run() -> Result<()> {
 //!  // The api key will be read from the environment variable HOPSWORKS_API_KEY
 //!  let fs = hopsworks_login(None).await?.get_feature_store().await?;
 //!
 //!  // Get Feature View
-//!  let feature_view = fs.get_feature_view("my_feature_view", 1).await?;
+//!  let feature_view = fs.get_feature_view("my_feature_view", Some(1))
+//!     .await?.expect("Feature View not found");
 //!
 //!  // Create a Training Dataset
-//!  let td = feature_view.create_training_dataset().await?;
+//!  let td = feature_view.create_attached_training_dataset().await?;
 //! # Ok(())
 //! # }
 //! ```

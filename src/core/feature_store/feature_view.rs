@@ -13,7 +13,7 @@ use crate::{
         feature_group::entities::FeatureGroupDTO,
         feature_view::{self, payloads::NewFeatureViewPayload},
         query::entities::QueryDTO,
-        transformation_function::{self, entities::TransformationFunctionDTO},
+        transformation_function::entities::TransformationFunctionDTO,
     },
 };
 

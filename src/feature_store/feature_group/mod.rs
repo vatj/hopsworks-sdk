@@ -125,7 +125,7 @@ impl FeatureGroup {
         version: i32,
         description: Option<&str>,
         primary_key: Vec<&str>,
-        event_time: &str,
+        event_time: Option<&str>,
         online_enabled: bool,
     ) -> Self {
         Self {
@@ -145,7 +145,7 @@ impl FeatureGroup {
             time_travel_format: String::from("NONE"),
             online_topic_name: RefCell::new(None),
             primary_key: Some(primary_key.iter().map(|pk| pk.to_string()).collect()),
-            event_time: Some(String::from(event_time)),
+            event_time: event_time.map(String::from),
         }
     }
 }
