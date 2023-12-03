@@ -117,7 +117,7 @@ async fn main() -> Result<()> {
             format!("trans_view_{iteration}_rust").as_str(),
             1,
             query,
-            transformation_functions,
+            Some(transformation_functions),
         )
         .await?;
 

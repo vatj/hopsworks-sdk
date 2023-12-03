@@ -18,7 +18,7 @@ use std::cell::{Cell, RefCell};
 
 use crate::{
     core::feature_store::feature_group,
-    core::feature_store::query::read_feature_group_with_arrow_flight_client,
+    core::feature_store::query::read_with_arrow_flight_client,
     feature_store::{query::entities::Query, FeatureStore},
     repositories::feature_store::feature_group::entities::FeatureGroupDTO,
     util,
@@ -48,12 +48,12 @@ use crate::platform::user::User;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
-///   let project = hopsworks_login(None).await?;
-///   let feature_store = project.get_feature_store().await?;
+///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
 ///
 ///   let feature_group = feature_store
 ///      .get_feature_group_by_name_and_version("my_feature_group", 1)
-///      .await?;
+///      .await?
+///      .expect("Feature Group not found");
 ///
 ///   let mut mini_df = df! [
 ///     "number" => [2i64, 3i64],
@@ -245,7 +245,8 @@ impl FeatureGroup {
     ///
     ///   let feature_group = feature_store
     ///     .get_feature_group_by_name_and_version("my_feature_group", 1)
-    ///     .await?;
+    ///     .await?
+    ///     .expect("Feature Group not found");
     ///
     ///   let mut mini_df = df! [
     ///     "number" => [2i64, 3i64],
@@ -334,7 +335,8 @@ impl FeatureGroup {
     ///
     ///  let feature_group = feature_store
     ///    .get_feature_group_by_name_and_version("my_feature_group", 1)
-    ///    .await?;
+    ///    .await?
+    ///    .expect("Feature Group not found");
     ///
     ///  let query = feature_group.select(vec!["number", "word"])?;
     ///
@@ -378,7 +380,8 @@ impl FeatureGroup {
     ///  
     ///  let feature_group = feature_store
     ///    .get_feature_group_by_name_and_version("my_feature_group", 1)
-    ///    .await?;
+    ///    .await?
+    ///    .expect("Feature Group not found");
     ///
     ///  let df = feature_group.read_with_arrow_flight_client().await?;
     ///
@@ -391,7 +394,7 @@ impl FeatureGroup {
             "Reading data from feature group {} with Arrow Flight client",
             self.name
         );
-        let read_df = read_feature_group_with_arrow_flight_client(query).await?;
+        let read_df = read_with_arrow_flight_client(query).await?;
 
         Ok(read_df)
     }

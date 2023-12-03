@@ -2,7 +2,9 @@ use color_eyre::Result;
 use polars::frame::DataFrame;
 
 use crate::{
-    core::feature_store::query::read_query_from_online_feature_store,
+    core::feature_store::query::{
+        read_query_from_online_feature_store, read_with_arrow_flight_client,
+    },
     feature_store::feature_group::{feature::Feature, FeatureGroup},
 };
 
@@ -62,6 +64,10 @@ impl Query {
 
     pub async fn read_from_online_feature_store(&self) -> Result<DataFrame> {
         read_query_from_online_feature_store(self).await
+    }
+
+    pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
+        read_with_arrow_flight_client(self.clone()).await
     }
 }
 

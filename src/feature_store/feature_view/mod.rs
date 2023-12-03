@@ -15,11 +15,15 @@ pub mod training_dataset;
 pub mod transformation_function;
 
 use color_eyre::Result;
+use polars::prelude::DataFrame;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    core::feature_store::training_dataset::{
-        create_train_test_split, create_training_dataset_attached_to_feature_view,
+    core::feature_store::{
+        query::read_with_arrow_flight_client,
+        training_dataset::{
+            create_train_test_split, create_training_dataset_attached_to_feature_view,
+        },
     },
     feature_store::query::entities::Query,
     repositories::feature_store::feature_view::entities::FeatureViewDTO,
@@ -51,6 +55,10 @@ impl FeatureView {
     ) -> Result<()> {
         create_training_dataset_attached_to_feature_view(self).await?;
         Ok(())
+    }
+
+    pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
+        read_with_arrow_flight_client(self.query.clone()).await
     }
 }
 

@@ -85,7 +85,7 @@ pub async fn read_query_from_online_feature_store(query: &Query) -> Result<DataF
     Ok(df)
 }
 
-pub async fn read_feature_group_with_arrow_flight_client(query_object: Query) -> Result<DataFrame> {
+pub async fn read_with_arrow_flight_client(query_object: Query) -> Result<DataFrame> {
     // Create Feature Store Query based on query object obtained via fg.select()
     let feature_store_query_dto = construct_query(query_object.clone()).await?;
 

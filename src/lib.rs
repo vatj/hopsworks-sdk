@@ -30,7 +30,7 @@
 //! ### Connect to Hopsworks Serverless App
 //! ```no_run
 //! # use color_eyre::Result;
-//! use hopsworks::hopsworks_login;
+//! use hopsworks_rs::hopsworks_login;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
@@ -50,10 +50,11 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
-//!  let api_key = std::env::var("CUSTOM_API_KEY_ENV_VAR").unwrap();
+//!  let api_key = std::env::var("HOPSWORKS_API_KEY").unwrap();
 //!  let my_hopsworks_domain = "https://my-hopsworks-domain.com";
-//!  let builder = HopsworksClientBuilder::new(my_hopsworks_domain)
-//!    .with_api_key(api_key);
+//!  let builder = HopsworksClientBuilder::new()
+//!    .with_url(my_hopsworks_domain)
+//!    .with_api_key(&api_key);
 //!
 //!  let project = hopsworks_login(Some(builder)).await?;
 //!  let fs = project.get_feature_store().await?;
@@ -78,7 +79,7 @@
 //!    let mut df = CsvReader::from_path("data.csv")?;
 //!
 //!    // Insert data into the feature group
-//!   fg.insert(&mut df).await?;
+//!    fg.insert(&mut df).await?;
 //! #   Ok(())
 //! # }
 //! ```
@@ -86,7 +87,7 @@
 //! ### Create a Feature View to read data from Feature belonging to different Feature Groups
 //! ```no_run
 //! # use color_eyre::Result;
-//! # use hopsworks::hopsworks_login;
+//! # use hopsworks_rs::hopsworks_login;
 //! # use polars::prelude::*;
 //!
 //! # async fn run() -> Result<()> {
@@ -94,8 +95,8 @@
 //!   let fs = hopsworks_login(None).await?.get_feature_store().await?;
 //!
 //!  // Get Feature Groups by name and version
-//!  let fg1 = fs.get_feature_group("fg1", 1).await?;
-//!  let fg2 = fs.get_feature_group("fg2", 1).await?;
+//!  let fg1 = fs.get_feature_group("fg1", 1).await?.expect("Feature Group not found");
+//!  let fg2 = fs.get_feature_group("fg2", 1).await?.expect("Feature Group not found");
 //!
 //!  // Create a Feature View
 //!  let query = fg1.select(vec!["feature1", "feature2"])?.join(fg2.select(vec!["feature3"])?)?;
@@ -165,7 +166,7 @@ async fn get_hopsworks_client() -> &'static HopsworksClient {
 /// # Example
 /// ```no_run
 /// use color_eyre::Result;
-/// use hopsworks::hopsworks_login;
+/// use hopsworks_rs::hopsworks_login;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
@@ -178,14 +179,15 @@ async fn get_hopsworks_client() -> &'static HopsworksClient {
 /// # Example with custom client builder
 /// ```no_run
 /// use color_eyre::Result;
-/// use hopsworks::{hopsworks_login, HopsworksClientBuilder};
+/// use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
 ///   let api_key = std::env::var("CUSTOM_API_KEY_ENV_VAR").unwrap();
 ///   let my_hopsworks_domain = "https://my-hopsworks-domain.com";
-///   let builder = HopsworksClientBuilder::new(my_hopsworks_domain)
-///      .with_api_key(api_key);
+///   let builder = HopsworksClientBuilder::new()
+///      .with_api_key(&api_key)
+///      .with_url(my_hopsworks_domain);
 ///
 ///   let project = hopsworks_login(Some(builder)).await?;
 ///   Ok(())

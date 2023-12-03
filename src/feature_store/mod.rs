@@ -126,7 +126,7 @@ impl FeatureStore {
         name: &str,
         version: i32,
         query: Query,
-        transformation_functions: HashMap<String, TransformationFunction>,
+        transformation_functions: Option<HashMap<String, TransformationFunction>>,
     ) -> Result<feature_view::FeatureView> {
         create_feature_view(
             self.featurestore_id,

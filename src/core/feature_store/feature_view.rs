@@ -13,7 +13,7 @@ use crate::{
         feature_group::entities::FeatureGroupDTO,
         feature_view::{self, payloads::NewFeatureViewPayload},
         query::entities::QueryDTO,
-        transformation_function::entities::TransformationFunctionDTO,
+        transformation_function::{self, entities::TransformationFunctionDTO},
     },
 };
 
@@ -23,8 +23,12 @@ pub async fn create_feature_view(
     name: String,
     version: i32,
     query: Query,
-    transformation_functions: HashMap<String, TransformationFunction>,
+    transformation_functions: Option<HashMap<String, TransformationFunction>>,
 ) -> Result<FeatureView> {
+    let transformation_functions = match transformation_functions {
+        None => HashMap::<String, TransformationFunction>::new(),
+        Some(transformation_functions) => transformation_functions,
+    };
     let features = query
         .left_features
         .clone()
