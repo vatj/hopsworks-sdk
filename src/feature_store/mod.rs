@@ -1,22 +1,23 @@
-//! Feature Store to write, read and manage Feature data.
+//! [`FeatureStore`] to write, read and manage Feature data.
 //!
-//! The `FeatureStore` lies at the heart of the Hopsworks MLOps platform.
+//! The [`FeatureStore`] lies at the heart of the Hopsworks MLOps platform.
 //! It is a centralized repository of Feature data that can be used both for training
-//! and serving machine learning models. [`FeatureGroup`](crate::feature_store::feature_group::FeatureGroup)
+//! and serving machine learning models. [`FeatureGroup`]
 //! is the perfect sink for all Feature Engineering pipelines, allowing you to easily share Features across teams and projects.
-//! [`FeatureView`](crate::feature_store::feature_view::FeatureView)s allow you to group these Features
-//! to serve as schema for a ML model and a convenient interface to read data from the `FeatureStore`.
+//! [`FeatureView`]s allow you to group these Features
+//! to serve as schema for a ML model and a convenient interface to read data from the [`FeatureStore`].
 //! They provide methods to read or materialize on-disk training datasets, serve Features in real-time and
 //! define transformations to apply to the raw data before serving it to the model.
 pub mod feature_group;
 pub mod feature_view;
 pub mod query;
 
-use std::collections::HashMap;
+pub use feature_group::FeatureGroup;
+pub use feature_view::FeatureView;
 
 use color_eyre::Result;
-
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 use crate::{
     core::feature_store::{
@@ -83,11 +84,11 @@ impl FeatureStore {
         &self,
         name: &str,
         version: i32,
-    ) -> Result<Option<feature_group::FeatureGroup>> {
+    ) -> Result<Option<FeatureGroup>> {
         if let Some(feature_group_dto) =
             get_feature_group_by_name_and_version(self.featurestore_id, name, version).await?
         {
-            Ok(Some(feature_group::FeatureGroup::from(feature_group_dto)))
+            Ok(Some(FeatureGroup::from(feature_group_dto)))
         } else {
             Ok(None)
         }
@@ -101,7 +102,7 @@ impl FeatureStore {
         primary_key: Vec<&str>,
         event_time: Option<&str>,
         online_enabled: bool,
-    ) -> Result<feature_group::FeatureGroup> {
+    ) -> Result<FeatureGroup> {
         if let Some(feature_group) = self
             .get_feature_group_by_name_and_version(name, version)
             .await?
@@ -128,8 +129,8 @@ impl FeatureStore {
         primary_key: Vec<&str>,
         event_time: Option<&str>,
         online_enabled: bool,
-    ) -> feature_group::FeatureGroup {
-        feature_group::FeatureGroup::new_local(
+    ) -> FeatureGroup {
+        FeatureGroup::new_local(
             self,
             name,
             version,
@@ -146,7 +147,7 @@ impl FeatureStore {
         version: i32,
         query: Query,
         transformation_functions: Option<HashMap<String, TransformationFunction>>,
-    ) -> Result<feature_view::FeatureView> {
+    ) -> Result<FeatureView> {
         create_feature_view(
             self.featurestore_id,
             self.featurestore_name.clone(),
@@ -162,7 +163,7 @@ impl FeatureStore {
         &self,
         name: &str,
         version: Option<i32>,
-    ) -> Result<Option<feature_view::FeatureView>> {
+    ) -> Result<Option<FeatureView>> {
         get_feature_view_by_name_and_version(self.featurestore_id, name, version).await
     }
 
