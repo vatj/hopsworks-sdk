@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     core::feature_store::{
-        query::read_with_arrow_flight_client,
+        query::{read_query_from_online_feature_store, read_with_arrow_flight_client},
         training_dataset::{
             create_train_test_split, create_training_dataset_attached_to_feature_view,
         },
@@ -59,6 +59,10 @@ impl FeatureView {
 
     pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
         read_with_arrow_flight_client(self.query.clone()).await
+    }
+
+    pub async fn read_from_online_feature_store(&self) -> Result<DataFrame> {
+        read_query_from_online_feature_store(&self.query.clone()).await
     }
 }
 
