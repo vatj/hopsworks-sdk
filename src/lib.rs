@@ -1,6 +1,6 @@
 //! # Hopsworks SDK for Rust
 //!
-//! The `hopsworks-rs` crate is a Rust SDK to interact with the Hopsworks Platform and [`FeatureStore`][feature_store]. It is intended
+//! The `hopsworks-rs` crate is a Rust SDK to interact with the Hopsworks Platform and [`FeatureStore`][feature_store::FeatureStore]. It is intended
 //! to be used in conjunction with a [Hopsworks](https://www.hopsworks.ai/) cluster to build end-to-end machine
 //! learning pipelines. With Hopsworks you can:
 //! - Schedule Feature Engineering Jobs to ingest data from various sources into the Feature Store
@@ -23,27 +23,53 @@
 //! Either copy the config template and paste your API key or export it as an environment variable to enable the SDK
 //! to connect to your project.
 //!
-//! ## Getting Started
+//! ## Quickstart
 //!
 //! Check out the examples folder to see how to use the SDK to build end-to-end machine learning pipelines.
 //!
 //! ### Connect to Hopsworks Serverless App
 //! ```no_run
-//! # use color_eyre::Result;
+//! use color_eyre::Result;
+//! use polars::prelude::*;
 //! use hopsworks_rs::hopsworks_login;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
 //!  // The api key will be read from the environment variable HOPSWORKS_API_KEY
 //!  let project = hopsworks_login(None).await?;
-//!
 //!  // Get the default feature store for the project
 //!  let fs = project.get_feature_store().await?;
+//!
+//!  // Create a new feature group and ingest local data to the Feature Store
+//!  let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
+//!  let fg = fs.create_feature_group(
+//!    "my_fg",
+//!    1,
+//!    None,
+//!    vec!["primary_key_feature_name(s)"],
+//!    Some("event_time_feature_name"),
+//!    false
+//!  );
+//!  fg.insert(&mut df).await?;
+//!
+//!  // Create a feature view to read data from the Feature Store,
+//!  // see Feature View page for more complex examples
+//!  let fv = fs.create_feature_view(
+//!    "my_fv",
+//!    1,
+//!    fg.select(vec!["feature1", "feature2"])?,
+//!    None,
+//!  ).await?;
+//!
+//!  // Read data from the Feature View
+//!  let df = fv.read_with_arrow_flight_client().await?;
+//!  
 //!  Ok(())
 //! }
 //! ```
 //!
-//! ### Connect to a different Hopsworks Cluster
+//! ## Connect to a different Hopsworks Cluster
+//!
 //! ```no_run
 //! # use color_eyre::Result;
 //! use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
@@ -60,79 +86,6 @@
 //!  let fs = project.get_feature_store().await?;
 //!  Ok(())
 //! }
-//! ```
-//!
-//! ### Create a Feature Group and insert a Polars DataFrame
-//! ```no_run
-//! # use color_eyre::Result;
-//! # use hopsworks_rs::hopsworks_login;
-//! # use polars::prelude::*;
-//!
-//! # async fn run() -> Result<()> {
-//!    // The api key will be read from the environment variable HOPSWORKS_API_KEY
-//!    let fs = hopsworks_login(None).await?.get_feature_store().await?;
-//!
-//!    // Create a new feature group
-//!    let fg = fs.create_feature_group(
-//!       "my_fg",
-//!       1,
-//!       None,
-//!       vec!["primary_key_feature_name(s)"],
-//!       Some("event_time_feature_name"),
-//!       false
-//!    );
-//!
-//!    // Ingest data from a CSV file
-//!    let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
-//!
-//!    // Insert data into the feature group
-//!    fg.insert(&mut df).await?;
-//! #   Ok(())
-//! # }
-//! ```
-//!
-//! ### Create a Feature View to read data from Feature belonging to different Feature Groups
-//! ```no_run
-//! # use color_eyre::Result;
-//! # use hopsworks_rs::hopsworks_login;
-//! # use polars::prelude::*;
-//!
-//! # async fn run() -> Result<()> {
-//!   // The api key will be read from the environment variable HOPSWORKS_API_KEY
-//!   let fs = hopsworks_login(None).await?.get_feature_store().await?;
-//!
-//!  // Get Feature Groups by name and version
-//!  let fg1 = fs.get_feature_group_by_name_and_version("fg1", 1).await?.expect("Feature Group not found");
-//!  let fg2 = fs.get_feature_group_by_name_and_version("fg2", 1).await?.expect("Feature Group not found");
-//!
-//!  // Create a Feature View
-//!  let query = fg1.select(vec!["feature1", "feature2"])?
-//!     .join(fg2.select(vec!["feature3"])?, None);
-//!  let feature_view = fs.create_feature_view("my_feature_view", 1, query, None).await?;
-//!
-//!  // Read data from the Feature View
-//!  let df = feature_view.read_with_arrow_flight_client().await?;
-//! #  Ok(())
-//! # }
-//! ```
-//!
-//! ### Create a Training Dataset
-//! ```no_run
-//! # use color_eyre::Result;
-//! # use hopsworks_rs::hopsworks_login;
-//!
-//! # async fn run() -> Result<()> {
-//!  // The api key will be read from the environment variable HOPSWORKS_API_KEY
-//!  let fs = hopsworks_login(None).await?.get_feature_store().await?;
-//!
-//!  // Get Feature View
-//!  let feature_view = fs.get_feature_view("my_feature_view", Some(1))
-//!     .await?.expect("Feature View not found");
-//!
-//!  // Create a Training Dataset
-//!  let td = feature_view.create_attached_training_dataset().await?;
-//! # Ok(())
-//! # }
 //! ```
 
 pub(crate) mod clients;

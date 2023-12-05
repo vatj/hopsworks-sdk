@@ -10,8 +10,8 @@ use hopsworks_rs::{
 async fn main() -> Result<()> {
     color_eyre::install()?;
     env_logger::init();
-    let iteration =
-        std::env::var("HOPSWORKS_FRAUD_BATCH_ITERATION").unwrap_or_else(|_| "1".to_owned());
+    // Set up rolling window aggregations. If you have changed window length default value in
+    // fraud_batch_feature_pipeline, you must change it here accordingly.
     let window_len = "4h";
 
     let project = hopsworks_login(Some(
@@ -25,7 +25,7 @@ async fn main() -> Result<()> {
 
     let trans_fg = fs
         .get_feature_group_by_name_and_version(
-            format!("transactions_fraud_batch_fg_{iteration}_rust").as_str(),
+            "transactions_fraud_batch_fg_rust",
             1,
         )
         .await?
@@ -34,7 +34,7 @@ async fn main() -> Result<()> {
     let window_aggs_fg = fs
         .get_feature_group_by_name_and_version(
             format!(
-                "transactions_{}_aggs_fraud_batch_fg_{iteration}_rust",
+                "transactions_{}_aggs_fraud_batch_fg_rust",
                 window_len
             )
             .as_str(),
@@ -67,7 +67,7 @@ async fn main() -> Result<()> {
 
     let feature_view = fs
         .create_feature_view(
-            format!("transactions_and_fraud_view_{iteration}_rust").as_str(),
+            "transactions_and_fraud_view_rust",
             1,
             query,
             Some(transformation_functions),

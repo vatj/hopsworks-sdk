@@ -7,8 +7,6 @@ use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
 async fn main() -> Result<()> {
     color_eyre::install()?;
     env_logger::init();
-    let iteration =
-        std::env::var("HOPSWORKS_FRAUD_BATCH_ITERATION").unwrap_or_else(|_| "1".to_owned());
 
     // Load csv files into dataframes
     let mut trans_df = CsvReader::from_path("./examples/data/transactions.csv")?
@@ -67,7 +65,7 @@ async fn main() -> Result<()> {
 
     let trans_fg = fs
         .get_or_create_feature_group(
-            format!("transactions_fraud_batch_fg_{iteration}_rust").as_str(),
+            "transactions_fraud_batch_fg_rust",
             1,
             Some("Transactions data"),
             vec!["cc_num"],
@@ -81,11 +79,7 @@ async fn main() -> Result<()> {
 
     let window_aggs_fg = fs
         .get_or_create_feature_group(
-            format!(
-                "transactions_{}_aggs_fraud_batch_fg_{iteration}_rust",
-                window_len
-            )
-            .as_str(),
+            format!("transactions_{}_aggs_fraud_batch_fg_rust", window_len).as_str(),
             1,
             Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
             vec!["cc_num"],

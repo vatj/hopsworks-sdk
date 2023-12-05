@@ -1,15 +1,20 @@
+//! Transformation Function
+//!
+//! This module contains the [`TransformationFunction`] entity and its related methods.
+//! As of now there is no concrete plan to support this feature in the Rust API, check out the official
+//! [Hopsworks Python client](https://github.com/logicalclocks/hopsworks-api) to make full use of this functionality.
 use serde::{Deserialize, Serialize};
 
 use crate::repositories::feature_store::transformation_function::entities::TransformationFunctionDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TransformationFunction {
-    pub id: i32,
-    pub name: String,
-    pub version: i32,
-    pub source_code_content: String,
-    pub output_type: String,
-    pub featurestore_id: i32,
+    pub(crate) id: i32,
+    pub(crate) name: String,
+    pub(crate) version: i32,
+    pub(crate) source_code_content: String,
+    pub(crate) output_type: String,
+    pub(crate) featurestore_id: i32,
 }
 
 impl From<TransformationFunctionDTO> for TransformationFunction {
