@@ -9,7 +9,7 @@ use crate::{
             entities::TrainingDatasetDTO,
             payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
         },
-        platform::job::entities::JobDTO,
+        platform::job::JobDTO,
     },
 };
 
