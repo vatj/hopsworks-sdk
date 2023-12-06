@@ -4,7 +4,7 @@ use polars::prelude::{DataFrame, Schema};
 use crate::{
     core::{
         feature_store::{feature, storage_connector},
-        platform::job,
+        platform::job_execution,
     },
     kafka_producer::produce_df,
     repositories::feature_store::{
@@ -77,7 +77,8 @@ pub async fn insert_in_registered_feature_group(
         feature_group_name, feature_group_version
     );
 
-    let _running_job_dto = job::run_job_with_name(job_name.as_str()).await?;
+    let _running_job_dto =
+        job_execution::start_new_execution_for_named_job(job_name.as_str()).await?;
 
     Ok(())
 }

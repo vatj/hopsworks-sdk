@@ -13,3 +13,18 @@ pub async fn delete() -> Result<()> {
 pub async fn start_new_execution_for_named_job(job_name: &str) -> Result<JobExecutionDTO> {
     job_execution::service::start_new_execution_for_named_job(job_name).await
 }
+
+pub async fn get_job_execution_by_id(
+    job_name: &str,
+    job_execution_id: i64,
+) -> Result<JobExecutionDTO> {
+    job_execution::service::get_job_execution_by_id(job_name, job_execution_id).await
+}
+
+pub async fn get_job_executions(job_name: &str) -> Result<Vec<JobExecutionDTO>> {
+    job_execution::service::get_job_executions(job_name).await
+}
+
+pub async fn delete_job_execution(job_name: &str, job_execution_id: i64) -> Result<()> {
+    job_execution::service::delete_job_execution(job_name, job_execution_id).await
+}
