@@ -22,7 +22,7 @@ pub async fn start_new_execution_for_named_job(job_name: &str) -> Result<JobExec
 
 pub async fn get_job_execution_by_id(
     job_name: &str,
-    job_execution_id: i64,
+    job_execution_id: i32,
 ) -> Result<JobExecutionDTO> {
     Ok(get_hopsworks_client()
         .await
@@ -56,7 +56,7 @@ pub async fn get_job_executions(job_name: &str) -> Result<Vec<JobExecutionDTO>> 
         .await?)
 }
 
-pub async fn delete_job_execution(job_name: &str, job_execution_id: i64) -> Result<()> {
+pub async fn delete_job_execution(job_name: &str, job_execution_id: i32) -> Result<()> {
     let response = get_hopsworks_client()
         .await
         .request(
