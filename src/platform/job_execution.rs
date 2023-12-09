@@ -26,10 +26,10 @@ impl From<JobExecutionDTO> for Execution {
 
 impl Execution {
     pub async fn download_logs(&self) -> Result<()> {
-        crate::core::platform::job_execution::download_logs().await
+        crate::core::platform::job_execution::download_job_execution_logs().await
     }
 
     pub async fn delete(&self) -> Result<()> {
-        crate::core::platform::job_execution::delete().await
+        todo!();
     }
 }

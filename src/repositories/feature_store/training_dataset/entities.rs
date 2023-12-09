@@ -5,7 +5,7 @@ use crate::repositories::{
         feature_view::entities::TagsDTO, query::entities::QueryDTO,
         statistics_config::entities::StatisticsConfigDTO,
     },
-    platform::users::entities::UserDTO,
+    platform::users::UserDTO,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

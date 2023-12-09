@@ -6,7 +6,7 @@ use crate::{
         feature_store::{
             feature::entities::FeatureDTO, statistics_config::entities::StatisticsConfigDTO,
         },
-        platform::users::entities::UserDTO,
+        platform::users::UserDTO,
     },
 };
 

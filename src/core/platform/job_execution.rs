@@ -2,11 +2,7 @@ use color_eyre::Result;
 
 use crate::repositories::platform::job_execution::{self, JobExecutionDTO};
 
-pub async fn download_logs() -> Result<()> {
-    todo!()
-}
-
-pub async fn delete() -> Result<()> {
+pub async fn download_job_execution_logs() -> Result<()> {
     todo!()
 }
 
