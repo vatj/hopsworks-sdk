@@ -7,7 +7,7 @@ use std::path::Path;
 use std::thread;
 use std::time::Duration;
 
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressStyle};
 
 pub mod service;
 
@@ -93,7 +93,7 @@ impl DatasetApi {
         let mut pbar = ProgressBar::new(file_size as u64);
         pbar.set_style(
             ProgressStyle::default_bar()
-                .template("{desc}: {percentage:.3}%|{bar}| {bytes}/{total_bytes} elapsed<{elapsed} remaining<{eta}")
+                .template("{desc}: {percentage:.3}%|{bar}| {bytes}/{total_bytes} elapsed<{elapsed} remaining<{eta}")?
                 .progress_chars("#>-"),
         );
 
@@ -156,7 +156,7 @@ impl DatasetApi {
         let pbar = ProgressBar::new(file_size as u64);
         pbar.set_style(
             ProgressStyle::default_bar()
-                .template("{desc}: {percentage:.3}%|{bar}| {bytes}/{total_bytes} elapsed<{elapsed} remaining<{eta}")
+                .template("{desc}: {percentage:.3}%|{bar}| {bytes}/{total_bytes} elapsed<{elapsed} remaining<{eta}")?
                 .progress_chars("#>-"),
         );
 
