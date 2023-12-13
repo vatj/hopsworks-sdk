@@ -132,7 +132,6 @@ pub fn upload(
 }
 
 fn _upload_chunk(
-    &self,
     base_params: HashMap<&str, String>,
     upload_path: &str,
     file_name: &str,
@@ -140,7 +139,7 @@ fn _upload_chunk(
     pbar: ProgressBar,
     max_chunk_retries: i32,
     chunk_retry_interval: u64,
-) -> Result<(), RestAPIError> {
+) -> Result<()> {
     let mut query_params = base_params.clone();
     query_params.insert("flowCurrentChunkSize", chunk.content.len().to_string());
     query_params.insert("flowChunkNumber", chunk.number.to_string());

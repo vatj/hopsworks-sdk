@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 /// Build the path to download the file on the local fs and return to the user, it should be absolute for consistency
 /// Download in CWD if local_path not specified
-pub(super) async fn local_path_or_default(
+pub(super) async fn download_local_path_or_default(
     path: &str,
     local_path: Option<&str>,
     overwrite: bool,
@@ -39,6 +39,44 @@ pub(super) async fn local_path_or_default(
         }
     }
     Ok(local_path.to_owned())
+}
+
+pub fn prepare_upload(
+    local_path: &str,
+    upload_path: &str,
+    overwrite: bool,
+    chunk_size: usize,
+) -> Result<(PathBuf, FlowBaseParams)> {
+    let local_path = if !Path::new(local_path).is_absolute() && Path::new(local_path).exists() {
+        let cwd = std::env::current_dir().unwrap();
+        cwd.join(local_path)
+    } else {
+        Path::new(local_path).to_owned()
+    };
+
+    let file_size = tokio::fs::metadata(&local_path)?.len() as usize;
+    let file_name = local_path
+        .file_name()
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+    let destination_path = format!("{}/{}", upload_path, file_name);
+
+    if file_or_dir_exists(&destination_path)? {
+        if overwrite {
+            remove_file_or_dir(&destination_path)?;
+        } else {
+            return Err(color_eyre::eyre!(format!(
+                "{} already exists, set overwrite=True to overwrite it",
+                destination_path
+            )));
+        }
+    }
+
+    let num_chunks = (file_size as f64 / chunk_size as f64).ceil() as usize;
+    let params = FlowBaseParams::new(chunk_size, num_chunks, file_size, &file_name);
+
+    Ok((local_path, params))
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -104,7 +142,7 @@ mod tests {
         let path = "/path/to/file.txt";
         let local_path = Some("/absolute/path/to/file.txt");
         let overwrite = false;
-        let result = local_path_or_default(path, local_path, overwrite).await;
+        let result = download_local_path_or_default(path, local_path, overwrite).await;
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), PathBuf::from("/absolute/path/to/file.txt"));
 
@@ -112,7 +150,7 @@ mod tests {
         let path = "/path/to/file.txt";
         let local_path = Some("relative/path/to/file.txt");
         let overwrite = false;
-        let result = local_path_or_default(path, local_path, overwrite).await;
+        let result = download_local_path_or_default(path, local_path, overwrite).await;
         assert!(result.is_ok());
         let cwd = std::env::current_dir().unwrap();
         assert_eq!(result.unwrap(), cwd.join("relative/path/to/file.txt"));
@@ -121,7 +159,7 @@ mod tests {
         let path = "/path/to/file.txt";
         let local_path = None;
         let overwrite = false;
-        let result = local_path_or_default(path, local_path, overwrite).await;
+        let result = download_local_path_or_default(path, local_path, overwrite).await;
         assert!(result.is_ok());
         let cwd = std::env::current_dir().unwrap();
         assert_eq!(result.unwrap(), cwd.join("file.txt"));
@@ -130,7 +168,7 @@ mod tests {
         let path = "/path/to/file.txt";
         let local_path = None;
         let overwrite = true;
-        let result = local_path_or_default(path, local_path, overwrite).await;
+        let result = download_local_path_or_default(path, local_path, overwrite).await;
         assert!(result.is_ok());
         let cwd = std::env::current_dir().unwrap();
         assert_eq!(result.unwrap(), cwd.join("file.txt"));
@@ -147,7 +185,7 @@ mod tests {
         let file_path = std::path::PathBuf::from("/absolute/path/to/file.txt");
         std::fs::File::create(&file_path).unwrap();
 
-        let result = local_path_or_default(path, local_path, overwrite).await;
+        let result = download_local_path_or_default(path, local_path, overwrite).await;
         assert!(result.is_err());
 
         // Test case 5: local_path is not specified and overwrite is true
@@ -159,7 +197,7 @@ mod tests {
         let file_path = std::path::PathBuf::from("/absolute/path/to/file.txt");
         std::fs::File::create(&file_path).unwrap();
 
-        let result = local_path_or_default(path, local_path, overwrite).await;
+        let result = download_local_path_or_default(path, local_path, overwrite).await;
         assert!(result.is_ok());
         assert!(!file_path.exists());
     }
