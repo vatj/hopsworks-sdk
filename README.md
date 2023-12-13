@@ -112,11 +112,3 @@ Contributions are welcome, although the contributing.md is still a work in progr
 ## Open-Source
 
 Hopsworks-rs is available under the AGPL-V3 license. In plain English this means that you are free to use it and even build paid services on it, but if you modify the source code, you should also release back your changes and any systems built around it as AGPL-V3.
-
-```
-
-```
-
-```
-
-```
