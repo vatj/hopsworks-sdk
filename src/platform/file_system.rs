@@ -1,3 +1,4 @@
+use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -33,4 +34,27 @@ impl Default for UploadOptions {
             chunk_retry_interval: 1000,
         }
     }
+}
+
+pub async fn upload_to_hopsworks(
+    local_path: &str,
+    upload_path: &str,
+    overwrite: bool,
+    upload_options: Option<UploadOptions>,
+) -> Result<String> {
+    crate::core::platform::file_system::upload(
+        local_path,
+        upload_path,
+        overwrite,
+        upload_options.unwrap_or_default(),
+    )
+    .await
+}
+
+pub async fn download_from_hopsworks(
+    remote_path: &str,
+    local_path: Option<&str>,
+    overwrite: bool,
+) -> Result<String> {
+    crate::core::platform::file_system::download(remote_path, local_path, overwrite).await
 }

@@ -34,12 +34,18 @@ impl From<JobExecutionDTO> for Execution {
 }
 
 impl Execution {
-    pub async fn download_logs(&self) -> Result<()> {
-        crate::core::platform::job_execution::download_job_execution_logs().await
+    pub async fn download_logs(&self, local_dir: Option<&str>) -> Result<()> {
+        crate::core::platform::job_execution::download_job_execution_logs(
+            self.job_name.as_str(),
+            self.id,
+            local_dir,
+        )
+        .await
     }
 
     pub async fn delete(&self) -> Result<()> {
-        todo!();
+        crate::core::platform::job_execution::delete_job_execution(self.job_name.as_str(), self.id)
+            .await
     }
 
     pub async fn await_termination(&self) -> Result<()> {

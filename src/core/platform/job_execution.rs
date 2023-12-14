@@ -2,8 +2,37 @@ use color_eyre::Result;
 
 use crate::repositories::platform::job_execution::{self, JobExecutionDTO};
 
-pub async fn download_job_execution_logs() -> Result<()> {
-    todo!()
+use super::file_system::download;
+
+pub async fn download_job_execution_logs(
+    job_name: &str,
+    job_execution_id: i32,
+    local_dir: Option<&str>,
+) -> Result<()> {
+    let job_execution_dto =
+        job_execution::service::get_job_execution_by_id(job_name, job_execution_id).await?;
+
+    download(
+        job_execution_dto
+            .stdout_path
+            .expect("Job Execution stdout_path is not set.")
+            .as_str(),
+        local_dir,
+        true,
+    )
+    .await?;
+
+    download(
+        job_execution_dto
+            .stderr_path
+            .expect("Job Execution stderr_path is not set.")
+            .as_str(),
+        local_dir,
+        true,
+    )
+    .await?;
+
+    Ok(())
 }
 
 pub async fn start_new_execution_for_named_job(job_name: &str) -> Result<JobExecutionDTO> {

@@ -1,7 +1,7 @@
-use bytes::Bytes;
 use color_eyre::Result;
 use indicatif::{ProgressBar, ProgressStyle};
-use tokio::io::AsyncWriteExt;
+use std::sync::Arc;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use crate::{platform::file_system::UploadOptions, repositories::platform::file_system::service};
 
@@ -74,44 +74,50 @@ pub async fn upload(
         upload_path,
         overwrite,
         upload_options.chunk_size,
-    )?;
+    )
+    .await?;
 
     let mut chunk_number = 1;
-    let file = tokio::fs::File::open(&local_path).await?;
-    let pbar = ProgressBar::new(file_size as u64);
+    let mut file = tokio::fs::File::open(&local_path).await?;
+    let pbar = Arc::new(ProgressBar::new(base_params.flow_total_size as u64));
+    let upload_path = Arc::new(upload_path.to_owned());
+    let chunk_size = upload_options.chunk_size;
+    let max_chunk_retries = upload_options.max_chunk_retries;
+    let chunk_retry_interval = upload_options.chunk_retry_interval;
     pbar.set_style(
             ProgressStyle::default_bar()
                 .template("{desc}: {percentage:.3}%|{bar}| {bytes}/{total_bytes} elapsed<{elapsed} remaining<{eta}")?
                 .progress_chars("#>-"),
         );
 
-    let chunks: Vec<Chunk> = file
-        .bytes()
-        .enumerate()
-        .map(|(index, byte)| {
-            let chunk_content = byte?;
-            Ok(Chunk::new(
-                chunk_content,
-                index as i32 + 1,
-                "pending".to_string(),
-            ))
-        })
-        .collect::<Result<Vec<Chunk>, io::Error>>()?;
-
     let mut handles = vec![];
-    for chunk in chunks {
+    loop {
+        chunk_number += 1;
+        let mut chunk: Vec<u8> = Vec::with_capacity(chunk_size);
+        let bytes_read = file.read_buf(&mut chunk).await?;
+        if bytes_read == 0 {
+            break;
+        }
         let base_params = base_params.clone();
-        let upload_path = upload_path.to_owned();
+        let upload_path = upload_path.clone();
         let pbar = pbar.clone();
 
-        let handle = tokio::spawn(move || {
-            let status = upload_chunk(base_params, base_params, chunk, upload_options);
+        let handle = tokio::spawn(async move {
+            let chunk_len = chunk.len() as u64;
+            let status = upload_chunk(
+                &upload_path,
+                base_params,
+                chunk,
+                max_chunk_retries,
+                chunk_retry_interval,
+            )
+            .await;
             match status {
                 Ok(_) => {
-                    pbar.inc(chunk.content.len() as u64);
+                    pbar.inc(chunk_len);
                 }
                 Err(_) => {
-                    pbar.println(format!("Failed to upload chunk {}", chunk.number));
+                    pbar.println(format!("Failed to upload chunk {}", chunk_number));
                 }
             }
         });
@@ -120,21 +126,21 @@ pub async fn upload(
     }
 
     for handle in handles {
-        handle.join().unwrap()?;
+        handle.await?;
     }
 
     pbar.finish();
-    Ok(format!("{}/{}", upload_path, file_name))
+    Ok(format!("{}/{}", upload_path, base_params.flow_filename))
 }
 
 async fn upload_chunk(
     path: &str,
     flow_params: util::FlowBaseParams,
-    chunk: Bytes,
-    upload_options: UploadOptions,
+    chunk: Vec<u8>,
+    max_chunk_retries: i32,
+    chunk_retry_interval: u64,
 ) -> Result<reqwest::StatusCode> {
     let retries = 0;
-    let mut status = reqwest::StatusCode::OK;
 
     loop {
         match service::upload_request_single_chunk(
@@ -142,28 +148,28 @@ async fn upload_chunk(
             path,
             flow_params.flow_filename.clone().as_str(),
             flow_params.clone(),
-        ) {
+        )
+        .await
+        {
             Ok(resp) => {
                 if FLOW_PERMANENT_ERRORS_STATUS.contains(&resp.status()) {
                     return Err(color_eyre::eyre::eyre!(
                         "Permanent error {}, failed to upload chunk: {}",
-                        &status,
+                        &resp.status(),
                         resp.text().await?
                     ));
                 }
-                Ok(resp.status())
+                return Ok(resp.status());
             }
             Err(_) => {
-                if retries == upload_options.max_chunk_retries {
+                if retries == max_chunk_retries {
                     return Err(color_eyre::eyre::eyre!(
                         "Failed to upload chunk after {} retries",
                         retries
                     ));
                 } else {
-                    tokio::time::sleep(tokio::time::Duration::from_millis(
-                        upload_options.chunk_retry_interval,
-                    ))
-                    .await;
+                    tokio::time::sleep(tokio::time::Duration::from_millis(chunk_retry_interval))
+                        .await;
                 }
             }
         }

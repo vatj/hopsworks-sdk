@@ -41,7 +41,7 @@ pub(super) async fn download_local_path_or_default(
     Ok(local_path.to_owned())
 }
 
-pub fn prepare_upload(
+pub async fn prepare_upload(
     local_path: &str,
     upload_path: &str,
     overwrite: bool,
@@ -54,7 +54,7 @@ pub fn prepare_upload(
         Path::new(local_path).to_owned()
     };
 
-    let file_size = tokio::fs::metadata(&local_path)?.len() as usize;
+    let file_size = tokio::fs::metadata(&local_path).await?.len() as usize;
     let file_name = local_path
         .file_name()
         .unwrap()
@@ -62,11 +62,11 @@ pub fn prepare_upload(
         .to_string();
     let destination_path = format!("{}/{}", upload_path, file_name);
 
-    if file_or_dir_exists(&destination_path)? {
+    if super::file_or_dir_exists(&destination_path).await? {
         if overwrite {
-            remove_file_or_dir(&destination_path)?;
+            super::remove_file_or_dir(&destination_path).await?;
         } else {
-            return Err(color_eyre::eyre!(format!(
+            return Err(color_eyre::eyre::eyre!(format!(
                 "{} already exists, set overwrite=True to overwrite it",
                 destination_path
             )));
@@ -84,7 +84,7 @@ pub fn prepare_upload(
 pub struct FlowBaseParams {
     template_id: i32,
     flow_chunk_size: usize,
-    flow_total_size: usize,
+    pub(super) flow_total_size: usize,
     flow_identifier: String,
     pub(super) flow_filename: String,
     flow_relative_path: String,

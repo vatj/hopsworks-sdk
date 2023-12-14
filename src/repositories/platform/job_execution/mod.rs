@@ -22,9 +22,11 @@ pub struct JobExecutionDTO {
     final_status: String,
     progress: f64,
     user: JobExecutionUserDTO,
-    files_to_remove: Vec<String>,
+    pub(crate) files_to_remove: Vec<String>,
     duration: i64,
     pub(crate) job: Option<JobDTO>,
+    pub(crate) stdout_path: Option<String>,
+    pub(crate) stderr_path: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

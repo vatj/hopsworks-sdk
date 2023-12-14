@@ -117,7 +117,7 @@ pub async fn copy(src_path: &str, dst_path: &str) -> Result<()> {
 }
 
 pub async fn upload_request_single_chunk(
-    chunk: Bytes,
+    chunk: Vec<u8>,
     path: &str,
     form: &str,
     flow_params: FlowBaseParams,
