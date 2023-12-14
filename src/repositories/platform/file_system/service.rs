@@ -1,4 +1,3 @@
-use bytes::Bytes;
 use color_eyre::Result;
 use reqwest::Method;
 

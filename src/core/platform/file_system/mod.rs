@@ -5,7 +5,6 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use crate::{platform::file_system::UploadOptions, repositories::platform::file_system::service};
 
-const DEFAULT_FLOW_CHUNK_SIZE: usize = 1048576;
 const FLOW_PERMANENT_ERRORS_STATUS: [reqwest::StatusCode; 5] = [
     reqwest::StatusCode::NOT_FOUND,
     reqwest::StatusCode::PAYLOAD_TOO_LARGE,

@@ -1,6 +1,8 @@
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
+const DEFAULT_FLOW_CHUNK_SIZE: usize = 1048576;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UploadOptions {
     pub chunk_size: usize,
@@ -28,7 +30,7 @@ impl UploadOptions {
 impl Default for UploadOptions {
     fn default() -> Self {
         UploadOptions {
-            chunk_size: 1048576,
+            chunk_size: DEFAULT_FLOW_CHUNK_SIZE,
             simultaneous_uploads: 3,
             max_chunk_retries: 3,
             chunk_retry_interval: 1000,

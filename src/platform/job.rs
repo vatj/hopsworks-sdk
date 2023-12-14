@@ -75,23 +75,23 @@ impl Job {
 /// Get template job configuration for a given job type.
 ///
 /// # Arguments
-///     * `job_type` - The type of job to get the configuration for.
+/// * `job_type` - The job type to get the configuration for.
 ///
 /// # Returns
-///    * `Result<serde_json::Value>` - The job configuration.
+/// * `Result<serde_json::Value>` - The job configuration.
 ///
 /// # Example
 /// ```no_run
 /// use color_eyre::Result;
 /// use serde_json::json;
-/// use hopsworks_rs::{login, platform::job::get_job_configuration};
+/// use hopsworks_rs::{hopsworks_login, platform::job::get_job_configuration};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
-///    hopsowrks_rs::login(None).await?;
+///    hopsworks_login(None).await?;
 ///
 ///    let default_pyspark_job_config = get_job_configuration("PYSPARK").await?;
-///    println!("{#:?}", default_pyspark_job_config);
+///    println!("{}", default_pyspark_job_config);
 ///
 ///   Ok(())
 /// }
@@ -103,7 +103,7 @@ pub async fn get_job_configuration(job_type: &str) -> Result<serde_json::Value> 
 /// Create a new job.
 ///
 /// # Arguments
-///    * `job_name` - The name of the job to create. This name must be unique.
+///   * `job_name` - The name of the job to create. This name must be unique.
 ///   * `job_configuration` - The configuration of the job to create.
 ///
 /// # Returns
@@ -113,14 +113,14 @@ pub async fn get_job_configuration(job_type: &str) -> Result<serde_json::Value> 
 /// ```no_run
 /// use color_eyre::Result;
 /// use serde_json::json;
-/// use hopsworks_rs::{login, platform::job::{create_job, get_job_configuration}};
+/// use hopsworks_rs::{hopsworks_login, platform::job::{create_job, get_job_configuration}};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
-///   hopsowrks_rs::login(None).await?;
+///   hopsworks_login(None).await?;
 ///
 ///   let mut default_pyspark_job_config = get_job_configuration("PYSPARK").await?;
-///   default_pyspark_job_config["appPath"] = "my-pyspark-job"
+///   default_pyspark_job_config["appPath"] = "my-pyspark-job".into();
 ///   
 ///   let job = create_job("my-pyspark-job", default_pyspark_job_config).await?;
 ///   job.run().await?;

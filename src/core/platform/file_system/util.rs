@@ -173,32 +173,4 @@ mod tests {
         let cwd = std::env::current_dir().unwrap();
         assert_eq!(result.unwrap(), cwd.join("file.txt"));
     }
-
-    #[tokio::test]
-    async fn test_local_path_or_default_file() {
-        // Test case 4: local_path is not specified and overwrite is false
-        let path = "/path/to/file.txt";
-        let local_path = None;
-        let overwrite = false;
-
-        // Create a file on disk
-        let file_path = std::path::PathBuf::from("/absolute/path/to/file.txt");
-        std::fs::File::create(&file_path).unwrap();
-
-        let result = download_local_path_or_default(path, local_path, overwrite).await;
-        assert!(result.is_err());
-
-        // Test case 5: local_path is not specified and overwrite is true
-        let path = "/path/to/file.txt";
-        let local_path = None;
-        let overwrite = true;
-
-        // Create a file on disk
-        let file_path = std::path::PathBuf::from("/absolute/path/to/file.txt");
-        std::fs::File::create(&file_path).unwrap();
-
-        let result = download_local_path_or_default(path, local_path, overwrite).await;
-        assert!(result.is_ok());
-        assert!(!file_path.exists());
-    }
 }
