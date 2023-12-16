@@ -7,8 +7,14 @@ use crate::{
     repositories::platform::job::JobDTO,
 };
 
-use super::job_execution::Execution;
+use super::job_execution::JobExecution;
 
+/// Job on Hopsworks Cluster. A job is akin to a script which can be executed on the cluster.
+/// Jobs can be of different types, e.g. PySpark, Spark, Python, etc.
+/// Jobs can be executed on the cluster and the job_executions can be monitored.
+///
+/// > **_NOTE:_** Custom Jobs are only available in Hopsworks Enterprise Edition. In particular,
+/// > [Hopsworks Serverless App](https://app.hopsworks.ai) does not support Custom Jobs.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Job {
     href: String,
@@ -16,6 +22,7 @@ pub struct Job {
     name: String,
     creation_time: String,
     job_type: String,
+    configuration: serde_json::Value,
 }
 
 impl Job {
@@ -26,6 +33,7 @@ impl Job {
             name: job_dto.name,
             creation_time: job_dto.creation_time,
             job_type: job_dto.job_type,
+            configuration: job_dto.config,
         }
     }
 }
@@ -37,38 +45,122 @@ impl From<JobDTO> for Job {
 }
 
 impl Job {
-    pub async fn run(&self) -> Result<Execution> {
-        Ok(Execution::from(
-            start_new_execution_for_named_job(self.name.as_str()).await?,
-        ))
+    /// Start a new job execution of this job, potentially waiting for the execution to finish.
+    ///
+    /// # Arguments
+    /// * `await_termination` - Whether to wait for the execution to finish.
+    ///
+    /// # Returns
+    /// * `Result<Execution>` - The started (or terminated) execution.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::{hopsworks_login, platform::job::Job};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   let project = hopsworks_login(None).await?;
+    ///   let job = project.get_job("my_backfilling_job").await?;
+    ///   let job_exec = job.run(true).await?;
+    ///
+    ///   // Check execution status
+    ///   println!("{:?}", job_exec.status);
+    ///   Ok(())
+    /// }
+    /// ```
+    pub async fn run(&self, await_termination: bool) -> Result<JobExecution> {
+        let exec = JobExecution::from(start_new_execution_for_named_job(self.name.as_str()).await?);
+        if await_termination {
+            exec.await_termination().await?;
+        }
+        Ok(exec)
     }
 
-    pub async fn get_executions(&self) -> Result<Vec<Execution>> {
+    /// Get the job executions of this job sorted by execution date starting with most recent.
+    ///
+    /// # Returns
+    /// * `Result<Vec<Execution>>` - The executions of this job.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::{hopsworks_login, platform::job::Job};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///  let project = hopsworks_login(None).await?;
+    ///  let job = project.get_job("my_backfilling_job").await?;
+    ///  let executions = job.get_executions().await?;
+    ///  println!("Most recent failed executions {:?}",
+    ///    executions.iter().find(|e| e.status == "FAILED").expect("No failed executions found")
+    ///    .submission_time);
+    ///  Ok(())
+    /// }
+    /// ```
+    pub async fn get_executions(&self) -> Result<Vec<JobExecution>> {
         match crate::core::platform::job_execution::get_job_executions(self.name.as_str()).await {
-            Ok(executions) => Ok(executions.into_iter().map(Execution::from).collect()),
+            Ok(executions) => Ok(executions.into_iter().map(JobExecution::from).collect()),
             Err(e) => Err(e),
         }
     }
 
-    pub async fn save(&self) -> Result<Job> {
-        match crate::core::platform::job::update_job(
-            self.name.as_str(),
-            serde_json::json!({
-                "job_type": self.job_type,
-            }),
-        )
-        .await
-        {
+    /// Update the job configuration. This will not affect running executions of this job.
+    ///
+    /// # Returns
+    /// * `Result<Job>` - The updated job.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   let project = hopsworks_login(None).await?;
+    ///   let job = project.get_job("my_backfilling_job").await?;
+    ///
+    ///   let mut job_config = job.get_configuration()?;
+    ///   job_config["appPath"] = "my-new-pyspark-job".into();
+    ///   job.save(job_config).await?;
+    ///   
+    ///   Ok(())
+    /// }
+    /// ```
+    pub async fn save(&self, updated_job_config: serde_json::Value) -> Result<Job> {
+        match crate::core::platform::job::update_job(self.name.as_str(), updated_job_config).await {
             Ok(job_dto) => Ok(Job::from(job_dto)),
             Err(e) => Err(e),
         }
     }
 
+    /// Delete the job. This will terminate running executions of this job.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   let project = hopsworks_login(None).await?;
+    ///   let job = project.get_job("my_backfilling_job").await?;
+    ///   job.delete().await?;
+    /// }
+    /// ```
     pub async fn delete(&self) -> Result<()> {
         match crate::core::platform::job::delete_job(self.name.as_str()).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
+    }
+
+    /// Get the job configuration.
+    ///
+    /// # Returns
+    /// * `serde_json::Value` - A clone of the job configuration.
+    pub fn get_configuration(&self) -> serde_json::Value {
+        self.configuration.clone()
     }
 }
 

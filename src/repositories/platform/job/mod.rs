@@ -11,7 +11,7 @@ pub struct JobDTO {
     pub(crate) id: i32,
     pub(crate) name: String,
     pub(crate) creation_time: String,
-    config: JobConfigDTO,
+    pub(crate) config: serde_json::Value,
     pub(crate) job_type: String,
     creator: JobCreatorDTO,
     executions: JobExectutionMinimalDTO,

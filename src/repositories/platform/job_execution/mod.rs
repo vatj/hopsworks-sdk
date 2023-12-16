@@ -15,7 +15,7 @@ pub struct JobExectutionMinimalDTO {
 pub struct JobExecutionDTO {
     pub(crate) href: String,
     pub(crate) id: i32,
-    submission_time: String,
+    pub(crate) submission_time: String,
     pub(crate) state: String,
     hdfs_user: String,
     args: String,

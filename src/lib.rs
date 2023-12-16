@@ -94,6 +94,8 @@ pub(crate) mod kafka_producer;
 pub(crate) mod repositories;
 pub(crate) mod util;
 
+pub use feature_store::{FeatureGroup, FeatureStore, FeatureView};
+
 pub mod feature_store;
 pub mod platform;
 
