@@ -93,6 +93,7 @@ impl JobExecution {
     /// ```no_run
     /// # use color_eyre::Result;
     /// use hopsworks_rs::hopsworks_login;
+    /// use polars::prelude::*;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
@@ -110,7 +111,7 @@ impl JobExecution {
     ///
     ///   // Read new and old data via a feature view which contains features from the my_feature_group
     ///   let feature_view = feature_store
-    ///     .get_feature_view("my_feature_view", 1).await?
+    ///     .get_feature_view("my_feature_view", Some(1)).await?
     ///     .expect("Feature View not found");
     ///
     ///   let updated_training_df = feature_view.read_with_arrow_flight_client().await?;

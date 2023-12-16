@@ -11,7 +11,7 @@ use super::job_execution::JobExecution;
 
 /// Job on Hopsworks Cluster. A job is akin to a script which can be executed on the cluster.
 /// Jobs can be of different types, e.g. PySpark, Spark, Python, etc.
-/// Jobs can be executed on the cluster and the job_executions can be monitored.
+/// Jobs can be executed on the cluster and the [`JobExecution`] can be monitored.
 ///
 /// > **_NOTE:_** Custom Jobs are only available in Hopsworks Enterprise Edition. In particular,
 /// > [Hopsworks Serverless App](https://app.hopsworks.ai) does not support Custom Jobs.
@@ -45,18 +45,18 @@ impl From<JobDTO> for Job {
 }
 
 impl Job {
-    /// Start a new job execution of this job, potentially waiting for the execution to finish.
+    /// Start a new [`JobExecution`] of this [`Job`], potentially waiting for it to finish.
     ///
     /// # Arguments
     /// * `await_termination` - Whether to wait for the execution to finish.
     ///
     /// # Returns
-    /// * `Result<Execution>` - The started (or terminated) execution.
+    /// * `Result<JobExecution>` - The started (or terminated) execution.
     ///
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::{hopsworks_login, platform::job::Job};
+    /// use hopsworks_rs::hopswors_login;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
@@ -77,15 +77,15 @@ impl Job {
         Ok(exec)
     }
 
-    /// Get the job executions of this job sorted by execution date starting with most recent.
+    /// Get the [`Jobexecution`]s of this job sorted by submission date starting with most recent.
     ///
     /// # Returns
-    /// * `Result<Vec<Execution>>` - The executions of this job.
+    /// * `Result<Vec<JobExecution>>` - The [`JobExecution`]s of this job.
     ///
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::{hopsworks_login, platform::job::Job};
+    /// use hopsworks_rs::hopsworks_login;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
@@ -105,7 +105,7 @@ impl Job {
         }
     }
 
-    /// Update the job configuration. This will not affect running executions of this job.
+    /// Update the job configuration. This will not affect running [`JobExecution`]s of this job.
     ///
     /// # Returns
     /// * `Result<Job>` - The updated job.
@@ -134,7 +134,7 @@ impl Job {
         }
     }
 
-    /// Delete the job. This will terminate running executions of this job.
+    /// Delete the [`Job`]. This will terminate running [`JobExecution`]s.
     ///
     /// # Example
     /// ```no_run

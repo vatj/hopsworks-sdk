@@ -16,10 +16,18 @@ use crate::{
 pub async fn get_feature_group_by_name_and_version(
     feature_store_id: i32,
     name: &str,
-    version: i32,
+    version: Option<i32>,
 ) -> Result<Option<FeatureGroupDTO>> {
-    feature_group::service::get_feature_group_by_name_and_version(feature_store_id, name, version)
-        .await
+    if version.is_none() {
+        return feature_group::service::get_latest_feature_group_by_name(feature_store_id, name)
+            .await;
+    }
+    feature_group::service::get_feature_group_by_name_and_version(
+        feature_store_id,
+        name,
+        version.unwrap(),
+    )
+    .await
 }
 
 pub async fn create_feature_group(

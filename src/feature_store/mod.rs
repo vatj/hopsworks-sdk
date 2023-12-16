@@ -155,10 +155,10 @@ impl From<FeatureStoreDTO> for FeatureStore {
 }
 
 impl FeatureStore {
-    pub async fn get_feature_group_by_name_and_version(
+    pub async fn get_feature_group(
         &self,
         name: &str,
-        version: i32,
+        version: Option<i32>,
     ) -> Result<Option<FeatureGroup>> {
         if let Some(feature_group_dto) =
             get_feature_group_by_name_and_version(self.featurestore_id, name, version).await?
@@ -172,23 +172,20 @@ impl FeatureStore {
     pub async fn get_or_create_feature_group(
         &self,
         name: &str,
-        version: i32,
+        version: Option<i32>,
         description: Option<&str>,
         primary_key: Vec<&str>,
         event_time: Option<&str>,
         online_enabled: bool,
     ) -> Result<FeatureGroup> {
-        if let Some(feature_group) = self
-            .get_feature_group_by_name_and_version(name, version)
-            .await?
-        {
+        if let Some(feature_group) = self.get_feature_group(name, version).await? {
             return Ok(feature_group);
         }
 
         // If FG does not exist in backend, create a local Feature Group entity not registered with Hopsworks
         Ok(self.create_feature_group(
             name,
-            version,
+            version.unwrap_or(1),
             description,
             primary_key,
             event_time,
@@ -250,7 +247,7 @@ impl FeatureStore {
         get_transformation_function_by_name_and_version(self.featurestore_id, name, version).await
     }
 
-    pub async fn get_training_dataset_by_name_and_version(
+    pub async fn get_training_dataset(
         &self,
         name: &str,
         version: Option<i32>,

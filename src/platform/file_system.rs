@@ -1,3 +1,4 @@
+//! Interact with your Project's File System
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
