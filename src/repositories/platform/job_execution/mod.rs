@@ -27,6 +27,7 @@ pub struct JobExecutionDTO {
     pub(crate) job: Option<JobDTO>,
     pub(crate) stdout_path: Option<String>,
     pub(crate) stderr_path: Option<String>,
+    pub(crate) job_name: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

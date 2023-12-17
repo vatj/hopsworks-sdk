@@ -30,10 +30,6 @@ use crate::{
 pub struct HopsworksArrowFlightClientBuilder {}
 
 impl HopsworksArrowFlightClientBuilder {
-    pub fn new() -> Self {
-        Self {}
-    }
-
     async fn build_client_tls_config(&self, cert_dir: &str) -> Result<ClientTlsConfig> {
         debug!("my_cert_dir: {}/{}", cert_dir, "client_cert.pem");
         let client_cert_content =

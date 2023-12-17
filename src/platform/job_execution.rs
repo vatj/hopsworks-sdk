@@ -25,7 +25,9 @@ impl JobExecution {
         Self {
             href: execution_dto.href,
             id: execution_dto.id,
-            job_name: execution_dto.job.expect("Job not provided").name,
+            job_name: execution_dto
+                .job_name
+                .expect("Job name not provided in job execution DTO"),
             state: execution_dto.state.into(),
             submission_time: execution_dto.submission_time,
         }

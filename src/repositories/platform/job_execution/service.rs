@@ -5,7 +5,7 @@ use super::JobExecutionDTO;
 use crate::get_hopsworks_client;
 
 pub async fn start_new_execution_for_named_job(job_name: &str) -> Result<JobExecutionDTO> {
-    Ok(get_hopsworks_client()
+    let response = get_hopsworks_client()
         .await
         .request(
             Method::POST,
@@ -15,16 +15,22 @@ pub async fn start_new_execution_for_named_job(job_name: &str) -> Result<JobExec
         )
         .await?
         .send()
-        .await?
-        .json::<JobExecutionDTO>()
-        .await?)
+        .await?;
+
+    if response.status().is_success() {
+        let mut job_execution_dto = response.json::<JobExecutionDTO>().await?;
+        job_execution_dto.job_name = Some(job_name.to_string());
+        Ok(job_execution_dto)
+    } else {
+        Err(response.error_for_status().unwrap_err().into())
+    }
 }
 
 pub async fn get_job_execution_by_id(
     job_name: &str,
     job_execution_id: i32,
 ) -> Result<JobExecutionDTO> {
-    Ok(get_hopsworks_client()
+    let response = get_hopsworks_client()
         .await
         .request(
             Method::GET,
@@ -35,13 +41,19 @@ pub async fn get_job_execution_by_id(
         .await?
         .query(&[("sort_by", "submissiontime:desc")])
         .send()
-        .await?
-        .json::<JobExecutionDTO>()
-        .await?)
+        .await?;
+
+    if response.status().is_success() {
+        let mut job_execution_dto = response.json::<JobExecutionDTO>().await?;
+        job_execution_dto.job_name = Some(job_name.to_string());
+        Ok(job_execution_dto)
+    } else {
+        Err(response.error_for_status().unwrap_err().into())
+    }
 }
 
 pub async fn get_job_executions(job_name: &str) -> Result<Vec<JobExecutionDTO>> {
-    Ok(get_hopsworks_client()
+    let mut job_execution_dtos = get_hopsworks_client()
         .await
         .request(
             Method::GET,
@@ -53,7 +65,12 @@ pub async fn get_job_executions(job_name: &str) -> Result<Vec<JobExecutionDTO>> 
         .send()
         .await?
         .json::<Vec<JobExecutionDTO>>()
-        .await?)
+        .await?;
+
+    for job_execution_dto in job_execution_dtos.iter_mut() {
+        job_execution_dto.job_name = Some(job_name.to_string());
+    }
+    Ok(job_execution_dtos)
 }
 
 pub async fn delete_job_execution(job_name: &str, job_execution_id: i32) -> Result<()> {
