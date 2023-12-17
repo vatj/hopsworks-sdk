@@ -155,6 +155,31 @@ impl From<FeatureStoreDTO> for FeatureStore {
 }
 
 impl FeatureStore {
+    /// Get a [`FeatureGroup`] by name and optional version. If no version is provided, the latest version is returned.
+    /// Returns `None` if no [`FeatureGroup`] with the given name and version exists. [`FeatureGroup`]s are the main interface
+    /// to insert or upsert Feature data to the Feature Store.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the [`FeatureGroup`]
+    /// * `version` - The version of the [`FeatureGroup`]. If no version is provided, the latest version is returned.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    /// use polars::prelude::*;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_group = feature_store.get_feature_group("my_fg", Some(1)).await?.expect("Feature Group not found");
+    ///
+    ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
+    ///   feature_group.insert(&mut df).await?;
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
     pub async fn get_feature_group(
         &self,
         name: &str,
@@ -169,6 +194,41 @@ impl FeatureStore {
         }
     }
 
+    /// Get a [`FeatureGroup`] by name and optional version. If no version is provided, the latest version is returned.
+    /// If the [`FeatureGroup`] does not exist in the backend, a local [`FeatureGroup`] entity is created.
+    /// [`FeatureGroup`]s are the main interface to insert or upsert Feature data to the [`FeatureStore`].
+    /// Convenience method to avoid needing a separate script for the first iteration of a Feature Engineering pipeline.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the [`FeatureGroup`]
+    /// * `version` - The version of the [`FeatureGroup`]. If no version is provided, the latest version is returned.
+    /// * `description` - Optional description of the [`FeatureGroup`]
+    /// * `primary_key` - List of primary key(s) of the [`FeatureGroup`]
+    /// * `event_time` - Optional event time of the [`FeatureGroup`]
+    /// * `online_enabled` - Whether the [`FeatureGroup`] is online enabled or not
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    /// use polars::prelude::*;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
+    ///
+    ///   let feature_group = feature_store.get_or_create_feature_group(
+    ///     "my_fg",
+    ///     Some(1),
+    ///     None,
+    ///     vec!["primary_key_feature_name(s)"],
+    ///     Some("event_time_feature_name"),
+    ///     false
+    ///   ).await?;
+    ///
+    ///   feature_group.insert(&mut df).await?;
+    ///
     pub async fn get_or_create_feature_group(
         &self,
         name: &str,
