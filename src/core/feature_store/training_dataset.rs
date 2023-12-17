@@ -15,7 +15,7 @@ use crate::{
             },
             transformation_function::entities::TransformationFunctionDTO,
         },
-        platform::job::entities::JobDTO,
+        platform::job::JobDTO,
     },
     {
         feature_store::feature_view::{training_dataset::TrainingDataset, FeatureView},

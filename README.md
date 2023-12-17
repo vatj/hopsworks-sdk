@@ -1,4 +1,4 @@
-# HOPWORKS-RS
+# hopsworks_rs
 
 Hopsworks-rs is a Rust SDK to interact with the Hopsworks Platform and Feature Store. It is intended to be used in conjunction with the [Hopsworks Feature Store](https://www.hopsworks.ai/the-ml-platform-for-batch-and-real-time-data) to build end-to-end machine learning pipelines. Using Rust and Hopsworks-rs you can put real-time data pipelines, feature engineering, model training and serving in the same system and leverage the power of the Feature Store to build and deploy AI/ML systems faster.
 
@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
    vec!["primary_key_feature_name(s)"],
    Some("event_time_feature_name"),
    false
- );
+ )?;
  fg.insert(&mut df).await?;
 
  Ok(())
@@ -112,11 +112,3 @@ Contributions are welcome, although the contributing.md is still a work in progr
 ## Open-Source
 
 Hopsworks-rs is available under the AGPL-V3 license. In plain English this means that you are free to use it and even build paid services on it, but if you modify the source code, you should also release back your changes and any systems built around it as AGPL-V3.
-
-```
-
-```
-
-```
-
-```

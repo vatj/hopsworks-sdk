@@ -23,11 +23,11 @@ async fn main() -> Result<()> {
     println!("{:#?}", feature_store);
 
     if let Some(feature_group) = feature_store
-        .get_feature_group_by_name_and_version(
+        .get_feature_group(
             std::env::var("HOPSWORKS_FEATURE_GROUP_NAME")
                 .unwrap_or_default()
                 .as_str(),
-            1,
+            Some(1),
         )
         .await?
     {

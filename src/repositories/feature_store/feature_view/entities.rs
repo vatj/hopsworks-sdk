@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::repositories::{
     feature_store::{query::entities::QueryDTO, statistics_config::entities::StatisticsConfigDTO},
-    platform::users::entities::UserDTO,
+    platform::users::UserDTO,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

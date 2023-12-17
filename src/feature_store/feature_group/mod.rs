@@ -20,6 +20,7 @@ use crate::{
     core::feature_store::feature_group,
     core::feature_store::query::read_with_arrow_flight_client,
     feature_store::{query::entities::Query, FeatureStore},
+    platform::job_execution::JobExecution,
     repositories::feature_store::feature_group::entities::FeatureGroupDTO,
     util,
 };
@@ -51,7 +52,7 @@ use crate::platform::user::User;
 ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
 ///
 ///   let feature_group = feature_store
-///      .get_feature_group_by_name_and_version("my_feature_group", 1)
+///      .get_feature_group("my_feature_group", Some(1))
 ///      .await?
 ///      .expect("Feature Group not found");
 ///
@@ -232,6 +233,9 @@ impl FeatureGroup {
     /// # Arguments
     /// * `dataframe` - A mutable reference to a Polars DataFrame containing the data to insert.
     ///
+    /// # Returs
+    /// A JobExecution object containing information about status of the insertion job.
+    ///
     /// # Example
     /// ```no_run
     /// use color_eyre::Result;
@@ -244,7 +248,7 @@ impl FeatureGroup {
     ///   let feature_store = project.get_feature_store().await?;
     ///
     ///   let feature_group = feature_store
-    ///     .get_feature_group_by_name_and_version("my_feature_group", 1)
+    ///     .get_feature_group("my_feature_group", Some(1))
     ///     .await?
     ///     .expect("Feature Group not found");
     ///
@@ -258,7 +262,7 @@ impl FeatureGroup {
     ///  Ok(())
     /// }
     /// ```
-    pub async fn insert(&self, dataframe: &mut DataFrame) -> Result<()> {
+    pub async fn insert(&self, dataframe: &mut DataFrame) -> Result<JobExecution> {
         if self.get_id().is_none() {
             let feature_group_dto = feature_group::save_feature_group_metadata(
                 self.featurestore_id,
@@ -334,7 +338,7 @@ impl FeatureGroup {
     ///  let feature_store = project.get_feature_store().await?;
     ///
     ///  let feature_group = feature_store
-    ///    .get_feature_group_by_name_and_version("my_feature_group", 1)
+    ///    .get_feature_group("my_feature_group", Some(1))
     ///    .await?
     ///    .expect("Feature Group not found");
     ///
@@ -379,7 +383,7 @@ impl FeatureGroup {
     ///  let feature_store = project.get_feature_store().await?;
     ///  
     ///  let feature_group = feature_store
-    ///    .get_feature_group_by_name_and_version("my_feature_group", 1)
+    ///    .get_feature_group("my_feature_group", None)
     ///    .await?
     ///    .expect("Feature Group not found");
     ///

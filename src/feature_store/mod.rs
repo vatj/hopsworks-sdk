@@ -59,7 +59,7 @@ pub struct FeatureStore {
     //       vec!["primary_key_feature_name(s)"],
     //       Some("event_time_feature_name"),
     //       false
-    //    );
+    //    )?;
     //
     //    // Ingest data from a CSV file
     //    let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
@@ -81,8 +81,8 @@ pub struct FeatureStore {
     //   let fs = hopsworks_login(None).await?.get_feature_store().await?;
     //
     //  // Get Feature Groups by name and version
-    //  let fg1 = fs.get_feature_group_by_name_and_version("fg1", 1).await?.expect("Feature Group not found");
-    //  let fg2 = fs.get_feature_group_by_name_and_version("fg2", 1).await?.expect("Feature Group not found");
+    //  let fg1 = fs.get_feature_group("fg1", Some(1)).await?.expect("Feature Group not found");
+    //  let fg2 = fs.get_feature_group("fg2", Some(1)).await?.expect("Feature Group not found");
     //
     //  // Create a Feature View
     //  let query = fg1.select(vec!["feature1", "feature2"])?
@@ -155,10 +155,35 @@ impl From<FeatureStoreDTO> for FeatureStore {
 }
 
 impl FeatureStore {
-    pub async fn get_feature_group_by_name_and_version(
+    /// Get a [`FeatureGroup`] by name and optional version. If no version is provided, the latest version is returned.
+    /// Returns `None` if no [`FeatureGroup`] with the given name and version exists. [`FeatureGroup`]s are the main interface
+    /// to insert or upsert Feature data to the Feature Store.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the [`FeatureGroup`]
+    /// * `version` - The version of the [`FeatureGroup`]. If no version is provided, the latest version is returned.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    /// use polars::prelude::*;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_group = feature_store.get_feature_group("my_fg", Some(1)).await?.expect("Feature Group not found");
+    ///
+    ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
+    ///   feature_group.insert(&mut df).await?;
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
+    pub async fn get_feature_group(
         &self,
         name: &str,
-        version: i32,
+        version: Option<i32>,
     ) -> Result<Option<FeatureGroup>> {
         if let Some(feature_group_dto) =
             get_feature_group_by_name_and_version(self.featurestore_id, name, version).await?
@@ -169,7 +194,114 @@ impl FeatureStore {
         }
     }
 
+    /// Get a [`FeatureGroup`] by name and optional version. If no version is provided, the latest version is returned.
+    /// If the [`FeatureGroup`] does not exist in the backend, a local [`FeatureGroup`] entity is created.
+    /// [`FeatureGroup`]s are the main interface to insert or upsert Feature data to the [`FeatureStore`].
+    /// Convenience method to avoid needing a separate script for the first iteration of a Feature Engineering pipeline.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the [`FeatureGroup`]
+    /// * `version` - The version of the [`FeatureGroup`]. If no version is provided, the latest version is returned.
+    /// * `description` - Optional description of the [`FeatureGroup`]
+    /// * `primary_key` - List of primary key(s) of the [`FeatureGroup`]
+    /// * `event_time` - Optional event time of the [`FeatureGroup`]
+    /// * `online_enabled` - Whether the [`FeatureGroup`] is online enabled or not
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    /// use polars::prelude::*;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
+    ///
+    ///   let feature_group = feature_store.get_or_create_feature_group(
+    ///     "my_fg",
+    ///     Some(1),
+    ///     None,
+    ///     vec!["primary_key_feature_name(s)"],
+    ///     Some("event_time_feature_name"),
+    ///     false
+    ///   ).await?;
+    ///
+    ///   feature_group.insert(&mut df).await?;
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
     pub async fn get_or_create_feature_group(
+        &self,
+        name: &str,
+        version: Option<i32>,
+        description: Option<&str>,
+        primary_key: Vec<&str>,
+        event_time: Option<&str>,
+        online_enabled: bool,
+    ) -> Result<FeatureGroup> {
+        if let Some(feature_group) = self.get_feature_group(name, version).await? {
+            return Ok(feature_group);
+        }
+
+        // If FG does not exist in backend, create a local Feature Group entity not registered with Hopsworks
+        self.create_feature_group(
+            name,
+            version.unwrap_or(1),
+            description,
+            primary_key,
+            event_time,
+            online_enabled,
+        )
+    }
+
+    /// Create a [`FeatureGroup`] with the given name and version. The [`FeatureGroup`] is not registered with Hopsworks,
+    /// until the first insert/upsert is performed.
+    ///
+    /// A [`FeatureGroup`] is the main interface to insert or upsert Feature data to the Feature Store.
+    /// It is a logical representation of a Feature table in the Feature Store.
+    /// A [`FeatureGroup`] is defined by a set of Features, primary key(s) and an optional event time.
+    /// Additionally, a [`FeatureGroup`] can be configured to be online enabled, which means that the data is also
+    /// available for real-time serving.
+    ///
+    /// > **Note**: Type of the Features are inferred from the data type of the columns in the DataFrame on first insertion,
+    /// > setting the table schema for future inserts/upserts.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the [`FeatureGroup`]
+    /// * `version` - The version of the [`FeatureGroup`]
+    /// * `description` - Optional description of the [`FeatureGroup`]
+    /// * `primary_key` - List of primary key(s) of the [`FeatureGroup`]
+    /// * `event_time` - Optional event time of the [`FeatureGroup`]
+    /// * `online_enabled` - Whether the [`FeatureGroup`] is online enabled or not
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    /// use polars::prelude::*;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
+    ///
+    ///   let feature_group = feature_store.create_feature_group(
+    ///     "my_fg",
+    ///     1,
+    ///     None,
+    ///     vec!["primary_key_feature_name(s)"],
+    ///     Some("event_time_feature_name"),
+    ///     false
+    ///   )?;
+    ///  
+    ///   feature_group.insert(&mut df).await?;
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
+    pub fn create_feature_group(
         &self,
         name: &str,
         version: i32,
@@ -178,15 +310,8 @@ impl FeatureStore {
         event_time: Option<&str>,
         online_enabled: bool,
     ) -> Result<FeatureGroup> {
-        if let Some(feature_group) = self
-            .get_feature_group_by_name_and_version(name, version)
-            .await?
-        {
-            return Ok(feature_group);
-        }
-
-        // If FG does not exist in backend, create a local Feature Group entity not registered with Hopsworks
-        Ok(self.create_feature_group(
+        Ok(FeatureGroup::new_local(
+            self,
             name,
             version,
             description,
@@ -196,26 +321,45 @@ impl FeatureStore {
         ))
     }
 
-    pub fn create_feature_group(
-        &self,
-        name: &str,
-        version: i32,
-        description: Option<&str>,
-        primary_key: Vec<&str>,
-        event_time: Option<&str>,
-        online_enabled: bool,
-    ) -> FeatureGroup {
-        FeatureGroup::new_local(
-            self,
-            name,
-            version,
-            description,
-            primary_key,
-            event_time,
-            online_enabled,
-        )
-    }
-
+    /// Create a [`FeatureView`] with the given name and version. The [`FeatureView`] is the main interface to read data from the Feature Store,
+    /// either online for real-time or offline for batch applications. It is a logical view on top of one or more [`FeatureGroup`]s.
+    /// The [`FeatureView`] is defined by a [`Query`] that selects Features from one or more [`FeatureGroup`]s. Query support joins, aggregations,
+    /// filtering and transformations. The [`FeatureView`] also defines a set of transformations to apply to the raw data before serving it to the model.
+    ///
+    /// > **Note**: Applying transformation function to feature vector or dataframes is only supported in the
+    /// > [Feature Store Python SDK](https://github.com/logicalclocks/feature-store-api). However you can still use the
+    /// > [`TransformationFunction`] when registering a new [`FeatureView`] with the [`FeatureStore`] using the Rust SDK.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the [`FeatureView`]
+    /// * `version` - The version of the [`FeatureView`]
+    /// * `query` - The [`Query`] that defines the [`FeatureView`]
+    /// * `transformation_functions` - Optional hashmap mapping a feature name to a [`TransformationFunction`]s registered in the [`FeatureStore`].
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_group = feature_store.get_feature_group("my_fg", None).await?.expect("Feature Group not found");
+    ///
+    ///   let query = feature_group.select(vec!["feature1", "feature2"])?;
+    ///   let feature_view = feature_store.create_feature_view(
+    ///     "my_feature_view",
+    ///     1,
+    ///     query,
+    ///     None
+    ///   ).await?;
+    ///
+    ///   let df = feature_view.read_with_arrow_flight_client().await?;
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
     pub async fn create_feature_view(
         &self,
         name: &str,
@@ -234,6 +378,30 @@ impl FeatureStore {
         .await
     }
 
+    /// Get a [`FeatureView`] by name and optional version. If no version is provided, the latest version is returned.
+    /// Returns `None` if no [`FeatureView`] with the given name and version exists. [`FeatureView`]s are the main interface
+    /// to read data from the Feature Store, either online for real-time or offline for batch applications.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the [`FeatureView`]
+    /// * `version` - The version of the [`FeatureView`]. If no version is provided, the latest version is returned.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_view = feature_store.get_feature_view("my_feature_view", Some(1)).await?.expect("Feature View not found");
+    ///
+    ///   let my_df = feature_view.read_with_arrow_flight_client().await?;
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
     pub async fn get_feature_view(
         &self,
         name: &str,
@@ -242,6 +410,43 @@ impl FeatureStore {
         get_feature_view_by_name_and_version(self.featurestore_id, name, version).await
     }
 
+    /// Get a [`TransformationFunction`] by name and optional version. If no version is provided, the latest version is returned.
+    /// Returns `None` if no [`TransformationFunction`] with the given name and version exists. However you can still use the
+    /// [`TransformationFunction`] when registering a new [`FeatureView`] with the [`FeatureStore`].
+    ///
+    /// > **Note**: Applying transformation function to feature vector or dataframes is only supported in the
+    /// > [Feature Store Python SDK](https://github.com/logicalclocks/feature-store-api).
+    ///
+    /// # Arguments
+    ///  * `name` - The name of the [`TransformationFunction`]
+    ///  * `version` - The version of the [`TransformationFunction`]. If no version is provided, the latest version is returned.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    /// use std::collections::HashMap;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_group = feature_store.get_feature_group("my_fg", None).await?.expect("Feature Group not found");
+    ///
+    ///   let query = feature_group.select(vec!["feature1", "feature2"])?;
+    ///   let transformation_function = feature_store.get_transformation_function("min_max_scaler", Some(1)).await?;
+    ///   let transformation_functions = HashMap::from([("feature1".to_owned(), transformation_function.unwrap())]);
+    ///   
+    ///   let feature_view = feature_store.create_feature_view(
+    ///     "my_feature_view",
+    ///     1,
+    ///     query,
+    ///     Some(transformation_functions),
+    ///   ).await?;
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
     pub async fn get_transformation_function(
         &self,
         name: &str,
@@ -250,7 +455,32 @@ impl FeatureStore {
         get_transformation_function_by_name_and_version(self.featurestore_id, name, version).await
     }
 
-    pub async fn get_training_dataset_by_name_and_version(
+    /// Get a [`TrainingDataset`] by name and optional version. If no version is provided, the latest version is returned.
+    /// Returns `None` if no [`TrainingDataset`] with the given name and version exists.
+    /// Note that this method does not return the actual data of the [`TrainingDataset`], but only the metadata objects.
+    /// Depending on the type of [`TrainingDataset`], you can either read the data in-memory directly or download the corresponding file from Hopsworks.
+    ///
+    /// # Arguments
+    ///   * `name` - The name of the [`TrainingDataset`]
+    ///   * `version` - The version of the [`TrainingDataset`]. If no version is provided, the latest version is returned.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let td = feature_store.get_training_dataset("my_td", None).await?;
+    ///
+    ///   // TODO: Update when more methods are implemented on TrainingDataset
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
+    pub async fn get_training_dataset(
         &self,
         name: &str,
         version: Option<i32>,

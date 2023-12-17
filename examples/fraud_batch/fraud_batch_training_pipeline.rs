@@ -24,21 +24,21 @@ async fn main() -> Result<()> {
     let fs = project.get_feature_store().await?;
 
     let trans_fg = fs
-        .get_feature_group_by_name_and_version(
+        .get_feature_group(
             "transactions_fraud_batch_fg_rust",
-            1,
+            Some(1),
         )
         .await?
         .expect("Feature Group not found. Did you run the fraud_batch_ingestion_pipeline example first?");
 
     let window_aggs_fg = fs
-        .get_feature_group_by_name_and_version(
+        .get_feature_group(
             format!(
                 "transactions_{}_aggs_fraud_batch_fg_rust",
                 window_len
             )
             .as_str(),
-            1,
+            Some(1),
         )
         .await?
         .expect("Feature Group not found. Check that window_len matches the fraud_batch_ingestion_pipeline example.");

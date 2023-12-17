@@ -35,6 +35,32 @@ pub async fn get_feature_group_by_name_and_version(
     }
 }
 
+pub async fn get_latest_feature_group_by_name(
+    feature_store_id: i32,
+    name: &str,
+) -> Result<Option<FeatureGroupDTO>> {
+    let response = get_hopsworks_client()
+        .await
+        .request(
+            Method::GET,
+            format!("featurestores/{feature_store_id}/featuregroups/{name}").as_str(),
+            true,
+            true,
+        )
+        .await?
+        .send()
+        .await?;
+
+    match response.status() {
+        StatusCode::NOT_FOUND => Ok(None),
+        StatusCode::OK => Ok(response.json::<Vec<FeatureGroupDTO>>().await?.pop()),
+        _ => panic!(
+            "Proper error handling when fetching FG is not implemented yet. Response status: {:?}",
+            response.status()
+        ), // This is bad...
+    }
+}
+
 pub async fn get_feature_group_by_id(
     feature_store_id: i32,
     feature_group_id: i32,

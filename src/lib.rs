@@ -49,7 +49,7 @@
 //!    vec!["primary_key_feature_name(s)"],
 //!    Some("event_time_feature_name"),
 //!    false
-//!  );
+//!  )?;
 //!  fg.insert(&mut df).await?;
 //!
 //!  // Create a feature view to read data from the Feature Store,
@@ -93,6 +93,8 @@ pub(crate) mod core;
 pub(crate) mod kafka_producer;
 pub(crate) mod repositories;
 pub(crate) mod util;
+
+pub use feature_store::{FeatureGroup, FeatureStore, FeatureView};
 
 pub mod feature_store;
 pub mod platform;

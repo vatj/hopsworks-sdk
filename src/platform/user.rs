@@ -1,11 +1,11 @@
+//! Users in Hopsworks Feature Store.
+//!
+//! No user methods are implemented in the rust SDK as of now,
+//! but it can be used to get information about the user that is logged in to the SDK.
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::platform::users::entities::UserDTO;
+use crate::repositories::platform::users::UserDTO;
 
-/// User entity in Hopsworks Feature Store.
-///
-/// No user methods are implemented in the rust SDK as of now,
-/// but it can be used to get information about the user that is logged in to the SDK.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     pub email: String,
