@@ -1,4 +1,9 @@
 //! Project with Feature Store and Other Platform Resources
+//!
+//! The [`Project`] is the top-level entity in Hopsworks. With its own [`FeatureStore`][crate::feature_store::FeatureStore],
+//! it is intended to hold multiple [`FeatureGroup`][crate::feature_store::FeatureGroup]s and
+//! [`FeatureView`][crate::feature_store::FeatureView]s, the [`Job`]s to backfill
+//! or create [`TrainingDataset`][crate::feature_store::feature_view::TrainingDataset]s, managing [`User`][super::user::User]s access, etc...
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 

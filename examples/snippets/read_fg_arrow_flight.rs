@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let fg_name = std::env::var("HOPSWORKS_FEATURE_GROUP_NAME").unwrap_or_default();
 
     if let Some(feature_group) = feature_store
-        .get_feature_group_by_name_and_version(fg_name.as_str(), 1)
+        .get_feature_group(fg_name.as_str(), Some(1))
         .await?
     {
         let now = Instant::now();

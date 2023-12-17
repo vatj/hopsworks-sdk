@@ -66,7 +66,7 @@ async fn main() -> Result<()> {
     let trans_fg = fs
         .get_or_create_feature_group(
             "transactions_fraud_batch_fg_rust",
-            1,
+            Some(1),
             Some("Transactions data"),
             vec!["cc_num"],
             Some("datetime"),
@@ -80,7 +80,7 @@ async fn main() -> Result<()> {
     let window_aggs_fg = fs
         .get_or_create_feature_group(
             format!("transactions_{}_aggs_fraud_batch_fg_rust", window_len).as_str(),
-            1,
+            Some(1),
             Some(format!("Aggregate transaction data over {} windows.", window_len).as_str()),
             vec!["cc_num"],
             Some("datetime"),

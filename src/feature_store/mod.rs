@@ -193,6 +193,51 @@ impl FeatureStore {
         ))
     }
 
+    /// Create a [`FeatureGroup`] with the given name and version. The [`FeatureGroup`] is not registered with Hopsworks,
+    /// until the first insert/upsert is performed.
+    ///
+    /// A [`FeatureGroup`] is the main interface to insert or upsert Feature data to the Feature Store.
+    /// It is a logical representation of a Feature table in the Feature Store.
+    /// A [`FeatureGroup`] is defined by a set of Features, primary key(s) and an optional event time.
+    /// Additionally, a [`FeatureGroup`] can be configured to be online enabled, which means that the data is also
+    /// available for real-time serving.
+    ///
+    /// > **Note**: Type of the Features are inferred from the data type of the columns in the DataFrame on first insertion,
+    /// > setting the table schema for future inserts/upserts.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the [`FeatureGroup`]
+    /// * `version` - The version of the [`FeatureGroup`]
+    /// * `description` - Optional description of the [`FeatureGroup`]
+    /// * `primary_key` - List of primary key(s) of the [`FeatureGroup`]
+    /// * `event_time` - Optional event time of the [`FeatureGroup`]
+    /// * `online_enabled` - Whether the [`FeatureGroup`] is online enabled or not
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    /// use polars::prelude::*;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
+    ///
+    ///   let feature_group = feature_store.create_feature_group(
+    ///     "my_fg",
+    ///     1,
+    ///     None,
+    ///     vec!["primary_key_feature_name(s)"],
+    ///     Some("event_time_feature_name"),
+    ///     false
+    ///   ).await?;
+    ///  
+    ///   feature_group.insert(&mut df).await?;
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
     pub fn create_feature_group(
         &self,
         name: &str,
@@ -235,7 +280,23 @@ impl FeatureStore {
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   
+    ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_group = feature_store.get_feature_group("my_fg", None).await?.expect("Feature Group not found");
+    ///
+    ///   let query = feature_group.select(vec!["feature1", "feature2"])?;
+    ///   let feature_view = feature_store.create_feature_view(
+    ///     "my_feature_view",
+    ///     1,
+    ///     query,
+    ///     None
+    ///   ).await?;
+    ///
+    ///   let df = feature_view.read_with_arrow_flight_client().await?;
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
     pub async fn create_feature_view(
         &self,
         name: &str,
