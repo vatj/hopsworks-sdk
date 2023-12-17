@@ -213,6 +213,29 @@ impl FeatureStore {
         )
     }
 
+    /// Create a [`FeatureView`] with the given name and version. The [`FeatureView`] is the main interface to read data from the Feature Store,
+    /// either online for real-time or offline for batch applications. It is a logical view on top of one or more [`FeatureGroup`]s.
+    /// The [`FeatureView`] is defined by a [`Query`] that selects Features from one or more [`FeatureGroup`]s. Query support joins, aggregations,
+    /// filtering and transformations. The [`FeatureView`] also defines a set of transformations to apply to the raw data before serving it to the model.
+    ///
+    /// > **Note**: Applying transformation function to feature vector or dataframes is only supported in the
+    /// > [Feature Store Python SDK](https://github.com/logicalclocks/feature-store-api). However you can still use the
+    /// > [`TransformationFunction`] when registering a new [`FeatureView`] with the [`FeatureStore`] using the Rust SDK.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the [`FeatureView`]
+    /// * `version` - The version of the [`FeatureView`]
+    /// * `query` - The [`Query`] that defines the [`FeatureView`]
+    /// * `transformation_functions` - Optional hashmap mapping a feature name to a [`TransformationFunction`]s registered in the [`FeatureStore`].
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   
     pub async fn create_feature_view(
         &self,
         name: &str,
@@ -231,6 +254,30 @@ impl FeatureStore {
         .await
     }
 
+    /// Get a [`FeatureView`] by name and optional version. If no version is provided, the latest version is returned.
+    /// Returns `None` if no [`FeatureView`] with the given name and version exists. [`FeatureView`]s are the main interface
+    /// to read data from the Feature Store, either online for real-time or offline for batch applications.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the [`FeatureView`]
+    /// * `version` - The version of the [`FeatureView`]. If no version is provided, the latest version is returned.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_view = feature_store.get_feature_view("my_feature_view", Some(1)).await?.expect("Feature View not found");
+    ///
+    ///   let my_df = feature_view.read_with_arrow_flight_client().await?;
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
     pub async fn get_feature_view(
         &self,
         name: &str,
@@ -239,6 +286,42 @@ impl FeatureStore {
         get_feature_view_by_name_and_version(self.featurestore_id, name, version).await
     }
 
+    /// Get a [`TransformationFunction`] by name and optional version. If no version is provided, the latest version is returned.
+    /// Returns `None` if no [`TransformationFunction`] with the given name and version exists. However you can still use the
+    /// [`TransformationFunction`] when registering a new [`FeatureView`] with the [`FeatureStore`].
+    ///
+    /// > **Note**: Applying transformation function to feature vector or dataframes is only supported in the
+    /// > [Feature Store Python SDK](https://github.com/logicalclocks/feature-store-api).
+    ///
+    /// # Arguments
+    ///  * `name` - The name of the [`TransformationFunction`]
+    ///  * `version` - The version of the [`TransformationFunction`]. If no version is provided, the latest version is returned.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_group = feature_store.get_feature_group("my_fg", None).await?.expect("Feature Group not found");
+    ///
+    ///   let query = feature_group.select(vec!["feature1", "feature2"])?;
+    ///   let transformation_function = feature_store.get_transformation_function("min_max_scaler", Some(1)).await?;
+    ///   let transformation_functions = HashMap::from([("feature1".to_owned(), transformation_function.unwrap())]);
+    ///   
+    ///   let feature_view = feature_store.create_feature_view(
+    ///     "my_feature_view",
+    ///     1,
+    ///     query,
+    ///     Some(transformation_functions),
+    ///   ).await?;
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
     pub async fn get_transformation_function(
         &self,
         name: &str,
@@ -247,6 +330,31 @@ impl FeatureStore {
         get_transformation_function_by_name_and_version(self.featurestore_id, name, version).await
     }
 
+    /// Get a [`TrainingDataset`] by name and optional version. If no version is provided, the latest version is returned.
+    /// Returns `None` if no [`TrainingDataset`] with the given name and version exists.
+    /// Note that this method does not return the actual data of the [`TrainingDataset`], but only the metadata objects.
+    /// Depending on the type of [`TrainingDataset`], you can either read the data in-memory directly or download the corresponding file from Hopsworks.
+    ///
+    /// # Arguments
+    ///   * `name` - The name of the [`TrainingDataset`]
+    ///   * `version` - The version of the [`TrainingDataset`]. If no version is provided, the latest version is returned.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks_rs::hopsworks_login;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
+    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let td = feature_store.get_training_dataset("my_td", None).await?;
+    ///
+    ///   // TODO: Update when more methods are implemented on TrainingDataset
+    ///
+    ///   Ok(())
+    /// }
+    /// ```
     pub async fn get_training_dataset(
         &self,
         name: &str,
