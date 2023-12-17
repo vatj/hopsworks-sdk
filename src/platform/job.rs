@@ -56,7 +56,7 @@ impl Job {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopswors_login;
+    /// use hopsworks_rs::hopsworks_login;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
@@ -64,8 +64,8 @@ impl Job {
     ///   let job = project.get_job("my_backfilling_job").await?;
     ///   let job_exec = job.run(true).await?;
     ///
-    ///   // Check execution status
-    ///   println!("{:?}", job_exec.status);
+    ///   // Check execution state
+    ///   println!("{:?}", job_exec.get_state());
     ///   Ok(())
     /// }
     /// ```
@@ -85,7 +85,7 @@ impl Job {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    /// use hopsworks_rs::{hopsworks_login, platform::job_execution::JobExecutionState};
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
@@ -93,8 +93,8 @@ impl Job {
     ///  let job = project.get_job("my_backfilling_job").await?;
     ///  let executions = job.get_executions().await?;
     ///  println!("Most recent failed executions {:?}",
-    ///    executions.iter().find(|e| e.status == "FAILED").expect("No failed executions found")
-    ///    .submission_time);
+    ///    executions.iter().find(|e| e.get_state() == JobExecutionState::Failed).expect("No failed executions found")
+    ///    .get_submission_time());
     ///  Ok(())
     /// }
     /// ```
@@ -120,7 +120,7 @@ impl Job {
     ///   let project = hopsworks_login(None).await?;
     ///   let job = project.get_job("my_backfilling_job").await?;
     ///
-    ///   let mut job_config = job.get_configuration()?;
+    ///   let mut job_config = job.get_configuration();
     ///   job_config["appPath"] = "my-new-pyspark-job".into();
     ///   job.save(job_config).await?;
     ///   
@@ -146,6 +146,8 @@ impl Job {
     ///   let project = hopsworks_login(None).await?;
     ///   let job = project.get_job("my_backfilling_job").await?;
     ///   job.delete().await?;
+    ///
+    ///   Ok(())
     /// }
     /// ```
     pub async fn delete(&self) -> Result<()> {
@@ -215,7 +217,7 @@ pub async fn get_job_configuration(job_type: &str) -> Result<serde_json::Value> 
 ///   default_pyspark_job_config["appPath"] = "my-pyspark-job".into();
 ///   
 ///   let job = create_job("my-pyspark-job", default_pyspark_job_config).await?;
-///   job.run().await?;
+///   job.run(false).await?;
 ///
 ///   Ok(())
 /// }

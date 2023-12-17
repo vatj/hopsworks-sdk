@@ -59,7 +59,7 @@ pub struct FeatureStore {
     //       vec!["primary_key_feature_name(s)"],
     //       Some("event_time_feature_name"),
     //       false
-    //    );
+    //    )?;
     //
     //    // Ingest data from a CSV file
     //    let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
@@ -81,8 +81,8 @@ pub struct FeatureStore {
     //   let fs = hopsworks_login(None).await?.get_feature_store().await?;
     //
     //  // Get Feature Groups by name and version
-    //  let fg1 = fs.get_feature_group_by_name_and_version("fg1", 1).await?.expect("Feature Group not found");
-    //  let fg2 = fs.get_feature_group_by_name_and_version("fg2", 1).await?.expect("Feature Group not found");
+    //  let fg1 = fs.get_feature_group("fg1", Some(1)).await?.expect("Feature Group not found");
+    //  let fg2 = fs.get_feature_group("fg2", Some(1)).await?.expect("Feature Group not found");
     //
     //  // Create a Feature View
     //  let query = fg1.select(vec!["feature1", "feature2"])?
@@ -229,6 +229,9 @@ impl FeatureStore {
     ///
     ///   feature_group.insert(&mut df).await?;
     ///
+    ///   Ok(())
+    /// }
+    /// ```
     pub async fn get_or_create_feature_group(
         &self,
         name: &str,
@@ -243,14 +246,14 @@ impl FeatureStore {
         }
 
         // If FG does not exist in backend, create a local Feature Group entity not registered with Hopsworks
-        Ok(self.create_feature_group(
+        self.create_feature_group(
             name,
             version.unwrap_or(1),
             description,
             primary_key,
             event_time,
             online_enabled,
-        ))
+        )
     }
 
     /// Create a [`FeatureGroup`] with the given name and version. The [`FeatureGroup`] is not registered with Hopsworks,
@@ -291,7 +294,7 @@ impl FeatureStore {
     ///     vec!["primary_key_feature_name(s)"],
     ///     Some("event_time_feature_name"),
     ///     false
-    ///   ).await?;
+    ///   )?;
     ///  
     ///   feature_group.insert(&mut df).await?;
     ///
@@ -306,8 +309,8 @@ impl FeatureStore {
         primary_key: Vec<&str>,
         event_time: Option<&str>,
         online_enabled: bool,
-    ) -> FeatureGroup {
-        FeatureGroup::new_local(
+    ) -> Result<FeatureGroup> {
+        Ok(FeatureGroup::new_local(
             self,
             name,
             version,
@@ -315,7 +318,7 @@ impl FeatureStore {
             primary_key,
             event_time,
             online_enabled,
-        )
+        ))
     }
 
     /// Create a [`FeatureView`] with the given name and version. The [`FeatureView`] is the main interface to read data from the Feature Store,
@@ -422,6 +425,7 @@ impl FeatureStore {
     /// ```no_run
     /// # use color_eyre::Result;
     /// use hopsworks_rs::hopsworks_login;
+    /// use std::collections::HashMap;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {

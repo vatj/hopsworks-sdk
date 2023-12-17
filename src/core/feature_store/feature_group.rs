@@ -7,6 +7,7 @@ use crate::{
         platform::job_execution,
     },
     kafka_producer::produce_df,
+    platform::job_execution::JobExecution,
     repositories::feature_store::{
         feature::payloads::NewFeaturePayload,
         feature_group::{self, entities::FeatureGroupDTO, payloads::NewFeatureGroupPayload},
@@ -63,7 +64,7 @@ pub async fn insert_in_registered_feature_group(
     online_topic_name: &str,
     dataframe: &mut DataFrame,
     primary_keys: Vec<String>,
-) -> Result<()> {
+) -> Result<JobExecution> {
     let kafka_connector =
         storage_connector::get_feature_store_kafka_connector(feature_store_id, true).await?;
     let ref_primary_keys = primary_keys.iter().map(|key| key.as_str()).collect();
@@ -85,10 +86,9 @@ pub async fn insert_in_registered_feature_group(
         feature_group_name, feature_group_version
     );
 
-    let _running_job_dto =
-        job_execution::start_new_execution_for_named_job(job_name.as_str()).await?;
-
-    Ok(())
+    Ok(JobExecution::from(
+        job_execution::start_new_execution_for_named_job(job_name.as_str()).await?,
+    ))
 }
 
 pub fn build_new_feature_group_payload<'a>(

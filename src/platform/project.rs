@@ -70,9 +70,9 @@ impl Project {
     ///  let project = hopsworks_login(None).await?;
     ///  let job = project.get_job("my_job").await?;
     ///
-    ///  let mut job_config = job.get_configuration().await?;
-    ///  job_config["driverCores"] = 2;
-    ///  job.update_job(job_config).await?;
+    ///  let mut job_config = job.get_configuration();
+    ///  job_config["driverCores"] = serde_json::Value::from(2);
+    ///  job.save(job_config).await?;
     ///  job.run(false).await?;
     ///  
     ///  Ok(())

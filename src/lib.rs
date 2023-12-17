@@ -49,7 +49,7 @@
 //!    vec!["primary_key_feature_name(s)"],
 //!    Some("event_time_feature_name"),
 //!    false
-//!  );
+//!  )?;
 //!  fg.insert(&mut df).await?;
 //!
 //!  // Create a feature view to read data from the Feature Store,

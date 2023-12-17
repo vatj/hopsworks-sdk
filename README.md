@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
    vec!["primary_key_feature_name(s)"],
    Some("event_time_feature_name"),
    false
- );
+ )?;
  fg.insert(&mut df).await?;
 
  Ok(())

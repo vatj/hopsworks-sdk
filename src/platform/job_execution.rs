@@ -53,7 +53,7 @@ impl JobExecution {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    /// use hopsworks_rs::{hopsworks_login, platform::job_execution::JobExecutionState};
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
@@ -61,8 +61,8 @@ impl JobExecution {
     ///   let job = project.get_job("my_backfilling_job").await?;
     ///   let job_exec = job.run(true).await?;
     ///
-    ///   if job_exec.state == "FAILED" {
-    ///     job_exec.download_logs("./logs/").await?;
+    ///   if job_exec.get_state() == JobExecutionState::Failed {
+    ///     job_exec.download_logs(Some("./logs/")).await?;
     ///   }
     ///
     ///   Ok(())
@@ -101,7 +101,7 @@ impl JobExecution {
     ///     .get_feature_store().await?;
     ///
     ///   let feature_group = feature_store
-    ///     .get_feature_group("my_feature_group", 1).await?
+    ///     .get_feature_group("my_feature_group", Some(1)).await?
     ///     .expect("Feature Group not found");
     ///   
     ///   let mut new_df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
@@ -125,6 +125,21 @@ impl JobExecution {
         crate::core::platform::job_execution::await_termination(self.job_name.as_str(), self.id)
             .await
     }
+
+    /// Get the state of the [`JobExecution`], one of [`JobExecutionState`].
+    pub fn get_state(&self) -> JobExecutionState {
+        self.state.clone()
+    }
+
+    /// Get the job name of the [`JobExecution`].
+    pub fn get_job_name(&self) -> String {
+        self.job_name.clone()
+    }
+
+    /// Get the submission time of the [`JobExecution`].
+    pub fn get_submission_time(&self) -> String {
+        self.submission_time.clone()
+    }
 }
 
 /// Represents the state of a job execution.
@@ -137,8 +152,8 @@ impl JobExecution {
 /// * Failed
 ///
 /// The state of a job execution is represented by a string.
-#[derive(Debug, Serialize, Deserialize, Clone)]
-enum JobExecutionState {
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum JobExecutionState {
     Initializing,
     Running,
     Terminated,
