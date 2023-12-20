@@ -19,7 +19,7 @@ use std::cell::{Cell, RefCell};
 use crate::{
     core::feature_store::feature_group,
     core::feature_store::query::read_with_arrow_flight_client,
-    feature_store::{query::entities::Query, FeatureStore},
+    feature_store::{query::Query, FeatureStore},
     platform::job_execution::JobExecution,
     repositories::feature_store::feature_group::entities::FeatureGroupDTO,
     util,

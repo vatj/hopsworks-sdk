@@ -10,7 +10,7 @@ use crate::clients::arrow_flight::client::HopsworksArrowFlightClientBuilder;
 use crate::core::feature_store::storage_connector;
 use crate::repositories::platform::variables::service::get_loadbalancer_external_domain;
 use crate::{
-    feature_store::query::entities::Query,
+    feature_store::query::Query,
     repositories::feature_store::{
         query,
         query::{entities::FeatureStoreQueryDTO, payloads::NewQueryPayload},

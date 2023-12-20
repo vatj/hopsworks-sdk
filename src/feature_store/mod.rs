@@ -24,7 +24,7 @@ use self::{
     feature_view::{
         training_dataset::TrainingDataset, transformation_function::TransformationFunction,
     },
-    query::entities::Query,
+    query::Query,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

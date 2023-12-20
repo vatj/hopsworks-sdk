@@ -3,7 +3,10 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    feature_store::query::entities::{JoinQuery, Query},
+    feature_store::query::{
+        logic_filter::{QueryFilterCondition, QueryLogicType},
+        JoinQuery, Query,
+    },
     repositories::feature_store::{
         feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO,
         storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
@@ -199,7 +202,7 @@ impl QueryArrowFlightPayload {
 pub struct QueryFilterArrowFlightPayload {
     #[serde(rename = "type")]
     pub filter_type: String,
-    pub condition: String,
+    pub condition: QueryFilterCondition,
     pub value: String,
     pub feature: String,
 }
@@ -208,13 +211,13 @@ pub struct QueryFilterArrowFlightPayload {
 pub struct QueryLogicArrowFlightPayload {
     #[serde(rename = "type")]
     pub filter_type: String,
-    pub logic_type: String,
+    pub logic_type: QueryLogicType,
     pub left_filter: Option<Box<QueryFilterOrLogicArrowFlightPayload>>,
     pub right_filter: Option<Box<QueryFilterOrLogicArrowFlightPayload>>,
 }
 
 impl QueryFilterArrowFlightPayload {
-    pub fn new(condition: String, value: String, feature: String) -> Self {
+    pub fn new(condition: QueryFilterCondition, value: String, feature: String) -> Self {
         Self {
             filter_type: "filter".to_string(),
             condition,
@@ -226,7 +229,7 @@ impl QueryFilterArrowFlightPayload {
 
 impl QueryLogicArrowFlightPayload {
     pub fn new(
-        logic_type: String,
+        logic_type: QueryLogicType,
         left_filter: Option<Box<QueryFilterOrLogicArrowFlightPayload>>,
         right_filter: Option<Box<QueryFilterOrLogicArrowFlightPayload>>,
     ) -> Self {

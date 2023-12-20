@@ -4,7 +4,7 @@ use log::debug;
 use crate::{
     feature_store::{
         feature_group::{feature::Feature, FeatureGroup},
-        query::entities::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
+        query::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
     },
     repositories::feature_store::{
         query::payloads::{

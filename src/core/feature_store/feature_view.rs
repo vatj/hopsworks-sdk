@@ -6,7 +6,7 @@ use crate::{
     core::feature_store::query::construct_query,
     feature_store::{
         feature_view::{transformation_function::TransformationFunction, FeatureView},
-        query::entities::Query,
+        query::Query,
     },
     repositories::feature_store::{
         feature::entities::{FeatureDTO, TrainingDatasetFeatureDTO},

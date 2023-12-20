@@ -19,7 +19,7 @@ use crate::{
     },
     {
         feature_store::feature_view::{training_dataset::TrainingDataset, FeatureView},
-        feature_store::query::entities::Query,
+        feature_store::query::Query,
     },
 };
 

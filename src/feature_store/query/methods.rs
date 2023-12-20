@@ -8,7 +8,7 @@ use crate::{
     feature_store::feature_group::{feature::Feature, FeatureGroup},
 };
 
-use super::entities::{JoinOptions, JoinQuery, Query, QueryFilterOrLogic};
+use super::{JoinOptions, JoinQuery, Query, QueryFilterOrLogic};
 
 impl Query {
     pub(crate) fn get_feature_group_by_feature(&self, feature: Feature) -> Option<FeatureGroup> {

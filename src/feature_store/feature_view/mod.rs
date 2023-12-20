@@ -19,7 +19,7 @@ use crate::{
             create_train_test_split, create_training_dataset_attached_to_feature_view,
         },
     },
-    feature_store::query::entities::Query,
+    feature_store::query::Query,
     repositories::feature_store::feature_view::entities::FeatureViewDTO,
 };
 use std::collections::HashMap;

@@ -11,8 +11,7 @@ use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity
 use crate::{
     clients::arrow_flight::{decoder, utils},
     feature_store::{
-        feature_view::training_dataset::TrainingDataset, feature_view::FeatureView,
-        query::entities::Query,
+        feature_view::training_dataset::TrainingDataset, feature_view::FeatureView, query::Query,
     },
     get_hopsworks_client,
     repositories::{
