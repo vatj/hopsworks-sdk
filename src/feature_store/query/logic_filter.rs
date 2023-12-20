@@ -18,6 +18,13 @@ impl QueryFilter {
         }
     }
 
+    pub fn new_partial_eq<T>(value: T, condition: QueryFilterCondition, feature: Feature) -> Self
+    where
+        T: PartialEq,
+    {
+        Self::new(value, QueryFilterCondition::Equal, feature)
+    }
+
     pub fn and(self, other: QueryFilterOrLogic) -> QueryFilterOrLogic {
         match other {
             QueryFilterOrLogic::Filter(filter) => QueryFilterOrLogic::Logic(QueryLogic::new(

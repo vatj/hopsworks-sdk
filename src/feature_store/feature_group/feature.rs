@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::feature_store::feature::entities::FeatureDTO;
+use crate::{
+    feature_store::query::{logic_filter::QueryFilterCondition, QueryFilter, QueryFilterOrLogic},
+    repositories::feature_store::feature::entities::FeatureDTO,
+};
 
 /// Feature entity gathering metadata about a feature in a feature group.
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -61,5 +64,80 @@ impl Feature {
 
     pub fn get_data_type(&self) -> String {
         self.data_type.clone()
+    }
+}
+
+impl Feature {
+    pub fn filter_like(&self, pattern: &str) -> QueryFilterOrLogic {
+        QueryFilterOrLogic::Filter(QueryFilter::new(
+            pattern.to_string(),
+            QueryFilterCondition::Like,
+            self.clone(),
+        ))
+    }
+
+    pub fn filter_neq<'a, T>(&self, value: T) -> QueryFilterOrLogic
+    where
+        T: 'a + PartialEq,
+    {
+        QueryFilterOrLogic::Filter(QueryFilter::new_partial_eq(
+            value,
+            QueryFilterCondition::NotEqual,
+            self.clone(),
+        ))
+    }
+
+    pub fn filter_eq<'a, T>(&self, value: T) -> QueryFilterOrLogic
+    where
+        T: 'a + PartialEq,
+    {
+        QueryFilterOrLogic::Filter(QueryFilter::new_partial_eq(
+            value,
+            QueryFilterCondition::Equal,
+            self.clone(),
+        ))
+    }
+    pub fn filter_gt<'a, T>(&self, value: T) -> QueryFilterOrLogic
+    where
+        T: 'a + PartialOrd,
+    {
+        QueryFilterOrLogic::Filter(QueryFilter::new_partial_ord(
+            value,
+            QueryFilterCondition::GreaterThan,
+            self.clone(),
+        ))
+    }
+
+    pub fn filter_gte<'a, T>(&self, value: T) -> QueryFilterOrLogic
+    where
+        T: 'a + PartialOrd,
+    {
+        QueryFilterOrLogic::Filter(QueryFilter::new_partial_ord(
+            value,
+            QueryFilterCondition::GreaterThanOrEqual,
+            self.clone(),
+        ))
+    }
+
+    pub fn filter_lt<'a, T>(&self, value: T) -> QueryFilterOrLogic
+    where
+        T: 'a + PartialOrd,
+    {
+        QueryFilterOrLogic::Filter(QueryFilter::new_partial_ord(
+            value,
+            QueryFilterCondition::LessThan,
+            self.clone(),
+        ))
+    }
+
+    pub fn filter_lte<'a, T>(&self, value: T) -> QueryFilterOrLogic
+    where
+        T: 'a + PartialOrd,
+    {
+        QueryFilterOrLogic::Filter(QueryFilter::new_partial_ord(
+            value,
+            QueryFilterCondition::LessThanOrEqual,
+            self.clone(),
+        ))
     }
 }
