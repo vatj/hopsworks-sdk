@@ -38,7 +38,7 @@ pub async fn create_feature_view(
                 FeatureDTO::from(feature.clone()),
                 FeatureGroupDTO::from(query.left_feature_group.clone()),
                 transformation_functions
-                    .get(&feature.name)
+                    .get(&feature.get_name())
                     .map(|transformation_function| {
                         TransformationFunctionDTO::from(transformation_function.clone())
                     }),

@@ -292,7 +292,7 @@ impl HopsworksArrowFlightClient {
                 feature_group
                     .get_features()
                     .iter()
-                    .map(|feature| feature.name.clone())
+                    .map(|feature| feature.get_name())
                     .collect(),
             );
             let fg_connector = utils::serialize_feature_group_connector(

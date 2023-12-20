@@ -41,7 +41,7 @@ pub async fn create_training_dataset_attached_to_feature_view(
                 FeatureGroupDTO::from(feature_view.query.left_feature_group.clone()),
                 feature_view
                     .transformation_functions
-                    .get(&feature.name)
+                    .get(&feature.get_name())
                     .map(|transformation_function| {
                         TransformationFunctionDTO::from(transformation_function.clone())
                     }),

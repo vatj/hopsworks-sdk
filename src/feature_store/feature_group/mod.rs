@@ -214,8 +214,8 @@ impl FeatureGroup {
         let primary_keys = self
             .get_features()
             .iter()
-            .filter(|f| f.primary)
-            .map(|f| f.name.clone())
+            .filter(|f| f.is_primary())
+            .map(|f| f.get_name())
             .collect();
 
         Ok(primary_keys)
@@ -317,7 +317,7 @@ impl FeatureGroup {
     pub fn get_feature_names(&self) -> Vec<String> {
         self.get_features()
             .iter()
-            .map(|feature| feature.name.clone())
+            .map(|feature| feature.get_name())
             .collect()
     }
 
@@ -359,7 +359,7 @@ impl FeatureGroup {
             self.get_features()
                 .iter()
                 .filter_map(|feature| {
-                    if feature_names.contains(&feature.name.as_str()) {
+                    if feature_names.contains(&feature.get_name().as_str()) {
                         Some(feature.clone())
                     } else {
                         None

@@ -85,7 +85,22 @@ impl QueryLogic {
     }
 
     pub fn and(self, other: QueryFilterOrLogic) -> QueryFilterOrLogic {
-        todo!()
+        match other {
+            QueryFilterOrLogic::Filter(filter) => QueryFilterOrLogic::Logic(QueryLogic::new(
+                QueryLogicType::And,
+                Some(Box::new(self)),
+                None,
+                None,
+                Some(filter),
+            )),
+            QueryFilterOrLogic::Logic(logic) => QueryFilterOrLogic::Logic(QueryLogic::new(
+                QueryLogicType::And,
+                Some(Box::new(self)),
+                Some(Box::new(logic)),
+                None,
+                None,
+            )),
+        }
     }
 
     pub fn or(self, other: QueryFilterOrLogic) -> QueryFilterOrLogic {

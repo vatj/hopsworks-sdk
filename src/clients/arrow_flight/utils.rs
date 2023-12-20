@@ -38,18 +38,22 @@ pub(super) fn serialize_feature_name(
     short_name: bool,
 ) -> Result<String> {
     if short_name {
-        debug!("Serializing short feature name: {}", feature.name);
-        Ok(feature.name)
+        debug!("Serializing short feature name: {}", feature.get_name());
+        Ok(feature.get_name())
     } else {
         let opt_fg = query_obj.get_feature_group_by_feature(feature.clone());
         if let Some(fg) = opt_fg {
-            let name = format!("{}.{}", serialize_feature_group_name(fg), feature.name);
+            let name = format!(
+                "{}.{}",
+                serialize_feature_group_name(fg),
+                feature.get_name()
+            );
             debug!("Serializing full feature name: {}", name);
             Ok(name)
         } else {
             Err(color_eyre::Report::msg(format!(
                 "Feature {} not found in query object",
-                feature.name
+                feature.get_name()
             )))
         }
     }
