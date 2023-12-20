@@ -68,23 +68,23 @@ use crate::platform::user::User;
 /// ```
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureGroup {
-    pub(super) id: Cell<Option<i32>>,
-    pub featurestore_id: i32,
-    pub featurestore_name: String,
-    pub feature_group_type: String,
-    pub description: Option<String>,
-    pub created: String,
-    pub creator: RefCell<Option<User>>,
-    pub version: i32,
-    pub name: String,
-    pub location: RefCell<Option<String>>,
-    pub statistics_config: RefCell<Option<StatisticsConfig>>,
-    pub features: RefCell<Vec<Feature>>,
-    pub online_enabled: bool,
-    pub time_travel_format: String,
-    pub online_topic_name: RefCell<Option<String>>,
-    pub primary_key: Option<Vec<String>>,
-    pub event_time: Option<String>,
+    id: Cell<Option<i32>>,
+    featurestore_id: i32,
+    featurestore_name: String,
+    feature_group_type: String,
+    description: Option<String>,
+    created: String,
+    creator: RefCell<Option<User>>,
+    version: i32,
+    name: String,
+    location: RefCell<Option<String>>,
+    statistics_config: RefCell<Option<StatisticsConfig>>,
+    features: RefCell<Vec<Feature>>,
+    online_enabled: bool,
+    time_travel_format: String,
+    online_topic_name: RefCell<Option<String>>,
+    primary_key: Option<Vec<String>>,
+    event_time: Option<String>,
 }
 
 impl FeatureGroup {
@@ -168,6 +168,42 @@ impl FeatureGroup {
 
     pub fn get_project_name(&self) -> String {
         util::strip_feature_store_suffix(&self.featurestore_name)
+    }
+
+    pub fn get_feature_store_id(&self) -> i32 {
+        self.featurestore_id
+    }
+
+    pub(crate) fn get_feature_store_name(&self) -> String {
+        self.featurestore_name.clone()
+    }
+
+    pub fn get_name(&self) -> String {
+        self.name.clone()
+    }
+
+    pub fn get_version(&self) -> i32 {
+        self.version
+    }
+
+    pub fn get_description(&self) -> Option<String> {
+        self.description.clone()
+    }
+
+    pub fn get_created(&self) -> String {
+        self.created.clone()
+    }
+
+    pub(crate) fn get_feature_group_type(&self) -> String {
+        self.feature_group_type.clone()
+    }
+
+    pub(crate) fn is_online_enabled(&self) -> bool {
+        self.online_enabled
+    }
+
+    pub(crate) fn get_time_travel_format(&self) -> String {
+        self.time_travel_format.clone()
     }
 
     fn set_online_topic_name(&self, online_topic_name: Option<String>) {

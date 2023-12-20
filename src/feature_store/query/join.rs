@@ -21,8 +21,8 @@ pub struct JoinQuery {
 impl JoinQuery {
     pub fn new(left_feature_group: FeatureGroup, left_features: Vec<Feature>) -> Self {
         Self {
-            feature_store_id: left_feature_group.featurestore_id,
-            feature_store_name: left_feature_group.featurestore_name.clone(),
+            feature_store_id: left_feature_group.get_feature_store_id(),
+            feature_store_name: left_feature_group.get_feature_store_name(),
             left_feature_group,
             left_features,
             joins: vec![],

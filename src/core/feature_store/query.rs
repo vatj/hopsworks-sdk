@@ -64,9 +64,10 @@ pub async fn build_mysql_connection_url_from_storage_connector(
 }
 
 pub async fn read_query_from_online_feature_store(query: &Query) -> Result<DataFrame> {
-    let connection_string =
-        build_mysql_connection_url_from_storage_connector(query.left_feature_group.featurestore_id)
-            .await?;
+    let connection_string = build_mysql_connection_url_from_storage_connector(
+        query.left_feature_group.get_feature_store_id(),
+    )
+    .await?;
     let builder = MySQLSource::<BinaryProtocol>::new(connection_string.as_str(), 2).unwrap();
 
     let constructed_query = construct_query(query.clone()).await?;

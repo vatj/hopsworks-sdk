@@ -60,20 +60,20 @@ impl FeatureGroupDTO {
                 .iter()
                 .map(|feature| FeatureDTO::from(feature.clone()))
                 .collect(),
-            feature_group_type: match feature_group.feature_group_type.as_str() {
+            feature_group_type: match feature_group.get_feature_group_type().as_str() {
                 "STREAM_FEATURE_GROUP" => "streamFeatureGroupDTO".to_owned(),
                 "streamFeatureGroupDTO" => "streamFeatureGroupDTO".to_owned(),
                 _ => "streamFeatureGroupDTO".to_owned(),
             },
-            featurestore_id: feature_group.featurestore_id,
-            featurestore_name: feature_group.featurestore_name,
-            description: feature_group.description,
-            created: feature_group.created,
-            version: feature_group.version,
-            name: feature_group.name,
+            featurestore_id: feature_group.get_feature_store_id(),
+            featurestore_name: feature_group.get_feature_store_name(),
+            description: feature_group.get_description(),
+            created: feature_group.get_created(),
+            version: feature_group.get_version(),
+            name: feature_group.get_name(),
 
-            online_enabled: feature_group.online_enabled,
-            time_travel_format: feature_group.time_travel_format,
+            online_enabled: feature_group.is_online_enabled(),
+            time_travel_format: feature_group.get_time_travel_format(),
         }
     }
 }
