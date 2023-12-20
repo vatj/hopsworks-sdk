@@ -5,7 +5,7 @@
 //! To learn more about Feature Groups, see the [documentation](https://docs.hopsworks.ai/latest/concepts/fs/feature_group/fg_overview/).
 //!
 //! Feature groups are central to Feature Engineering pipelines. A common use case is to schedule a job that
-//! pulls data from an external data source (see ava), performs some transformations on it,
+//! pulls data from an external data source, performs some transformations on it,
 //! and then inserts the data via the Feature Group.
 pub mod feature;
 pub mod statistics_config;
