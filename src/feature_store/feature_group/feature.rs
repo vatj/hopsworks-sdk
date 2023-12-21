@@ -1,3 +1,4 @@
+use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -68,76 +69,74 @@ impl Feature {
 }
 
 impl Feature {
-    pub fn filter_like(&self, pattern: &str) -> QueryFilterOrLogic {
-        QueryFilterOrLogic::Filter(QueryFilter::new(
-            pattern.to_string(),
-            QueryFilterCondition::Like,
-            self.clone(),
-        ))
+    pub fn filter_like(&self, pattern: &str) -> Result<QueryFilterOrLogic> {
+        Ok(QueryFilter::new_like(pattern, self.clone())?.into())
     }
 
-    pub fn filter_neq<'a, T>(&self, value: T) -> QueryFilterOrLogic
+    pub fn filter_in<T>(&self, values: Vec<T>) -> Result<QueryFilterOrLogic>
     where
-        T: 'a + PartialEq,
+        T: PartialEq + serde::Serialize + serde::de::DeserializeOwned,
     {
-        QueryFilterOrLogic::Filter(QueryFilter::new_partial_eq(
-            value,
-            QueryFilterCondition::NotEqual,
-            self.clone(),
-        ))
+        Ok(QueryFilter::new_in(values, self.clone())?.into())
     }
 
-    pub fn filter_eq<'a, T>(&self, value: T) -> QueryFilterOrLogic
+    pub fn filter_neq<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
     where
-        T: 'a + PartialEq,
+        T: 'a + PartialEq + serde::Serialize + serde::de::DeserializeOwned,
     {
-        QueryFilterOrLogic::Filter(QueryFilter::new_partial_eq(
-            value,
-            QueryFilterCondition::Equal,
-            self.clone(),
-        ))
-    }
-    pub fn filter_gt<'a, T>(&self, value: T) -> QueryFilterOrLogic
-    where
-        T: 'a + PartialOrd,
-    {
-        QueryFilterOrLogic::Filter(QueryFilter::new_partial_ord(
-            value,
-            QueryFilterCondition::GreaterThan,
-            self.clone(),
-        ))
+        Ok(
+            QueryFilter::new_partial_eq(value, QueryFilterCondition::NotEqual, self.clone())?
+                .into(),
+        )
     }
 
-    pub fn filter_gte<'a, T>(&self, value: T) -> QueryFilterOrLogic
+    pub fn filter_eq<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
     where
-        T: 'a + PartialOrd,
+        T: 'a + PartialEq + serde::Serialize + serde::de::DeserializeOwned,
     {
-        QueryFilterOrLogic::Filter(QueryFilter::new_partial_ord(
+        Ok(QueryFilter::new_partial_eq(value, QueryFilterCondition::Equal, self.clone())?.into())
+    }
+    pub fn filter_gt<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
+    where
+        T: 'a + PartialOrd + serde::Serialize + serde::de::DeserializeOwned,
+    {
+        Ok(
+            QueryFilter::new_partial_ord(value, QueryFilterCondition::GreaterThan, self.clone())?
+                .into(),
+        )
+    }
+
+    pub fn filter_gte<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
+    where
+        T: 'a + PartialOrd + serde::Serialize + serde::de::DeserializeOwned,
+    {
+        Ok(QueryFilter::new_partial_ord(
             value,
             QueryFilterCondition::GreaterThanOrEqual,
             self.clone(),
-        ))
+        )?
+        .into())
     }
 
-    pub fn filter_lt<'a, T>(&self, value: T) -> QueryFilterOrLogic
+    pub fn filter_lt<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
     where
-        T: 'a + PartialOrd,
+        T: 'a + PartialOrd + serde::Serialize + serde::de::DeserializeOwned,
     {
-        QueryFilterOrLogic::Filter(QueryFilter::new_partial_ord(
-            value,
-            QueryFilterCondition::LessThan,
-            self.clone(),
-        ))
+        Ok(
+            QueryFilter::new_partial_ord(value, QueryFilterCondition::LessThan, self.clone())?
+                .into(),
+        )
     }
 
-    pub fn filter_lte<'a, T>(&self, value: T) -> QueryFilterOrLogic
+    pub fn filter_lte<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
     where
-        T: 'a + PartialOrd,
+        T: 'a + PartialOrd + serde::Serialize + serde::de::DeserializeOwned,
     {
-        QueryFilterOrLogic::Filter(QueryFilter::new_partial_ord(
+        Ok(QueryFilter::new_partial_ord(
             value,
             QueryFilterCondition::LessThanOrEqual,
             self.clone(),
-        ))
+        )?
+        .into())
     }
 }

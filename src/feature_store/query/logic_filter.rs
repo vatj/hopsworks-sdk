@@ -1,16 +1,55 @@
+use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::feature_store::feature_group::feature::Feature;
 
+#[derive(PartialEq)]
+pub enum QueryFilterCondition {
+    GreaterThanOrEqual,
+    GreaterThan,
+    LessThanOrEqual,
+    LessThan,
+    Equal,
+    NotEqual,
+    In,
+    Like,
+}
+
+#[derive(PartialEq)]
+pub enum QueryLogicType {
+    And,
+    Or,
+    Single,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct QueryFilter {
-    pub value: String,
+    pub value: serde_json::Value,
     pub condition: QueryFilterCondition,
     pub feature: Feature,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct QueryLogic {
+    #[serde(rename = "type")]
+    pub logic_type: QueryLogicType,
+    pub left_logic: Option<Box<QueryLogic>>,
+    pub right_logic: Option<Box<QueryLogic>>,
+    pub left_filter: Option<QueryFilter>,
+    pub right_filter: Option<QueryFilter>,
+}
+
+pub enum QueryFilterOrLogic {
+    Filter(QueryFilter),
+    Logic(QueryLogic),
+}
+
 impl QueryFilter {
-    pub fn new(value: String, condition: QueryFilterCondition, feature: Feature) -> Self {
+    pub fn new(
+        value: serde_json::Value,
+        condition: QueryFilterCondition,
+        feature: Feature,
+    ) -> Self {
         Self {
             value,
             condition,
@@ -18,11 +57,55 @@ impl QueryFilter {
         }
     }
 
-    pub fn new_partial_eq<T>(value: T, condition: QueryFilterCondition, feature: Feature) -> Self
+    pub fn new_partial_eq<T>(
+        value: T,
+        condition: QueryFilterCondition,
+        feature: Feature,
+    ) -> Result<QueryFilter>
     where
-        T: PartialEq,
+        T: PartialEq + serde::Serialize + serde::de::DeserializeOwned,
     {
-        Self::new(value, QueryFilterCondition::Equal, feature)
+        if condition != QueryFilterCondition::Equal && condition != QueryFilterCondition::NotEqual {
+            return Err(color_eyre::eyre::eyre!(
+                "QueryFilterCondition must be Equal or NotEqual for partial_eq"
+            ));
+        }
+        let value = serde_json::to_value(value)?;
+        Ok(Self::new(value, QueryFilterCondition::Equal, feature))
+    }
+
+    pub fn new_partial_ord<T>(
+        value: T,
+        condition: QueryFilterCondition,
+        feature: Feature,
+    ) -> Result<QueryFilter>
+    where
+        T: PartialOrd + serde::Serialize + serde::de::DeserializeOwned,
+    {
+        if condition != QueryFilterCondition::GreaterThan
+            && condition != QueryFilterCondition::GreaterThanOrEqual
+            && condition != QueryFilterCondition::LessThan
+            && condition != QueryFilterCondition::LessThanOrEqual
+        {
+            return Err(color_eyre::eyre::eyre!(
+                "QueryFilterCondition must be GreaterThan, GreaterThanOrEqual, LessThan, or LessThanOrEqual for partial_ord"
+            ));
+        }
+        let value = serde_json::to_value(value)?;
+        Ok(Self::new(value, QueryFilterCondition::Equal, feature))
+    }
+
+    pub fn new_in<T>(value: Vec<T>, feature: Feature) -> Result<QueryFilter>
+    where
+        T: PartialEq + serde::Serialize + serde::de::DeserializeOwned,
+    {
+        let value = serde_json::to_value(value)?;
+        Ok(Self::new(value, QueryFilterCondition::In, feature))
+    }
+
+    pub fn new_like(value: &str, feature: Feature) -> Result<QueryFilter> {
+        let value = serde_json::to_value(value)?;
+        Ok(Self::new(value, QueryFilterCondition::Like, feature))
     }
 
     pub fn and(self, other: QueryFilterOrLogic) -> QueryFilterOrLogic {
@@ -64,14 +147,23 @@ impl QueryFilter {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct QueryLogic {
-    #[serde(rename = "type")]
-    pub logic_type: QueryLogicType,
-    pub left_logic: Option<Box<QueryLogic>>,
-    pub right_logic: Option<Box<QueryLogic>>,
-    pub left_filter: Option<QueryFilter>,
-    pub right_filter: Option<QueryFilter>,
+impl From<QueryFilter> for QueryFilterOrLogic {
+    fn from(filter: QueryFilter) -> Self {
+        QueryFilterOrLogic::Filter(filter)
+    }
+}
+
+impl std::fmt::Display for QueryFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = serde_json::to_string(&self.value).unwrap();
+        write!(
+            f,
+            "QueryFilter({} {} {})",
+            self.feature.get_name(),
+            self.condition,
+            value
+        )
+    }
 }
 
 impl QueryLogic {
@@ -130,9 +222,34 @@ impl QueryLogic {
     }
 }
 
-pub enum QueryFilterOrLogic {
-    Filter(QueryFilter),
-    Logic(QueryLogic),
+impl From<QueryLogic> for QueryFilterOrLogic {
+    fn from(logic: QueryLogic) -> Self {
+        QueryFilterOrLogic::Logic(logic)
+    }
+}
+
+impl std::fmt::Display for QueryLogic {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(left_logic) = &self.left_logic {
+            if let Some(right_logic) = &self.right_logic {
+                write!(f, "({} {} {})", left_logic, self.logic_type, right_logic)
+            } else if let Some(right_filter) = &self.right_filter {
+                write!(f, "({} {} {})", left_logic, self.logic_type, right_filter)
+            } else {
+                write!(f, "({})", left_logic)
+            }
+        } else if let Some(left_filter) = &self.left_filter {
+            if let Some(right_logic) = &self.right_logic {
+                write!(f, "({} {} {})", left_filter, self.logic_type, right_logic)
+            } else if let Some(right_filter) = &self.right_filter {
+                write!(f, "({} {} {})", left_filter, self.logic_type, right_filter)
+            } else {
+                write!(f, "({})", left_filter)
+            }
+        } else {
+            write!(f, "QueryLogicType({})", self.logic_type)
+        }
+    }
 }
 
 impl Serialize for QueryFilterOrLogic {
@@ -191,16 +308,13 @@ impl std::fmt::Debug for QueryFilterOrLogic {
     }
 }
 
-#[derive(Debug)]
-pub enum QueryFilterCondition {
-    GreaterThanOrEqual,
-    GreaterThan,
-    LessThanOrEqual,
-    LessThan,
-    Equal,
-    NotEqual,
-    In,
-    Like,
+impl std::fmt::Display for QueryFilterOrLogic {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            QueryFilterOrLogic::Filter(ref filter) => filter.fmt(f),
+            QueryFilterOrLogic::Logic(ref logic) => logic.fmt(f),
+        }
+    }
 }
 
 impl Serialize for QueryFilterCondition {
@@ -268,25 +382,38 @@ impl Clone for QueryFilterCondition {
     }
 }
 
-impl std::fmt::Display for QueryFilterCondition {
+impl std::fmt::Debug for QueryFilterCondition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
-            QueryFilterCondition::GreaterThanOrEqual => write!(f, "GREATER_THAN_OR_EQUAL"),
-            QueryFilterCondition::GreaterThan => write!(f, "GREATER_THAN"),
-            QueryFilterCondition::LessThanOrEqual => write!(f, "LESS_THAN_OR_EQUAL"),
-            QueryFilterCondition::LessThan => write!(f, "LESS_THAN"),
-            QueryFilterCondition::Equal => write!(f, "EQUAL"),
-            QueryFilterCondition::NotEqual => write!(f, "NOT_EQUAL"),
-            QueryFilterCondition::In => write!(f, "IN"),
-            QueryFilterCondition::Like => write!(f, "LIKE"),
+            QueryFilterCondition::GreaterThanOrEqual => {
+                write!(f, "QueryFilterCondition::GreaterThanOrEqual")
+            }
+            QueryFilterCondition::GreaterThan => write!(f, "QueryFilterCondition::GreaterThan"),
+            QueryFilterCondition::LessThanOrEqual => {
+                write!(f, "QueryFilterCondition::LessThanOrEqual")
+            }
+            QueryFilterCondition::LessThan => write!(f, "QueryFilterCondition::LessThan"),
+            QueryFilterCondition::Equal => write!(f, "QueryFilterCondition::Equal"),
+            QueryFilterCondition::NotEqual => write!(f, "QueryFilterCondition::NotEqual"),
+            QueryFilterCondition::In => write!(f, "QueryFilterCondition::In"),
+            QueryFilterCondition::Like => write!(f, "QueryFilterCondition::Like"),
         }
     }
 }
 
-pub enum QueryLogicType {
-    And,
-    Or,
-    Single,
+impl std::fmt::Display for QueryFilterCondition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            QueryFilterCondition::GreaterThanOrEqual => write!(f, ">="),
+            QueryFilterCondition::GreaterThan => write!(f, ">"),
+            QueryFilterCondition::LessThanOrEqual => write!(f, "<="),
+            QueryFilterCondition::LessThan => write!(f, "<"),
+            QueryFilterCondition::Equal => write!(f, "=="),
+            QueryFilterCondition::NotEqual => write!(f, "!="),
+            QueryFilterCondition::In => write!(f, "IN"),
+            QueryFilterCondition::Like => write!(f, "LIKE"),
+        }
+    }
 }
 
 impl Serialize for QueryLogicType {

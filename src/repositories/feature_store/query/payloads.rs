@@ -203,7 +203,7 @@ pub struct QueryFilterArrowFlightPayload {
     #[serde(rename = "type")]
     pub filter_type: String,
     pub condition: QueryFilterCondition,
-    pub value: String,
+    pub value: serde_json::Value,
     pub feature: String,
 }
 
@@ -217,7 +217,7 @@ pub struct QueryLogicArrowFlightPayload {
 }
 
 impl QueryFilterArrowFlightPayload {
-    pub fn new(condition: QueryFilterCondition, value: String, feature: String) -> Self {
+    pub fn new(condition: QueryFilterCondition, value: serde_json::Value, feature: String) -> Self {
         Self {
             filter_type: "filter".to_string(),
             condition,
