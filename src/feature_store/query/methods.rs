@@ -48,18 +48,16 @@ impl Query {
         }
     }
 
-    pub fn filters(&self) -> Vec<QueryFilterOrLogic> {
-        let mut filters = vec![];
-        if let Some(joins) = &self.joins {
-            for join in joins {
-                filters.push(join.filter.clone());
-            }
+    pub fn add_filters(&mut self, filters: Vec<QueryFilterOrLogic>) {
+        if self.filters.is_none() {
+            self.filters = Some(vec![]);
         }
-        if self.filter.is_some() {
-            filters.push(self.filter.clone());
-        }
-        // Remove None values
-        filters.into_iter().flatten().collect()
+        self.filters.as_mut().unwrap().extend(filters);
+    }
+
+    pub fn with_filters(mut self, filters: Vec<QueryFilterOrLogic>) -> Self {
+        self.add_filters(filters);
+        self
     }
 
     pub async fn read_from_online_feature_store(&self) -> Result<DataFrame> {
@@ -89,7 +87,7 @@ impl Query {
             feature_store_name: self.feature_store_name.clone(),
             feature_store_id: self.feature_store_id,
             joins: vec![],
-            filter: self.filter.clone(),
+            filter: self.filters,
             on: vec![],
             left_on: vec![],
             right_on: vec![],

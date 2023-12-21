@@ -1,12 +1,12 @@
 //! Query API
+pub mod filter;
 pub mod join;
-pub mod logic_filter;
 pub mod methods;
 
 use serde::{Deserialize, Serialize};
 
+pub use filter::{QueryFilter, QueryFilterOrLogic, QueryLogic};
 pub use join::{JoinOptions, JoinQuery};
-pub use logic_filter::{QueryFilter, QueryFilterOrLogic, QueryLogic};
 
 use crate::{
     feature_store::feature_group::{feature::Feature, FeatureGroup},
@@ -20,7 +20,7 @@ pub struct Query {
     pub feature_store_name: String,
     pub feature_store_id: i32,
     pub joins: Option<Vec<JoinQuery>>,
-    pub filter: Option<QueryFilterOrLogic>,
+    pub filters: Option<Vec<QueryFilterOrLogic>>,
 }
 
 impl Query {
@@ -34,7 +34,7 @@ impl Query {
             left_feature_group,
             left_features,
             joins: Some(vec![]),
-            filter: None,
+            filters: None,
         }
     }
 }
@@ -51,7 +51,7 @@ impl From<QueryDTO> for Query {
             feature_store_name: dto.feature_store_name.clone(),
             feature_store_id: dto.feature_store_id,
             joins: Some(vec![]),
-            filter: None,
+            filters: dto.filters,
         }
     }
 }

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     feature_store::query::{
-        logic_filter::{QueryFilterCondition, QueryLogicType},
+        filter::{QueryFilterCondition, QueryLogicType},
         JoinQuery, Query,
     },
     repositories::feature_store::{

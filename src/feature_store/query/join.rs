@@ -11,7 +11,7 @@ pub struct JoinQuery {
     pub feature_store_name: String,
     pub feature_store_id: i32,
     pub joins: Vec<JoinQuery>,
-    pub filter: Option<QueryFilterOrLogic>,
+    pub filter: Option<Vec<QueryFilterOrLogic>>,
     pub on: Vec<String>,
     pub left_on: Vec<String>,
     pub right_on: Vec<String>,

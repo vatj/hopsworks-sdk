@@ -2,7 +2,7 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    feature_store::query::{logic_filter::QueryFilterCondition, QueryFilter, QueryFilterOrLogic},
+    feature_store::query::{filter::QueryFilterCondition, QueryFilter, QueryFilterOrLogic},
     repositories::feature_store::feature::entities::FeatureDTO,
 };
 
@@ -69,6 +69,28 @@ impl Feature {
 }
 
 impl Feature {
+    /// Create a new filter for this feature. Often used in combination with a query,
+    /// to create a new feature view including only the features matching the filter.
+    ///
+    /// # Arguments
+    /// * `pattern` - The pattern to match.
+    ///
+    /// # Example
+    /// ```
+    /// # use color_eyre::Result;
+    /// # use hopsworks_rs::hopsworks_login();
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<()> {
+    /// let feature_group = hopsworks_login().await?
+    ///   .get_feature_store().await?
+    ///   .get_feature_group("demo_feature_group", Some(1)).await?
+    ///   .expect("Feature group not found");
+    ///
+    /// let mut query = feature_group.select(&["feature_1", "feature_2"])?;
+    /// query.add_filters(vec![feature_group.get_feature("feature_1")?.filter_like("pattern")?]);
+    /// # Ok(())
+    /// # }
     pub fn filter_like(&self, pattern: &str) -> Result<QueryFilterOrLogic> {
         Ok(QueryFilter::new_like(pattern, self.clone())?.into())
     }

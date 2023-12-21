@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    feature_store::query::Query,
+    feature_store::query::{Query, QueryFilterOrLogic},
     repositories::feature_store::{
         feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO,
     },
@@ -15,7 +15,8 @@ pub struct QueryDTO {
     pub left_features: Vec<FeatureDTO>,
     pub feature_store_name: String,
     pub feature_store_id: i32,
-    pub joins: Option<Vec<JoinQueryDTO>>,
+    pub joins: Option<Vec<JoinDTO>>,
+    pub filters: Option<Vec<QueryFilterOrLogic>>,
 }
 
 impl From<Query> for QueryDTO {
@@ -30,7 +31,10 @@ impl From<Query> for QueryDTO {
                 .iter()
                 .map(|feature| FeatureDTO::from(feature.clone()))
                 .collect(),
-            joins: Some(vec![]),
+            joins: query
+                .joins
+                .map(|joins| joins.iter().map(|join| QueryDTO::from(join)).collect()),
+            filters: query.filters,
         }
     }
 }
