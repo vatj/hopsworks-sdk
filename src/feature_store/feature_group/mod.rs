@@ -246,15 +246,25 @@ impl FeatureGroup {
         *self.features.borrow_mut() = features;
     }
 
-    pub fn get_primary_keys(&self) -> Result<Vec<String>> {
-        let primary_keys = self
-            .get_features()
+    pub fn get_primary_keys(&self) -> Result<Vec<&str>> {
+        Ok(self
+            .primary_key
+            .as_ref()
+            .unwrap_or_else(|| panic!("Primary key not set for feature group {}", self.get_name()))
             .iter()
-            .filter(|f| f.is_primary())
-            .map(|f| f.get_name())
-            .collect();
+            .map(|pk| pk.as_str())
+            .collect())
+    }
 
-        Ok(primary_keys)
+    /// Returns the feature with the given name if exists.
+    ///
+    /// # Arguments
+    /// * `feature_name` - The name of the feature to get.
+    pub fn get_feature(&self, feature_name: &str) -> Option<Feature> {
+        self.get_features()
+            .iter()
+            .find(|f| f.name.as_str() == feature_name)
+            .cloned()
     }
 
     /// Inserts or upserts data into the Feature Group table.
@@ -345,7 +355,7 @@ impl FeatureGroup {
             self.version,
             self.get_online_topic_name().unwrap_or_default().as_str(),
             dataframe,
-            self.get_primary_keys().unwrap(),
+            &self.get_primary_keys().unwrap(),
         )
         .await
     }
@@ -353,14 +363,14 @@ impl FeatureGroup {
     pub fn get_feature_names(&self) -> Vec<String> {
         self.get_features()
             .iter()
-            .map(|feature| feature.get_name())
+            .map(|feature| feature.name)
             .collect()
     }
 
     /// Selects a subset of features from the feature group and returns a query object.
     /// The query object can be used to read data from the feature group.
     /// # Arguments
-    /// * `feature_names` - A vector of feature names to select from the feature group.
+    /// * `feature_names` - A slice of feature names to select from the feature group.
     ///
     /// # Example
     /// ```no_run
@@ -378,14 +388,14 @@ impl FeatureGroup {
     ///    .await?
     ///    .expect("Feature Group not found");
     ///
-    ///  let query = feature_group.select(vec!["number", "word"])?;
+    ///  let query = feature_group.select(&["number", "word"])?;
     ///
     ///  let df = query.read_with_arrow_flight_client().await?;
     ///
     ///  Ok(())
     /// }
     /// ```
-    pub fn select(&self, feature_names: Vec<&str>) -> Result<Query> {
+    pub fn select(&self, feature_names: &[&str]) -> Result<Query> {
         debug!(
             "Selecting features {:?} from feature group {}, building query object",
             feature_names, self.name
@@ -395,7 +405,7 @@ impl FeatureGroup {
             self.get_features()
                 .iter()
                 .filter_map(|feature| {
-                    if feature_names.contains(&feature.get_name().as_str()) {
+                    if feature_names.contains(&feature.name.as_str()) {
                         Some(feature.clone())
                     } else {
                         None
@@ -429,7 +439,8 @@ impl FeatureGroup {
     /// }
     /// ```
     pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
-        let query = self.select(self.get_feature_names().iter().map(|s| s as &str).collect())?;
+        let feature_names = self.get_feature_names();
+        let query = self.select(feature_names.iter().map(String::as_str).collect())?;
         debug!(
             "Reading data from feature group {} with Arrow Flight client",
             self.name

@@ -16,7 +16,6 @@ use crate::{
     get_hopsworks_client,
     repositories::{
         feature_store::{
-            query::payloads::QueryArrowFlightPayload,
             storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
             training_dataset::payloads::TrainingDatasetArrowFlightPayload,
         },
@@ -24,6 +23,8 @@ use crate::{
     },
     util,
 };
+
+use super::filter::QueryArrowFlightPayload;
 
 #[derive(Debug, Clone, Default)]
 pub struct HopsworksArrowFlightClientBuilder {}
@@ -292,7 +293,7 @@ impl HopsworksArrowFlightClient {
                 feature_group
                     .get_features()
                     .iter()
-                    .map(|feature| feature.get_name())
+                    .map(|feature| feature.name.to_string())
                     .collect(),
             );
             let fg_connector = utils::serialize_feature_group_connector(
@@ -302,12 +303,12 @@ impl HopsworksArrowFlightClient {
             )?;
             connectors.insert(fg_name, fg_connector);
         }
-        let filters = match query.filters {
-            Some(filters) => utils::serialize_filter_expression(filters, query.clone(), false)?,
+        let filters = match query.filters.clone() {
+            Some(filters) => utils::serialize_filter_expression(filters, &query, false)?,
             None => None,
         };
         Ok(QueryArrowFlightPayload::new(
-            utils::translate_to_duckdb(query.clone(), query_str)?,
+            utils::translate_to_duckdb(&query, query_str)?,
             feature_names,
             Some(connectors),
             filters,

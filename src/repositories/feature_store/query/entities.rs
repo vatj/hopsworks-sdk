@@ -1,7 +1,15 @@
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 use crate::{
-    feature_store::query::{join::JoinType, JoinQuery, Query, QueryFilterOrLogic},
+    feature_store::{
+        feature_group::feature::Feature,
+        query::{
+            filter::{QueryFilterCondition, QueryLogicType},
+            join::JoinType,
+            JoinQuery, Query, QueryFilter, QueryFilterOrLogic, QueryLogic,
+        },
+    },
     repositories::feature_store::{
         feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO,
     },
@@ -86,21 +94,106 @@ impl From<JoinQuery> for JoinQueryDTO {
 #[serde(rename_all = "camelCase")]
 pub struct QueryFilterDTO {
     pub(crate) feature: FeatureDTO,
-    pub(crate) operator: String,
-    pub(crate) value: String,
+    pub(crate) condition: QueryFilterCondition,
+    pub(crate) value: serde_json::Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryLogicDTO {
-    pub logic_type: String,
+    pub logic_type: QueryLogicType,
     pub left_logic: Option<Box<QueryLogicDTO>>,
     pub right_logic: Option<Box<QueryLogicDTO>>,
     pub left_filter: Option<QueryFilterDTO>,
     pub right_filter: Option<QueryFilterDTO>,
 }
 
-pub enum QueryLogicOrFilterDTO {
+pub enum QueryFilterOrLogicDTO {
     Logic(QueryLogicDTO),
     Filter(QueryFilterDTO),
+}
+
+impl From<QueryFilterDTO> for QueryFilter {
+    fn from(query_filter: QueryFilterDTO) -> Self {
+        QueryFilter::new(
+            query_filter.value,
+            query_filter.condition,
+            Feature::from(query_filter.feature),
+        )
+    }
+}
+
+impl From<QueryLogicDTO> for QueryLogic {
+    fn from(query_logic: QueryLogicDTO) -> Self {
+        QueryLogic::new(
+            query_logic.logic_type,
+            query_logic
+                .left_logic
+                .map(|logic| Box::new(QueryLogic::from(*logic))),
+            query_logic
+                .right_logic
+                .map(|logic| Box::new(QueryLogic::from(*logic))),
+            query_logic
+                .left_filter
+                .map(|filter| QueryFilter::from(filter)),
+            query_logic
+                .right_filter
+                .map(|filter| QueryFilter::from(filter)),
+        )
+    }
+}
+
+impl From<QueryFilterOrLogicDTO> for QueryFilterOrLogic {
+    fn from(query_filter_or_logic: QueryFilterOrLogicDTO) -> Self {
+        match query_filter_or_logic {
+            QueryFilterOrLogicDTO::Logic(logic) => {
+                QueryFilterOrLogic::Logic(QueryLogic::from(logic))
+            }
+            QueryFilterOrLogicDTO::Filter(filter) => {
+                QueryFilterOrLogic::Filter(QueryFilter::from(filter))
+            }
+        }
+    }
+}
+
+impl Serialize for QueryFilterOrLogicDTO {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            QueryFilterOrLogicDTO::Logic(logic) => logic.serialize(serializer),
+            QueryFilterOrLogicDTO::Filter(filter) => filter.serialize(serializer),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for QueryFilterOrLogicDTO {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        if value.get("type").is_some() {
+            Ok(QueryFilterOrLogicDTO::Logic(
+                QueryLogicDTO::deserialize(value).unwrap(),
+            ))
+        } else {
+            Ok(QueryFilterOrLogicDTO::Filter(
+                QueryFilterDTO::deserialize(value).unwrap(),
+            ))
+        }
+    }
+}
+
+impl fmt::Debug for QueryFilterOrLogicDTO {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            QueryFilterOrLogicDTO::Logic(logic) => logic.fmt(f),
+            QueryFilterOrLogicDTO::Filter(filter) => filter.fmt(f),
+        }
+    }
+}
+
+impl Clone for QueryFilterOrLogicDTO {
+    fn clone(&self) -> Self {
+        match self {
+            QueryFilterOrLogicDTO::Logic(logic) => QueryFilterOrLogicDTO::Logic(logic.clone()),
+            QueryFilterOrLogicDTO::Filter(filter) => QueryFilterOrLogicDTO::Filter(filter.clone()),
+        }
+    }
 }

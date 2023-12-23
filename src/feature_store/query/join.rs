@@ -45,18 +45,18 @@ impl JoinOptions {
         }
     }
 
-    pub fn with_on(mut self, on: Vec<String>) -> Self {
-        self.on = Some(on);
+    pub fn with_on(mut self, on: &[&str]) -> Self {
+        self.on = Some(on.iter().map(|s| s.to_string()).collect());
         self
     }
 
-    pub fn with_left_on(mut self, left_on: Vec<String>) -> Self {
-        self.left_on = Some(left_on);
+    pub fn with_left_on(mut self, left_on: &[&str]) -> Self {
+        self.left_on = Some(left_on.iter().map(|s| s.to_string()).collect());
         self
     }
 
-    pub fn with_right_on(mut self, right_on: Vec<String>) -> Self {
-        self.right_on = Some(right_on);
+    pub fn with_right_on(mut self, right_on: &[&str]) -> Self {
+        self.right_on = Some(right_on.iter().map(|s| s.to_string()).collect());
         self
     }
 
@@ -65,8 +65,8 @@ impl JoinOptions {
         self
     }
 
-    pub fn with_prefix(mut self, prefix: String) -> Self {
-        self.prefix = Some(prefix);
+    pub fn with_prefix(mut self, prefix: &str) -> Self {
+        self.prefix = Some(String::from(prefix));
         self
     }
 }

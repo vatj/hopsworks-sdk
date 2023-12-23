@@ -9,12 +9,12 @@ use crate::{
 /// Feature entity gathering metadata about a feature in a feature group.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Feature {
-    name: String,
-    description: Option<String>,
-    data_type: String,
-    primary: bool,
-    partition: bool,
-    hudi_precombine_key: bool,
+    pub name: String,
+    pub description: Option<String>,
+    pub data_type: String,
+    pub primary: bool,
+    pub partition: bool,
+    pub hudi_precombine_key: bool,
     feature_group_id: Option<i32>,
 }
 
@@ -39,32 +39,8 @@ impl From<FeatureDTO> for Feature {
 }
 
 impl Feature {
-    pub fn get_feature_group_id(&self) -> Option<i32> {
+    pub fn feature_group_id(&self) -> Option<i32> {
         self.feature_group_id
-    }
-
-    pub fn get_name(&self) -> String {
-        self.name.clone()
-    }
-
-    pub fn get_description(&self) -> Option<String> {
-        self.description.clone()
-    }
-
-    pub fn is_primary(&self) -> bool {
-        self.primary
-    }
-
-    pub fn is_hudi_precombine_key(&self) -> bool {
-        self.hudi_precombine_key
-    }
-
-    pub fn defines_partition(&self) -> bool {
-        self.partition
-    }
-
-    pub fn get_data_type(&self) -> String {
-        self.data_type.clone()
     }
 }
 
@@ -78,7 +54,7 @@ impl Feature {
     /// # Example
     /// ```
     /// # use color_eyre::Result;
-    /// # use hopsworks_rs::hopsworks_login();
+    /// # use hopsworks_rs::hopsworks_login;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
@@ -88,7 +64,7 @@ impl Feature {
     ///   .expect("Feature group not found");
     ///
     /// let mut query = feature_group.select(&["feature_1", "feature_2"])?;
-    /// query.add_filters(vec![feature_group.get_feature("feature_1")?.filter_like("pattern")?]);
+    /// query.add_filters(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_like("pattern")?]);
     /// # Ok(())
     /// # }
     pub fn filter_like(&self, pattern: &str) -> Result<QueryFilterOrLogic> {

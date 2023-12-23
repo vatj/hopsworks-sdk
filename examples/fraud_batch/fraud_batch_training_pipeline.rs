@@ -2,8 +2,11 @@ use color_eyre::Result;
 use std::collections::HashMap;
 
 use hopsworks_rs::{
-    feature_store::feature_view::transformation_function::TransformationFunction, hopsworks_login,
-    HopsworksClientBuilder,
+    feature_store::{
+        feature_view::transformation_function::TransformationFunction,
+        query::{join::JoinType, JoinOptions},
+    },
+    hopsworks_login, HopsworksClientBuilder,
 };
 
 #[tokio::main]
@@ -52,7 +55,7 @@ async fn main() -> Result<()> {
             "amount_min",
             "amount_max",
         ])?,
-        None,
+        JoinOptions::new(JoinType::Inner).with_on(&["cc_num"]),
     );
 
     let min_max_scaler = fs

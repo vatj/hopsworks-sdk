@@ -63,11 +63,11 @@ pub async fn insert_in_registered_feature_group(
     feature_group_version: i32,
     online_topic_name: &str,
     dataframe: &mut DataFrame,
-    primary_keys: Vec<String>,
+    primary_keys: &[&str],
 ) -> Result<JobExecution> {
     let kafka_connector =
         storage_connector::get_feature_store_kafka_connector(feature_store_id, true).await?;
-    let ref_primary_keys = primary_keys.iter().map(|key| key.as_str()).collect();
+    let ref_primary_keys = primary_keys.to_vec();
     let subject_name = format!("{}_{}", feature_group_name, feature_group_version);
 
     produce_df(

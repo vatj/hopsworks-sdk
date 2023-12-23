@@ -6,13 +6,12 @@ use crate::{
         feature_group::{feature::Feature, FeatureGroup},
         query::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
     },
-    repositories::feature_store::{
-        query::payloads::{
-            QueryFilterArrowFlightPayload, QueryFilterOrLogicArrowFlightPayload,
-            QueryLogicArrowFlightPayload,
-        },
-        storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
-    },
+    repositories::feature_store::storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
+};
+
+use super::filter::{
+    QueryFilterArrowFlightPayload, QueryFilterOrLogicArrowFlightPayload,
+    QueryLogicArrowFlightPayload,
 };
 
 pub(super) fn serialize_feature_group_connector(
@@ -34,26 +33,22 @@ pub(super) fn serialize_feature_group_name(feature_group: FeatureGroup) -> Strin
 
 pub(super) fn serialize_feature_name(
     feature: Feature,
-    query_obj: Query,
+    query_obj: &Query,
     short_name: bool,
 ) -> Result<String> {
     if short_name {
-        debug!("Serializing short feature name: {}", feature.get_name());
-        Ok(feature.get_name())
+        debug!("Serializing short feature name: {}", feature.name);
+        Ok(feature.name)
     } else {
         let opt_fg = query_obj.get_feature_group_by_feature(feature.clone());
         if let Some(fg) = opt_fg {
-            let name = format!(
-                "{}.{}",
-                serialize_feature_group_name(fg),
-                feature.get_name()
-            );
+            let name = format!("{}.{}", serialize_feature_group_name(fg), feature.name);
             debug!("Serializing full feature name: {}", name);
             Ok(name)
         } else {
             Err(color_eyre::Report::msg(format!(
                 "Feature {} not found in query object",
-                feature.get_name()
+                feature.name
             )))
         }
     }
@@ -61,7 +56,7 @@ pub(super) fn serialize_feature_name(
 
 pub(super) fn serialize_filter_expression(
     filters: Vec<QueryFilterOrLogic>,
-    query: Query,
+    query: &Query,
     short_name: bool,
 ) -> Result<Option<Vec<QueryFilterOrLogicArrowFlightPayload>>> {
     debug!(
@@ -78,12 +73,12 @@ pub(super) fn serialize_filter_expression(
             QueryFilterOrLogic::Filter(filter) => {
                 debug!("Found filter: {:#?}", filter);
                 serialized_filters.push(QueryFilterOrLogicArrowFlightPayload::Filter(
-                    serialize_filter(filter, query.clone(), short_name)?,
+                    serialize_filter(filter, query, short_name)?,
                 ));
             }
             QueryFilterOrLogic::Logic(logic) => {
                 debug!("Found logic: {:#?}", logic);
-                serialized_filters.push(serialize_logic(logic, query.clone(), short_name)?);
+                serialized_filters.push(serialize_logic(logic, query, short_name)?);
             }
         }
     }
@@ -92,7 +87,7 @@ pub(super) fn serialize_filter_expression(
 
 pub(super) fn serialize_filter(
     filter: QueryFilter,
-    query: Query,
+    query: &Query,
     short_name: bool,
 ) -> Result<QueryFilterArrowFlightPayload> {
     debug!(
@@ -102,13 +97,13 @@ pub(super) fn serialize_filter(
     Ok(QueryFilterArrowFlightPayload::new(
         filter.condition,
         filter.value,
-        serialize_feature_name(filter.feature, query.clone(), short_name)?,
+        serialize_feature_name(filter.feature, query, short_name)?,
     ))
 }
 
 pub(super) fn serialize_logic(
     logic: QueryLogic,
-    query: Query,
+    query: &Query,
     short_name: bool,
 ) -> Result<QueryFilterOrLogicArrowFlightPayload> {
     debug!(
@@ -118,13 +113,13 @@ pub(super) fn serialize_logic(
     let left_filter = serialize_filter_or_logic(
         logic.left_filter,
         logic.left_logic.as_deref().cloned(),
-        query.clone(),
+        query,
         short_name,
     )?;
     let right_filter = serialize_filter_or_logic(
         logic.right_filter,
         logic.right_logic.as_deref().cloned(),
-        query.clone(),
+        query,
         short_name,
     )?;
     Ok(QueryFilterOrLogicArrowFlightPayload::Logic(
@@ -135,7 +130,7 @@ pub(super) fn serialize_logic(
 pub(super) fn serialize_filter_or_logic(
     opt_filter: Option<QueryFilter>,
     opt_logic: Option<QueryLogic>,
-    query: Query,
+    query: &Query,
     short_name: bool,
 ) -> Result<Option<Box<QueryFilterOrLogicArrowFlightPayload>>> {
     debug!(
@@ -162,7 +157,7 @@ pub(super) fn serialize_filter_or_logic(
     )?)))
 }
 
-pub(super) fn translate_to_duckdb(query: Query, query_str: String) -> Result<String> {
+pub(super) fn translate_to_duckdb(query: &Query, query_str: String) -> Result<String> {
     debug!("Translating query to duckdb sql style: {:#?}", query);
     Ok(query_str
         .replace(

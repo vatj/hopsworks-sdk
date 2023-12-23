@@ -13,7 +13,7 @@ use super::{JoinOptions, JoinQuery, Query, QueryFilterOrLogic};
 impl Query {
     pub(crate) fn get_feature_group_by_feature(&self, feature: Feature) -> Option<FeatureGroup> {
         let feature_group = self.left_features.iter().find_map(|f| {
-            if f.get_name() == feature.get_name() {
+            if f.name == feature.name {
                 Some(self.left_feature_group.clone())
             } else {
                 None
@@ -80,10 +80,4 @@ impl Query {
 
         self
     }
-
-    fn to_join_query(self, join_options: JoinOptions) -> JoinQuery {
-        JoinQuery::new(self, join_options)
-    }
 }
-
-impl JoinQuery {}

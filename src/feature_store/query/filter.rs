@@ -159,9 +159,7 @@ impl std::fmt::Display for QueryFilter {
         write!(
             f,
             "QueryFilter({} {} {})",
-            self.feature.get_name(),
-            self.condition,
-            value
+            self.feature.name, self.condition, value
         )
     }
 }
