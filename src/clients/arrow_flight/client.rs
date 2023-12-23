@@ -302,7 +302,10 @@ impl HopsworksArrowFlightClient {
             )?;
             connectors.insert(fg_name, fg_connector);
         }
-        let filters = utils::serialize_filter_expression(query.filters(), query.clone(), false)?;
+        let filters = match query.filters {
+            Some(filters) => utils::serialize_filter_expression(filters, query.clone(), false)?,
+            None => None,
+        };
         Ok(QueryArrowFlightPayload::new(
             utils::translate_to_duckdb(query.clone(), query_str)?,
             feature_names,

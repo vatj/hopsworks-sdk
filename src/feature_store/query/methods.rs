@@ -24,7 +24,8 @@ impl Query {
             None => {
                 if let Some(joins) = &self.joins {
                     for join in joins {
-                        let feature_group = join.get_feature_group_by_feature(feature.clone());
+                        let feature_group =
+                            join.query.get_feature_group_by_feature(feature.clone());
                         if feature_group.is_some() {
                             return feature_group;
                         }
@@ -39,7 +40,7 @@ impl Query {
         if let Some(joins) = &self.joins {
             let mut feature_groups: Vec<FeatureGroup> = joins
                 .iter()
-                .map(|join| join.left_feature_group.clone())
+                .map(|join| join.query.left_feature_group.clone())
                 .collect();
             feature_groups.push(self.left_feature_group.clone());
             feature_groups
@@ -68,54 +69,21 @@ impl Query {
         read_with_arrow_flight_client(self.clone()).await
     }
 
-    pub fn join(mut self, query: Query, join_options: Option<JoinOptions>) -> Self {
+    pub fn join(mut self, query: Query, join_options: JoinOptions) -> Self {
         if self.joins.is_none() {
             self.joins = Some(vec![]);
         }
         self.joins
             .as_mut()
             .unwrap()
-            .push(query.to_join_query(join_options));
+            .push(JoinQuery::new(query, join_options));
 
         self
     }
 
-    fn to_join_query(&self, _join_options: Option<JoinOptions>) -> JoinQuery {
-        JoinQuery {
-            left_feature_group: self.left_feature_group.clone(),
-            left_features: self.left_features.clone(),
-            feature_store_name: self.feature_store_name.clone(),
-            feature_store_id: self.feature_store_id,
-            joins: vec![],
-            filter: self.filters,
-            on: vec![],
-            left_on: vec![],
-            right_on: vec![],
-            join_type: "inner".to_owned(),
-        }
+    fn to_join_query(self, join_options: JoinOptions) -> JoinQuery {
+        JoinQuery::new(self, join_options)
     }
 }
 
-impl JoinQuery {
-    pub(crate) fn get_feature_group_by_feature(&self, feature: Feature) -> Option<FeatureGroup> {
-        let feature_group = self.left_features.iter().find_map(|f| {
-            if f.get_name() == feature.get_name() {
-                Some(self.left_feature_group.clone())
-            } else {
-                None
-            }
-        });
-        match feature_group {
-            Some(feature_group) => Some(feature_group),
-            None => {
-                for join in self.joins.clone() {
-                    let feature_group = join.get_feature_group_by_feature(feature.clone());
-                    if feature_group.is_some() {
-                        return feature_group;
-                    }
-                }
-                None
-            }
-        }
-    }
-}
+impl JoinQuery {}

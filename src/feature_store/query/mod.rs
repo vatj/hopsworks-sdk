@@ -17,8 +17,8 @@ use crate::{
 pub struct Query {
     pub left_feature_group: FeatureGroup,
     pub left_features: Vec<Feature>,
-    pub feature_store_name: String,
-    pub feature_store_id: i32,
+    feature_store_name: String,
+    feature_store_id: i32,
     pub joins: Option<Vec<JoinQuery>>,
     pub filters: Option<Vec<QueryFilterOrLogic>>,
 }
@@ -36,6 +36,14 @@ impl Query {
             joins: Some(vec![]),
             filters: None,
         }
+    }
+
+    pub fn feature_store_name(&self) -> &str {
+        self.feature_store_name.as_ref()
+    }
+
+    pub fn feature_store_id(&self) -> i32 {
+        self.feature_store_id
     }
 }
 
