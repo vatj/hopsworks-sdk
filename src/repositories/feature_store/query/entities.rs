@@ -24,7 +24,9 @@ pub struct QueryDTO {
     pub feature_store_name: String,
     pub feature_store_id: i32,
     pub joins: Option<Vec<JoinQueryDTO>>,
-    pub filters: Option<Vec<QueryFilterOrLogic>>,
+    pub filters: Option<Vec<QueryFilterOrLogicDTO>>,
+    pub left_feature_group_start_time: Option<String>,
+    pub left_feature_group_end_time: Option<String>,
 }
 
 impl From<Query> for QueryDTO {
@@ -33,13 +35,13 @@ impl From<Query> for QueryDTO {
             href: None,
             feature_store_name: String::from(query.feature_store_name()),
             feature_store_id: query.feature_store_id(),
-            left_feature_group: FeatureGroupDTO::from(query.left_feature_group.clone()),
+            left_feature_group: FeatureGroupDTO::from(query.left_feature_group().clone()),
             left_features: query
-                .left_features
+                .left_features()
                 .iter()
                 .map(|feature| FeatureDTO::from(feature.clone()))
                 .collect(),
-            joins: match query.joins {
+            joins: match query.joins() {
                 Some(joins) => Some(
                     joins
                         .iter()
@@ -48,7 +50,19 @@ impl From<Query> for QueryDTO {
                 ),
                 None => None,
             },
-            filters: query.filters,
+            filters: match query.filters() {
+                Some(filters) => Some(
+                    filters
+                        .iter()
+                        .map(|filter| QueryFilterOrLogicDTO::from(filter.clone()))
+                        .collect(),
+                ),
+                None => None,
+            },
+            left_feature_group_start_time: query
+                .left_feature_group_start_time()
+                .map(str::to_string),
+            left_feature_group_end_time: query.left_feature_group_end_time().map(str::to_string),
         }
     }
 }
@@ -69,11 +83,11 @@ pub struct FeatureStoreQueryDTO {
 #[serde(rename_all = "camelCase")]
 pub struct JoinQueryDTO {
     query: QueryDTO,
+    #[serde(rename = "type")]
+    join_type: JoinType,
     on: Option<Vec<String>>,
     left_on: Option<Vec<String>>,
     right_on: Option<Vec<String>>,
-    #[serde(rename = "type")]
-    join_type: JoinType,
     prefix: Option<String>,
 }
 

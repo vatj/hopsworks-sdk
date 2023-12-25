@@ -52,15 +52,15 @@ impl From<Query> for NewQueryPayload {
         Self {
             feature_store_name: String::from(query.feature_store_name()),
             feature_store_id: query.feature_store_id(),
-            left_feature_group: FeatureGroupDTO::from(query.left_feature_group),
+            left_feature_group: FeatureGroupDTO::from(query.left_feature_group().clone()),
             left_features: query
-                .left_features
+                .left_features()
                 .iter()
                 .map(|feature| FeatureDTO::from(feature.clone()))
                 .collect(),
             left_feature_group_start_time: None,
             left_feature_group_end_time: None,
-            joins: query.joins.map(|joins| {
+            joins: query.joins().map(|joins| {
                 joins
                     .iter()
                     .map(|join_query| NewJoinQueryPayload::from(join_query.clone()))
