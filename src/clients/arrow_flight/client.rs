@@ -281,7 +281,7 @@ impl HopsworksArrowFlightClient {
     ) -> Result<QueryArrowFlightPayload> {
         info!(
             "Creating arrow flight query payload for query with left_feature_group {}",
-            query.left_feature_group.get_name()
+            query.left_feature_group.name()
         );
         let mut feature_names: HashMap<String, Vec<String>> = HashMap::new();
         let mut connectors: HashMap<String, FeatureGroupConnectorArrowFlightPayload> =
@@ -291,7 +291,7 @@ impl HopsworksArrowFlightClient {
             feature_names.insert(
                 fg_name.clone(),
                 feature_group
-                    .get_features()
+                    .features()
                     .iter()
                     .map(|feature| feature.name.to_string())
                     .collect(),

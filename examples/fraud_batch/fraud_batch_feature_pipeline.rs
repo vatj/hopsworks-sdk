@@ -63,7 +63,7 @@ async fn main() -> Result<()> {
 
     let fs = project.get_feature_store().await?;
 
-    let trans_fg = fs
+    let mut trans_fg = fs
         .get_or_create_feature_group(
             "transactions_fraud_batch_fg_rust",
             Some(1),
@@ -77,7 +77,7 @@ async fn main() -> Result<()> {
     let n_rows = 10;
     trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
 
-    let window_aggs_fg = fs
+    let mut window_aggs_fg = fs
         .get_or_create_feature_group(
             format!("transactions_{}_aggs_fraud_batch_fg_rust", window_len).as_str(),
             Some(1),

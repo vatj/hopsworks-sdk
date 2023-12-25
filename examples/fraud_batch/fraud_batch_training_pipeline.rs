@@ -46,8 +46,8 @@ async fn main() -> Result<()> {
         .await?
         .expect("Feature Group not found. Check that window_len matches the fraud_batch_ingestion_pipeline example.");
 
-    let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?.join(
-        window_aggs_fg.select(vec![
+    let query = trans_fg.select(&["cc_num", "datetime", "amount"])?.join(
+        window_aggs_fg.select(&[
             "cc_num",
             "datetime",
             "amount_mean",

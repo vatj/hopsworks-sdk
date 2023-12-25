@@ -14,7 +14,6 @@ use color_eyre::Result;
 use log::debug;
 use polars::frame::DataFrame;
 use serde::{Deserialize, Serialize};
-use std::cell::{Cell, RefCell};
 
 use crate::{
     core::feature_store::feature_group,
@@ -68,21 +67,21 @@ use crate::platform::user::User;
 /// ```
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureGroup {
-    id: Cell<Option<i32>>,
+    id: Option<i32>,
     featurestore_id: i32,
     featurestore_name: String,
     feature_group_type: String,
     description: Option<String>,
     created: String,
-    creator: RefCell<Option<User>>,
+    creator: Option<User>,
     version: i32,
     name: String,
-    location: RefCell<Option<String>>,
-    statistics_config: RefCell<Option<StatisticsConfig>>,
-    features: RefCell<Vec<Feature>>,
+    location: Option<String>,
+    statistics_config: Option<StatisticsConfig>,
+    features: Vec<Feature>,
     online_enabled: bool,
     time_travel_format: String,
-    online_topic_name: RefCell<Option<String>>,
+    online_topic_name: Option<String>,
     primary_key: Option<Vec<String>>,
     event_time: Option<String>,
 }
@@ -95,26 +94,22 @@ impl FeatureGroup {
             feature_group_type: feature_group_dto.feature_group_type,
             description: feature_group_dto.description,
             created: feature_group_dto.created,
-            creator: RefCell::new(Some(User::new_from_dto(feature_group_dto.creator))),
+            creator: Some(User::new_from_dto(feature_group_dto.creator)),
             version: feature_group_dto.version,
             name: feature_group_dto.name,
-            id: Cell::new(Some(feature_group_dto.id)),
-            location: RefCell::new(Some(feature_group_dto.location)),
-            statistics_config: RefCell::new(
-                feature_group_dto
-                    .statistics_config
-                    .map(StatisticsConfig::new_from_dto),
-            ),
-            features: RefCell::new(
-                feature_group_dto
-                    .features
-                    .iter()
-                    .map(|feature_dto| Feature::new_from_dto(feature_dto.to_owned()))
-                    .collect(),
-            ),
+            id: Some(feature_group_dto.id),
+            location: Some(feature_group_dto.location),
+            statistics_config: feature_group_dto
+                .statistics_config
+                .map(StatisticsConfig::new_from_dto),
+            features: feature_group_dto
+                .features
+                .iter()
+                .map(|feature_dto| Feature::new_from_dto(feature_dto.to_owned()))
+                .collect(),
             online_enabled: feature_group_dto.online_enabled,
             time_travel_format: feature_group_dto.time_travel_format,
-            online_topic_name: RefCell::new(feature_group_dto.online_topic_name),
+            online_topic_name: feature_group_dto.online_topic_name,
             primary_key: None,
             event_time: None,
         }
@@ -135,16 +130,16 @@ impl FeatureGroup {
             feature_group_type: String::from("STREAM_FEATURE_GROUP"),
             description: description.map(String::from),
             created: String::from(""),
-            creator: RefCell::new(None),
+            creator: None,
             version,
             name: String::from(name),
-            id: Cell::new(None),
-            location: RefCell::new(None),
-            statistics_config: RefCell::new(None),
-            features: RefCell::new(vec![]),
+            id: None,
+            location: None,
+            statistics_config: None,
+            features: Vec::new(),
             online_enabled,
             time_travel_format: String::from("NONE"),
-            online_topic_name: RefCell::new(None),
+            online_topic_name: None,
             primary_key: Some(primary_key.iter().map(|pk| pk.to_string()).collect()),
             event_time: event_time.map(String::from),
         }
@@ -158,92 +153,72 @@ impl From<FeatureGroupDTO> for FeatureGroup {
 }
 
 impl FeatureGroup {
-    fn set_id(&self, id: i32) {
-        self.id.set(Some(id));
-    }
-
-    pub fn get_id(&self) -> Option<i32> {
-        self.id.get()
+    pub fn id(&self) -> Option<i32> {
+        self.id
     }
 
     pub fn get_project_name(&self) -> String {
         util::strip_feature_store_suffix(&self.featurestore_name)
     }
 
-    pub fn get_feature_store_id(&self) -> i32 {
+    pub fn feature_store_id(&self) -> i32 {
         self.featurestore_id
     }
 
-    pub(crate) fn get_feature_store_name(&self) -> String {
-        self.featurestore_name.clone()
+    pub(crate) fn feature_store_name(&self) -> &str {
+        self.featurestore_name.as_str()
     }
 
-    pub fn get_name(&self) -> String {
-        self.name.clone()
+    pub fn name(&self) -> &str {
+        self.name.as_str()
     }
 
-    pub fn get_version(&self) -> i32 {
+    pub fn version(&self) -> i32 {
         self.version
     }
 
-    pub fn get_description(&self) -> Option<String> {
-        self.description.clone()
+    pub fn description(&self) -> Option<&str> {
+        self.description.as_deref()
     }
 
-    pub fn get_created(&self) -> String {
-        self.created.clone()
+    pub fn created(&self) -> &str {
+        self.created.as_str()
     }
 
-    pub(crate) fn get_feature_group_type(&self) -> String {
-        self.feature_group_type.clone()
+    pub(crate) fn feature_group_type(&self) -> &str {
+        self.feature_group_type.as_str()
     }
 
     pub(crate) fn is_online_enabled(&self) -> bool {
         self.online_enabled
     }
 
-    pub(crate) fn get_time_travel_format(&self) -> String {
-        self.time_travel_format.clone()
+    pub(crate) fn time_travel_format(&self) -> &str {
+        self.time_travel_format.as_str()
     }
 
-    fn set_online_topic_name(&self, online_topic_name: Option<String>) {
-        *self.online_topic_name.borrow_mut() = online_topic_name;
+    pub fn online_topic_name(&self) -> Option<&str> {
+        self.online_topic_name.as_deref()
     }
 
-    pub fn get_online_topic_name(&self) -> Option<String> {
-        self.online_topic_name.borrow().clone()
+    pub fn creator(&self) -> Option<&User> {
+        self.creator.as_ref()
     }
 
-    pub fn get_creator(&self) -> Option<User> {
-        self.creator.borrow().clone()
+    pub fn location(&self) -> Option<&str> {
+        self.location.as_deref()
     }
 
-    fn set_creator(&self, creator: Option<User>) {
-        *self.creator.borrow_mut() = creator;
+    pub fn statistics_config(&self) -> Option<&StatisticsConfig> {
+        self.statistics_config.as_ref()
     }
 
-    pub fn get_location(&self) -> Option<String> {
-        self.location.borrow().clone()
+    pub fn features(&self) -> &Vec<Feature> {
+        &self.features
     }
 
-    fn set_location(&self, location: Option<String>) {
-        *self.location.borrow_mut() = location;
-    }
-
-    pub fn get_statistics_config(&self) -> Option<StatisticsConfig> {
-        self.statistics_config.borrow().clone()
-    }
-
-    fn set_statisctics_config(&self, statistics_config: Option<StatisticsConfig>) {
-        *self.statistics_config.borrow_mut() = statistics_config;
-    }
-
-    pub fn get_features(&self) -> Vec<Feature> {
-        self.features.borrow().clone()
-    }
-
-    fn set_features(&self, features: Vec<Feature>) {
-        *self.features.borrow_mut() = features;
+    pub fn features_mut(&mut self) -> &mut Vec<Feature> {
+        &mut self.features
     }
 
     /// Returns the list of primary keys for the feature group.
@@ -253,7 +228,7 @@ impl FeatureGroup {
         Ok(self
             .primary_key
             .as_ref()
-            .unwrap_or_else(|| panic!("Primary key not set for feature group {}", self.get_name()))
+            .unwrap_or_else(|| panic!("Primary key not set for feature group {}", self.name()))
             .iter()
             .map(|pk| pk.as_str())
             .collect())
@@ -263,7 +238,7 @@ impl FeatureGroup {
         Ok(self
             .primary_key
             .as_ref()
-            .unwrap_or_else(|| panic!("Primary key not set for feature group {}", self.get_name()))
+            .unwrap_or_else(|| panic!("Primary key not set for feature group {}", self.name()))
             .iter()
             .map(|pk| pk.to_owned())
             .collect())
@@ -273,10 +248,11 @@ impl FeatureGroup {
     ///
     /// # Arguments
     /// * `feature_name` - The name of the feature to get.
-    pub fn get_feature(&self, feature_name: &str) -> Option<&Feature> {
-        self.get_features()
+    pub fn get_feature(&self, feature_name: &str) -> Option<Feature> {
+        self.features()
             .iter()
-            .find(|f| f.name.as_str() == feature_name)
+            .find(|feature| feature.name == feature_name)
+            .cloned()
     }
 
     /// Inserts or upserts data into the Feature Group table.
@@ -320,8 +296,8 @@ impl FeatureGroup {
     ///  Ok(())
     /// }
     /// ```
-    pub async fn insert(&self, dataframe: &mut DataFrame) -> Result<JobExecution> {
-        if self.get_id().is_none() {
+    pub async fn insert(&mut self, dataframe: &mut DataFrame) -> Result<JobExecution> {
+        if self.id().is_none() {
             let feature_group_dto = feature_group::save_feature_group_metadata(
                 self.featurestore_id,
                 feature_group::build_new_feature_group_payload(
@@ -342,47 +318,37 @@ impl FeatureGroup {
             )
             .await?;
 
-            self.set_id(feature_group_dto.id);
-            self.set_online_topic_name(feature_group_dto.online_topic_name);
-            self.set_creator(Some(User::from(feature_group_dto.creator)));
-            self.set_location(Some(feature_group_dto.location));
-            self.set_statisctics_config(
-                feature_group_dto
-                    .statistics_config
-                    .map(StatisticsConfig::from),
-            );
-            self.set_features(
-                feature_group_dto
-                    .features
-                    .into_iter()
-                    .map(Feature::from)
-                    .collect(),
-            );
+            self.id = Some(feature_group_dto.id);
+            self.online_topic_name = feature_group_dto.online_topic_name;
+            self.creator = Some(User::from(feature_group_dto.creator));
+            self.location = Some(feature_group_dto.location);
+            self.statistics_config = feature_group_dto
+                .statistics_config
+                .map(StatisticsConfig::from);
+            self.features_mut()
+                .extend(feature_group_dto.features.into_iter().map(Feature::from));
         }
 
         feature_group::insert_in_registered_feature_group(
             self.featurestore_id,
-            self.get_id().unwrap(),
+            self.id().unwrap(),
             self.name.as_str(),
             self.version,
-            self.get_online_topic_name().unwrap_or_default().as_str(),
+            self.online_topic_name().unwrap_or_default(),
             dataframe,
-            &self.get_primary_keys_owned()?,
+            &self.get_primary_keys()?,
         )
         .await
     }
 
-    /// Returns the list of feature names for the feature group.
+    /// Returns the list of owned feature names for the feature group.
     pub fn get_feature_names(&self) -> Vec<&str> {
-        self.get_features()
-            .iter()
-            .map(|feature| feature.name.as_str())
-            .collect()
+        self.features.iter().map(|f| f.name.as_str()).collect()
     }
 
     /// Returns the list of owned feature names for the feature group.
     pub fn get_feature_names_owned(&self) -> Vec<String> {
-        self.get_features()
+        self.features()
             .iter()
             .map(|feature| feature.name.clone())
             .collect()
@@ -416,17 +382,17 @@ impl FeatureGroup {
     ///  Ok(())
     /// }
     /// ```
-    pub fn select(&self, feature_names: &[String]) -> Result<Query> {
+    pub fn select(&self, feature_names: &[&str]) -> Result<Query> {
         debug!(
             "Selecting features {:?} from feature group {}, building query object",
             feature_names, self.name
         );
         Ok(Query::new_no_joins_no_filter(
             self.clone(),
-            self.get_features()
+            self.features()
                 .iter()
                 .filter_map(|feature| {
-                    if feature_names.contains(&feature.name) {
+                    if feature_names.contains(&feature.name.as_str()) {
                         Some(feature.clone())
                     } else {
                         None
@@ -460,7 +426,7 @@ impl FeatureGroup {
     /// }
     /// ```
     pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
-        let query = self.select(&self.get_feature_names_owned())?;
+        let query = self.select(&self.get_feature_names())?;
         debug!(
             "Reading data from feature group {} with Arrow Flight client",
             self.name

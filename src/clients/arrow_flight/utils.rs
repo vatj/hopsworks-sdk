@@ -26,8 +26,8 @@ pub(super) fn serialize_feature_group_name(feature_group: FeatureGroup) -> Strin
     format!(
         "{}.{}_{}",
         feature_group.get_project_name(),
-        feature_group.get_name(),
-        feature_group.get_version()
+        feature_group.name(),
+        feature_group.version()
     )
 }
 
@@ -161,7 +161,7 @@ pub(super) fn translate_to_duckdb(query: &Query, query_str: String) -> Result<St
     debug!("Translating query to duckdb sql style: {:#?}", query);
     Ok(query_str
         .replace(
-            format!("`{}`.`", query.left_feature_group.get_feature_store_name()).as_str(),
+            format!("`{}`.`", query.left_feature_group.feature_store_name()).as_str(),
             format!("`{}.", query.left_feature_group.get_project_name()).as_str(),
         )
         .replace('`', '"'.to_string().as_str()))

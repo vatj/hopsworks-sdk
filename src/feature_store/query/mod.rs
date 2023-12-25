@@ -29,8 +29,8 @@ impl Query {
         left_features: Vec<Feature>,
     ) -> Self {
         Self {
-            feature_store_name: left_feature_group.get_feature_store_name(),
-            feature_store_id: left_feature_group.get_feature_store_id(),
+            feature_store_name: left_feature_group.feature_store_name().to_string(),
+            feature_store_id: left_feature_group.feature_store_id(),
             left_feature_group,
             left_features,
             joins: Some(vec![]),
