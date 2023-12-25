@@ -50,7 +50,7 @@ use crate::platform::user::User;
 /// async fn main() -> Result<()> {
 ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
 ///
-///   let feature_group = feature_store
+///   let mut feature_group = feature_store
 ///      .get_feature_group("my_feature_group", Some(1))
 ///      .await?
 ///      .expect("Feature Group not found");
@@ -281,7 +281,7 @@ impl FeatureGroup {
     ///   let project = hopsworks_login(None).await?;
     ///   let feature_store = project.get_feature_store().await?;
     ///
-    ///   let feature_group = feature_store
+    ///   let mut feature_group = feature_store
     ///     .get_feature_group("my_feature_group", Some(1))
     ///     .await?
     ///     .expect("Feature Group not found");

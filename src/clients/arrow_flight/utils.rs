@@ -32,15 +32,15 @@ pub(super) fn serialize_feature_group_name(feature_group: FeatureGroup) -> Strin
 }
 
 pub(super) fn serialize_feature_name(
-    feature: Feature,
+    feature: &Feature,
     query_obj: &Query,
     short_name: bool,
 ) -> Result<String> {
     if short_name {
         debug!("Serializing short feature name: {}", feature.name);
-        Ok(feature.name)
+        Ok(feature.name.clone())
     } else {
-        let opt_fg = query_obj.get_feature_group_by_feature(feature.clone());
+        let opt_fg = query_obj.get_feature_group_by_feature(feature);
         if let Some(fg) = opt_fg {
             let name = format!("{}.{}", serialize_feature_group_name(fg), feature.name);
             debug!("Serializing full feature name: {}", name);
@@ -97,7 +97,7 @@ pub(super) fn serialize_filter(
     Ok(QueryFilterArrowFlightPayload::new(
         filter.condition,
         filter.value,
-        serialize_feature_name(filter.feature, query, short_name)?,
+        serialize_feature_name(&filter.feature, query, short_name)?,
     ))
 }
 

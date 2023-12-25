@@ -102,7 +102,7 @@ impl JobExecution {
     ///   let feature_store = hopsworks_login(None).await?
     ///     .get_feature_store().await?;
     ///
-    ///   let feature_group = feature_store
+    ///   let mut feature_group = feature_store
     ///     .get_feature_group("my_feature_group", Some(1)).await?
     ///     .expect("Feature Group not found");
     ///   

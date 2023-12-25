@@ -65,8 +65,8 @@ pub struct FeatureView {
     //
     //   let fg_1 = fs.get_feature_group_by_name_and_version("my_fg_1", 1).await?.unwrap();
     //   let fg_2 = fs.get_feature_group_by_name_and_version("my_fg_2", 1).await?.unwrap();
-    //   let query = fg_1.select(vec!["feature_1", "feature_2"])?.join(
-    //     fg_2.select(vec!["feature_3", "feature_4"])?,
+    //   let query = fg_1.select(&["feature_1", "feature_2"])?.join(
+    //     fg_2.select(&["feature_3", "feature_4"])?,
     //     None,
     //   );
     //

@@ -42,7 +42,7 @@
 //!
 //!  // Create a new feature group and ingest local data to the Feature Store
 //!  let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
-//!  let fg = fs.create_feature_group(
+//!  let mut fg = fs.create_feature_group(
 //!    "my_fg",
 //!    1,
 //!    None,
@@ -57,7 +57,7 @@
 //!  let fv = fs.create_feature_view(
 //!    "my_fv",
 //!    1,
-//!    fg.select(vec!["feature1", "feature2"])?,
+//!    fg.select(&["feature1", "feature2"])?,
 //!    None,
 //!  ).await?;
 //!
