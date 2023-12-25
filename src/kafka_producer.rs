@@ -46,7 +46,7 @@ async fn setup_future_producer(
 fn convert_df_row_to_avro_record<'a>(
     avro_schema: &'a Schema,
     column_names: &[&str],
-    primary_keys: &[&str],
+    primary_keys: &[String],
     row: &Row<'_>,
 ) -> Result<(Record<'a>, String)> {
     let mut composite_key: Vec<String> = vec![];
@@ -171,7 +171,7 @@ pub async fn produce_df(
     subject_name: &str,
     opt_version: Option<&str>,
     online_topic_name: &str,
-    primary_keys: Vec<&str>,
+    primary_keys: &[String],
     feature_group_id: i32,
 ) -> Result<()> {
     let producer: &FutureProducer = &setup_future_producer(kafka_connector).await?;

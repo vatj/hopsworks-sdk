@@ -63,7 +63,7 @@ pub async fn insert_in_registered_feature_group(
     feature_group_version: i32,
     online_topic_name: &str,
     dataframe: &mut DataFrame,
-    primary_keys: &[&str],
+    primary_keys: &[String],
 ) -> Result<JobExecution> {
     let kafka_connector =
         storage_connector::get_feature_store_kafka_connector(feature_store_id, true).await?;

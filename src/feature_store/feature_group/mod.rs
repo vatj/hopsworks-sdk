@@ -246,6 +246,9 @@ impl FeatureGroup {
         *self.features.borrow_mut() = features;
     }
 
+    /// Returns the list of primary keys for the feature group.
+    ///
+    /// Note that order matters when building primary keys to access values from the online Feature Store.
     pub fn get_primary_keys(&self) -> Result<Vec<&str>> {
         Ok(self
             .primary_key
@@ -256,15 +259,24 @@ impl FeatureGroup {
             .collect())
     }
 
+    pub fn get_primary_keys_owned(&self) -> Result<Vec<String>> {
+        Ok(self
+            .primary_key
+            .as_ref()
+            .unwrap_or_else(|| panic!("Primary key not set for feature group {}", self.get_name()))
+            .iter()
+            .map(|pk| pk.to_owned())
+            .collect())
+    }
+
     /// Returns the feature with the given name if exists.
     ///
     /// # Arguments
     /// * `feature_name` - The name of the feature to get.
-    pub fn get_feature(&self, feature_name: &str) -> Option<Feature> {
+    pub fn get_feature(&self, feature_name: &str) -> Option<&Feature> {
         self.get_features()
             .iter()
             .find(|f| f.name.as_str() == feature_name)
-            .cloned()
     }
 
     /// Inserts or upserts data into the Feature Group table.
@@ -355,15 +367,24 @@ impl FeatureGroup {
             self.version,
             self.get_online_topic_name().unwrap_or_default().as_str(),
             dataframe,
-            &self.get_primary_keys().unwrap(),
+            &self.get_primary_keys_owned()?,
         )
         .await
     }
 
-    pub fn get_feature_names(&self) -> Vec<String> {
+    /// Returns the list of feature names for the feature group.
+    pub fn get_feature_names(&self) -> Vec<&str> {
         self.get_features()
             .iter()
-            .map(|feature| feature.name)
+            .map(|feature| feature.name.as_str())
+            .collect()
+    }
+
+    /// Returns the list of owned feature names for the feature group.
+    pub fn get_feature_names_owned(&self) -> Vec<String> {
+        self.get_features()
+            .iter()
+            .map(|feature| feature.name.clone())
             .collect()
     }
 
@@ -395,7 +416,7 @@ impl FeatureGroup {
     ///  Ok(())
     /// }
     /// ```
-    pub fn select(&self, feature_names: &[&str]) -> Result<Query> {
+    pub fn select(&self, feature_names: &[String]) -> Result<Query> {
         debug!(
             "Selecting features {:?} from feature group {}, building query object",
             feature_names, self.name
@@ -405,7 +426,7 @@ impl FeatureGroup {
             self.get_features()
                 .iter()
                 .filter_map(|feature| {
-                    if feature_names.contains(&feature.name.as_str()) {
+                    if feature_names.contains(&feature.name) {
                         Some(feature.clone())
                     } else {
                         None
@@ -439,8 +460,7 @@ impl FeatureGroup {
     /// }
     /// ```
     pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
-        let feature_names = self.get_feature_names();
-        let query = self.select(feature_names.iter().map(String::as_str).collect())?;
+        let query = self.select(&self.get_feature_names_owned())?;
         debug!(
             "Reading data from feature group {} with Arrow Flight client",
             self.name
