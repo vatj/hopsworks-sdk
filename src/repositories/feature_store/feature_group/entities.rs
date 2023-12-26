@@ -41,15 +41,14 @@ impl FeatureGroupDTO {
     pub fn new_from_feature_group(feature_group: FeatureGroup) -> Self {
         Self {
             id: feature_group.id().unwrap_or(0),
-            online_topic_name: match feature_group.online_topic_name() {
-                Some(online_topic_name) => Some(online_topic_name.to_string()),
-                None => None,
-            },
+            online_topic_name: feature_group
+                .online_topic_name()
+                .map(|online_topic_name| online_topic_name.to_string()),
             creator: match feature_group.creator() {
                 Some(user) => UserDTO::from(user.clone()),
                 None => panic!("creator field should not be None for an initialized FeatureGroup"),
             },
-            location: feature_group.location().unwrap_or_else(|| "").to_string(),
+            location: feature_group.location().unwrap_or("").to_string(),
             statistics_config: Some(match feature_group.statistics_config() {
                 Some(statistics_config) => StatisticsConfigDTO::from(statistics_config.clone()),
                 None => panic!(
@@ -68,10 +67,9 @@ impl FeatureGroupDTO {
             },
             featurestore_id: feature_group.feature_store_id(),
             featurestore_name: feature_group.feature_store_name().to_string(),
-            description: match feature_group.description() {
-                Some(description) => Some(description.to_string()),
-                None => None,
-            },
+            description: feature_group
+                .description()
+                .map(|description| description.to_string()),
             created: feature_group.created().to_string(),
             version: feature_group.version(),
             name: feature_group.name().to_string(),

@@ -68,7 +68,7 @@ pub async fn read_query_from_online_feature_store(
     query: &Query,
     online_read_options: Option<OnlineReadOptions>,
 ) -> Result<DataFrame> {
-    let online_read_options = online_read_options.unwrap_or_default();
+    let _online_read_options = online_read_options.unwrap_or_default();
     let connection_string = build_mysql_connection_url_from_storage_connector(
         query.left_feature_group().feature_store_id(),
     )
@@ -96,7 +96,7 @@ pub async fn read_with_arrow_flight_client(
     offline_read_options: Option<OfflineReadOptions>,
 ) -> Result<DataFrame> {
     // Create Feature Store Query based on query object obtained via fg.select()
-    let offline_read_options = offline_read_options.unwrap_or_default();
+    let _offline_read_options = offline_read_options.unwrap_or_default();
     let feature_store_query_dto = construct_query(query_object.clone()).await?;
 
     // Create Arrow Flight Client

@@ -121,13 +121,13 @@ pub struct FeatureView {
     //
     // > Note: This feature is not yet supported in the Rust API. Check out the official Python client to
     // make full use of this fonctionality.
-    pub id: i32,
-    pub name: String,
-    pub version: i32,
-    pub query: Query,
-    pub transformation_functions: HashMap<String, TransformationFunction>,
-    pub feature_store_id: i32,
-    pub feature_store_name: String,
+    id: i32,
+    name: String,
+    version: i32,
+    query: Query,
+    transformation_functions: HashMap<String, TransformationFunction>,
+    feature_store_id: i32,
+    feature_store_name: String,
 }
 
 impl From<FeatureViewDTO> for FeatureView {
@@ -145,6 +145,42 @@ impl From<FeatureViewDTO> for FeatureView {
 }
 
 impl FeatureView {
+    pub fn feature_store_id(&self) -> i32 {
+        self.feature_store_id
+    }
+
+    pub fn feature_store_name(&self) -> &str {
+        self.feature_store_name.as_str()
+    }
+
+    pub fn id(&self) -> i32 {
+        self.id
+    }
+
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    pub fn version(&self) -> i32 {
+        self.version
+    }
+
+    pub fn query(&self) -> &Query {
+        &self.query
+    }
+
+    pub fn query_mut(&mut self) -> &mut Query {
+        &mut self.query
+    }
+
+    pub fn transformation_functions(&self) -> &HashMap<String, TransformationFunction> {
+        &self.transformation_functions
+    }
+
+    pub fn transformation_functions_mut(&mut self) -> &mut HashMap<String, TransformationFunction> {
+        &mut self.transformation_functions
+    }
+
     pub async fn create_train_test_split(
         &self,
         // train_start: &str,

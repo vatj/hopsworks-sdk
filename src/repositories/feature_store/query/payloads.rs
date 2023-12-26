@@ -23,7 +23,7 @@ pub struct NewQueryPayload {
     filters: Option<Vec<QueryFilterOrLogicDTO>>,
 }
 
-impl<'a> NewQueryPayload {
+impl NewQueryPayload {
     pub fn new(
         left_feature_group: FeatureGroupDTO,
         left_features: Vec<FeatureDTO>,
@@ -84,7 +84,7 @@ pub struct NewJoinQueryPayload {
     prefix: Option<String>,
 }
 
-impl<'a> NewJoinQueryPayload {
+impl NewJoinQueryPayload {
     pub fn new(query: NewQueryPayload, join_config: PayloadJoinConfig) -> Self {
         Self {
             query,

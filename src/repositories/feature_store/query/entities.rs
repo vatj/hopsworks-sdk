@@ -38,24 +38,18 @@ impl From<Query> for QueryDTO {
                 .iter()
                 .map(|feature| FeatureDTO::from(feature.clone()))
                 .collect(),
-            joins: match query.joins() {
-                Some(joins) => Some(
-                    joins
-                        .iter()
-                        .map(|join| JoinQueryDTO::from(join.clone()))
-                        .collect(),
-                ),
-                None => None,
-            },
-            filters: match query.filters() {
-                Some(filters) => Some(
-                    filters
-                        .iter()
-                        .map(|filter| QueryFilterOrLogicDTO::from(filter.clone()))
-                        .collect(),
-                ),
-                None => None,
-            },
+            joins: query.joins().map(|joins| {
+                joins
+                    .iter()
+                    .map(|join| JoinQueryDTO::from(join.clone()))
+                    .collect()
+            }),
+            filters: query.filters().map(|filters| {
+                filters
+                    .iter()
+                    .map(|filter| QueryFilterOrLogicDTO::from(filter.clone()))
+                    .collect()
+            }),
             left_feature_group_start_time: query
                 .left_feature_group_start_time()
                 .map(str::to_string),
@@ -147,22 +141,14 @@ impl From<QueryLogic> for QueryLogicDTO {
     fn from(value: QueryLogic) -> Self {
         Self {
             logic_type: value.logic_type,
-            left_logic: match value.left_logic {
-                Some(left_logic) => Some(Box::new(QueryLogicDTO::from(*left_logic.clone()))),
-                None => None,
-            },
-            right_logic: match value.right_logic {
-                Some(right_logic) => Some(Box::new(QueryLogicDTO::from(*right_logic.clone()))),
-                None => None,
-            },
-            left_filter: match value.left_filter {
-                Some(left_filter) => Some(left_filter.into()),
-                None => None,
-            },
-            right_filter: match value.right_filter {
-                Some(right_filter) => Some(right_filter.into()),
-                None => None,
-            },
+            left_logic: value
+                .left_logic
+                .map(|left_logic| Box::new(QueryLogicDTO::from(*left_logic.clone()))),
+            right_logic: value
+                .right_logic
+                .map(|right_logic| Box::new(QueryLogicDTO::from(*right_logic.clone()))),
+            left_filter: value.left_filter.map(|left_filter| left_filter.into()),
+            right_filter: value.right_filter.map(|right_filter| right_filter.into()),
         }
     }
 }

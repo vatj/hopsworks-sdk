@@ -36,6 +36,79 @@ use self::read_option::{OfflineReadOptions, OnlineReadOptions};
 /// - full or per-query time travel, via the `Query.as_of()` method, if all features belong to time travel enabled [Feature Group][`crate::feature_store::feature_group::FeatureGroup`]s
 ///
 /// # Examples
+///
+/// ## Read some features from a feature group
+/// ```no_run
+/// # use color_eyre::Result;
+/// use hopsworks_rs::hopsworks_login;
+///
+/// #[tokio::main]
+/// pub async fn main() -> Result<()> {
+///   let feature_group = hopsworks_login(None).await?.get_feature_store().await?
+///     .get_feature_group("my_fg", Some(1)).await?
+///     .expect("my_fg not found");
+///
+///   let query = feature_group.select(&["feature_1", "feature_2"])?;
+///   let df = query.read_from_offline_feature_store(None).await?;
+///
+///   println!("{}", df.head(Some(5)));
+///   Ok(())
+/// }
+/// ```
+///
+/// ## Join two feature groups to create a Feature View
+/// ```no_run
+/// # use color_eyre::Result;
+/// use hopsworks_rs::{
+///   hopsworks_login,
+///   feature_store::query::join::{JoinOptions, JoinType},
+/// };
+///
+/// #[tokio::main]
+/// pub async fn main() -> Result<()> {
+///  let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+///  let fg_1 = feature_store.get_feature_group("my_fg_1", Some(1)).await?.unwrap();
+///  let fg_2 = feature_store.get_feature_group("my_fg_2", Some(1)).await?.unwrap();
+///
+///  let query = fg_1.select(&["feature_1", "feature_2"])?.join(
+///    fg_2.select(&["feature_3", "feature_4"])?,
+///    JoinOptions::new(JoinType::Inner).with_left_on(&["feature_1"]).with_right_on(&["feature_3"]),
+///  );
+///
+///   let feature_view = feature_store.create_feature_view(
+///     "my_feature_view",
+///     1,
+///     query,
+///     None,
+///   ).await?;
+///
+///   Ok(())
+/// }
+/// ```
+///
+/// ## Add filters and time travel to a query
+/// ```no_run
+/// # use color_eyre::Result;
+/// use hopsworks_rs::hopsworks_login;
+///
+/// #[tokio::main]
+/// pub async fn main() -> Result<()> {
+///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+///   let fg_1 = feature_store.get_feature_group("my_fg_1", Some(1)).await?.unwrap();
+///
+///   let mut query = fg_1.select(&["feature_1", "feature_2"])?.as_of("2024-01-01", "2024-01-02")?;
+///   query.filters_mut().extend(
+///        vec![
+///           fg_1.get_feature("feature_1").unwrap().filter_in(
+///             vec![String::from("foo"), String::from("bar")])?,
+///           fg_1.get_feature("feature_2").unwrap().filter_eq(42)?,
+///       ]
+///   );
+///
+///   let df = query.read_from_offline_feature_store(None).await?;
+///   Ok(())
+/// }
+/// ```
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Query {
     left_feature_group: FeatureGroup,
@@ -168,18 +241,21 @@ impl Query {
         self
     }
 
-    pub fn as_of(mut self, start_time: &str, end_time: &str) -> Self {
+    pub fn as_of(mut self, start_time: &str, end_time: &str) -> Result<Self> {
+        self.as_of_recursive(start_time, end_time);
+        Ok(self)
+    }
+
+    fn as_of_recursive(&mut self, start_time: &str, end_time: &str) {
         self.left_feature_group_start_time = Some(start_time.to_string());
         self.left_feature_group_end_time = Some(end_time.to_string());
         self.joins_mut().iter_mut().for_each(|join| {
-            if join.query.left_feature_group_start_time.is_none() {
-                join.query.left_feature_group_start_time = Some(start_time.to_string());
-            }
-            if join.query.left_feature_group_end_time.is_none() {
-                join.query.left_feature_group_end_time = Some(end_time.to_string());
+            if join.query.left_feature_group_start_time.is_none()
+                && join.query.left_feature_group_end_time.is_none()
+            {
+                join.query.as_of_recursive(start_time, end_time);
             }
         });
-        self
     }
 }
 
@@ -216,7 +292,7 @@ pub mod read_option {
     //! Read options for feature store query
     //!
     //! Placeholder for future functionality, the aim is both to offer more fine grained control over
-    //! how data is read from the feature store. And to provide sensible defaults when none are specified.
+    //! how data is read from the feature store and to provide sensible defaults when none are specified.
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Serialize, Deserialize, Clone, Default)]

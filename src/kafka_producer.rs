@@ -205,7 +205,7 @@ pub async fn produce_df(
     for idx in 0..df.height() {
         df.get_row_amortized(idx, &mut row)?;
         let (record, composite_key) =
-            convert_df_row_to_avro_record(&avro_schema, &column_names, &primary_keys, &row)?;
+            convert_df_row_to_avro_record(&avro_schema, &column_names, primary_keys, &row)?;
         let encoded_payload = apache_avro::to_avro_datum(&avro_schema, record)?;
 
         // Need to clone the values to move them into the spawned thread

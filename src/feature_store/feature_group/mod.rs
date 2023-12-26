@@ -199,6 +199,10 @@ impl FeatureGroup {
         self.time_travel_format.as_str()
     }
 
+    pub fn is_time_travel_enabled(&self) -> bool {
+        self.time_travel_format == "HUDI"
+    }
+
     pub fn online_topic_name(&self) -> Option<&str> {
         self.online_topic_name.as_deref()
     }
