@@ -77,7 +77,7 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    let training_df = feature_view.read_from_offline_feature_store().await?;
+    let training_df = feature_view.read_from_offline_feature_store(None).await?;
 
     println!("The training dataset: {:#?}", training_df.head(Some(10)));
 

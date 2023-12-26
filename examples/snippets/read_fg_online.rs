@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         let query = feature_group.select(&feature_group.get_feature_names())?;
         let now = Instant::now();
-        let read_df = query.read_from_online_feature_store().await?;
+        let read_df = query.read_from_online_feature_store(None).await?;
         println!(
             "Read feature group took {:.2?} seconds and returned :\n{:#?}",
             now.elapsed(),

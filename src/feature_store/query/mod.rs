@@ -17,12 +17,16 @@ use crate::{
     repositories::feature_store::query::entities::QueryDTO,
 };
 
+use self::read_option::{OfflineReadOptions, OnlineReadOptions};
+
 /// Query object are used to read data from the feature store, both online and offline.
 ///
 /// They are usually constructed by calling `FeatureGroup.select()` and
 /// joining with other queries using `Query.join()`.
 /// You can subsequently use `Query.read_from_online_feature_store()`
 /// or `Query.read_from_offline_feature_store()` to read your Feature data.
+/// `Query` objects are not registered in the feature store as such, but are meant to be part of a `FeatureView`.
+/// See the [FeatureView][`crate::feature_store::feature_view::FeatureView`] documentation for more details.
 ///
 /// Query objects support:
 /// - Joining with other queries
@@ -97,8 +101,8 @@ impl Query {
         self.joins.as_ref()
     }
 
-    pub fn joins_mut(&mut self) -> Option<&mut Vec<JoinQuery>> {
-        self.joins.as_mut()
+    pub fn joins_mut(&mut self) -> &mut Vec<JoinQuery> {
+        self.joins.get_or_insert_with(std::vec::Vec::new)
     }
 
     pub(crate) fn get_feature_group_by_feature(&self, feature: &Feature) -> Option<&FeatureGroup> {
@@ -138,12 +142,18 @@ impl Query {
         }
     }
 
-    pub async fn read_from_online_feature_store(&self) -> Result<DataFrame> {
-        read_query_from_online_feature_store(self).await
+    pub async fn read_from_online_feature_store(
+        &self,
+        online_read_options: Option<OnlineReadOptions>,
+    ) -> Result<DataFrame> {
+        read_query_from_online_feature_store(self, online_read_options).await
     }
 
-    pub async fn read_from_offline_feature_store(&self) -> Result<DataFrame> {
-        read_with_arrow_flight_client(self.clone()).await
+    pub async fn read_from_offline_feature_store(
+        &self,
+        offline_read_options: Option<OfflineReadOptions>,
+    ) -> Result<DataFrame> {
+        read_with_arrow_flight_client(self.clone(), offline_read_options).await
     }
 
     pub fn join(mut self, query: Query, join_options: JoinOptions) -> Self {
@@ -155,6 +165,20 @@ impl Query {
             .unwrap()
             .push(JoinQuery::new(query, join_options));
 
+        self
+    }
+
+    pub fn as_of(mut self, start_time: &str, end_time: &str) -> Self {
+        self.left_feature_group_start_time = Some(start_time.to_string());
+        self.left_feature_group_end_time = Some(end_time.to_string());
+        self.joins_mut().iter_mut().for_each(|join| {
+            if join.query.left_feature_group_start_time.is_none() {
+                join.query.left_feature_group_start_time = Some(start_time.to_string());
+            }
+            if join.query.left_feature_group_end_time.is_none() {
+                join.query.left_feature_group_end_time = Some(end_time.to_string());
+            }
+        });
         self
     }
 }
@@ -186,4 +210,18 @@ impl From<QueryDTO> for Query {
             left_feature_group_end_time: dto.left_feature_group_end_time,
         }
     }
+}
+
+pub mod read_option {
+    //! Read options for feature store query
+    //!
+    //! Placeholder for future functionality, the aim is both to offer more fine grained control over
+    //! how data is read from the feature store. And to provide sensible defaults when none are specified.
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Debug, Serialize, Deserialize, Clone, Default)]
+    pub struct OfflineReadOptions {}
+
+    #[derive(Debug, Serialize, Deserialize, Clone, Default)]
+    pub struct OnlineReadOptions {}
 }

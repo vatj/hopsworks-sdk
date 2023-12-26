@@ -26,6 +26,8 @@ use std::collections::HashMap;
 
 use self::transformation_function::TransformationFunction;
 
+use super::query::read_option::{OfflineReadOptions, OnlineReadOptions};
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureView {
     // Feature Views serve as the main read interface of the Feature Store.
@@ -109,7 +111,7 @@ pub struct FeatureView {
     //   let fs = hopsworks_login(None).await?.get_feature_store().await?;
     //   let feature_view = fs.get_feature_view("my_feature_view", Some(1)).await?.unwrap();
     //
-    //   let training_dataset_dataframe = feature_view.read_from_offline_feature_store().await?;
+    //   let training_dataset_dataframe = feature_view.read_from_offline_feature_store(None).await?;
     //
     //   Ok(())
     // }
@@ -167,11 +169,17 @@ impl FeatureView {
         Ok(())
     }
 
-    pub async fn read_from_offline_feature_store(&self) -> Result<DataFrame> {
-        read_with_arrow_flight_client(self.query.clone()).await
+    pub async fn read_from_offline_feature_store(
+        &self,
+        offline_read_options: Option<OfflineReadOptions>,
+    ) -> Result<DataFrame> {
+        read_with_arrow_flight_client(self.query.clone(), offline_read_options).await
     }
 
-    pub async fn read_from_online_feature_store(&self) -> Result<DataFrame> {
-        read_query_from_online_feature_store(&self.query.clone()).await
+    pub async fn read_from_online_feature_store(
+        &self,
+        online_read_options: Option<OnlineReadOptions>,
+    ) -> Result<DataFrame> {
+        read_query_from_online_feature_store(&self.query.clone(), online_read_options).await
     }
 }

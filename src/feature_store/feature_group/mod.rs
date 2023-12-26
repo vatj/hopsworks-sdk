@@ -28,6 +28,8 @@ use self::{feature::Feature, statistics_config::StatisticsConfig};
 
 use crate::platform::user::User;
 
+use super::query::read_option::OfflineReadOptions;
+
 /// Feature Group are metadata objects describing a table in the Feature Store.
 /// They are the primary interface through which one can ingest Feature data to the Feature Store.
 /// Once a Feature Group is created, one can insert/upsert data to it using the `insert` method.
@@ -376,7 +378,7 @@ impl FeatureGroup {
     ///
     ///  let query = feature_group.select(&["number", "word"])?;
     ///
-    ///  let df = query.read_from_offline_feature_store().await?;
+    ///  let df = query.read_from_offline_feature_store(None).await?;
     ///
     ///  Ok(())
     /// }
@@ -419,18 +421,21 @@ impl FeatureGroup {
     ///    .await?
     ///    .expect("Feature Group not found");
     ///
-    ///  let df = feature_group.read_from_offline_feature_store().await?;
+    ///  let df = feature_group.read_from_offline_feature_store(None).await?;
     ///
     ///  Ok(())
     /// }
     /// ```
-    pub async fn read_from_offline_feature_store(&self) -> Result<DataFrame> {
+    pub async fn read_from_offline_feature_store(
+        &self,
+        offline_read_options: Option<OfflineReadOptions>,
+    ) -> Result<DataFrame> {
         let query = self.select(&self.get_feature_names())?;
         debug!(
             "Reading data from feature group {} with Arrow Flight client",
             self.name
         );
-        let read_df = read_with_arrow_flight_client(query).await?;
+        let read_df = read_with_arrow_flight_client(query, offline_read_options).await?;
 
         Ok(read_df)
     }

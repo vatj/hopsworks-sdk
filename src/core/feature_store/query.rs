@@ -8,6 +8,7 @@ use polars::prelude::DataFrame;
 
 use crate::clients::arrow_flight::client::HopsworksArrowFlightClientBuilder;
 use crate::core::feature_store::storage_connector;
+use crate::feature_store::query::read_option::{OfflineReadOptions, OnlineReadOptions};
 use crate::repositories::platform::variables::service::get_loadbalancer_external_domain;
 use crate::{
     feature_store::query::Query,
@@ -63,7 +64,11 @@ pub async fn build_mysql_connection_url_from_storage_connector(
     Ok(connection_string)
 }
 
-pub async fn read_query_from_online_feature_store(query: &Query) -> Result<DataFrame> {
+pub async fn read_query_from_online_feature_store(
+    query: &Query,
+    online_read_options: Option<OnlineReadOptions>,
+) -> Result<DataFrame> {
+    let online_read_options = online_read_options.unwrap_or_default();
     let connection_string = build_mysql_connection_url_from_storage_connector(
         query.left_feature_group().feature_store_id(),
     )
@@ -86,8 +91,12 @@ pub async fn read_query_from_online_feature_store(query: &Query) -> Result<DataF
     Ok(df)
 }
 
-pub async fn read_with_arrow_flight_client(query_object: Query) -> Result<DataFrame> {
+pub async fn read_with_arrow_flight_client(
+    query_object: Query,
+    offline_read_options: Option<OfflineReadOptions>,
+) -> Result<DataFrame> {
     // Create Feature Store Query based on query object obtained via fg.select()
+    let offline_read_options = offline_read_options.unwrap_or_default();
     let feature_store_query_dto = construct_query(query_object.clone()).await?;
 
     // Create Arrow Flight Client

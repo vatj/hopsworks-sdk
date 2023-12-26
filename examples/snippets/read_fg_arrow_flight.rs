@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?
     {
         let now = Instant::now();
-        let read_df = feature_group.read_from_offline_feature_store().await?;
+        let read_df = feature_group.read_from_offline_feature_store(None).await?;
         println!(
             "Read feature group took {:.2?} seconds and returned :\n{:#?}",
             now.elapsed(),
