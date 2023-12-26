@@ -116,7 +116,7 @@ impl JobExecution {
     ///     .get_feature_view("my_feature_view", Some(1)).await?
     ///     .expect("Feature View not found");
     ///
-    ///   let updated_training_df = feature_view.read_with_arrow_flight_client().await?;
+    ///   let updated_training_df = feature_view.read_from_offline_feature_store().await?;
     ///
     ///   // Do stuff with the updated training dataset
     ///

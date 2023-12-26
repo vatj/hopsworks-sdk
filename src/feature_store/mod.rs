@@ -90,7 +90,7 @@ pub struct FeatureStore {
     //  let feature_view = fs.create_feature_view("my_feature_view", 1, query, None).await?;
     //
     //  // Read data from the Feature View
-    //  let df = feature_view.read_with_arrow_flight_client().await?;
+    //  let df = feature_view.read_from_offline_feature_store().await?;
     // #  Ok(())
     // # }
     // ```
@@ -355,7 +355,7 @@ impl FeatureStore {
     ///     None
     ///   ).await?;
     ///
-    ///   let df = feature_view.read_with_arrow_flight_client().await?;
+    ///   let df = feature_view.read_from_offline_feature_store().await?;
     ///
     ///   Ok(())
     /// }
@@ -397,7 +397,7 @@ impl FeatureStore {
     ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
     ///   let feature_view = feature_store.get_feature_view("my_feature_view", Some(1)).await?.expect("Feature View not found");
     ///
-    ///   let my_df = feature_view.read_with_arrow_flight_client().await?;
+    ///   let my_df = feature_view.read_from_offline_feature_store().await?;
     ///
     ///   Ok(())
     /// }

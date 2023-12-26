@@ -76,7 +76,7 @@ async fn main() -> Result<()> {
   );
 
   // Read data from the Feature Store into an in memory DataFrame
-  let mut df = fv.read_with_arrow_flight_client().await?;
+  let mut df = fv.read_from_offline_feature_store().await?;
 
   // Do some ML/AI stuff with the data
   Ok(())

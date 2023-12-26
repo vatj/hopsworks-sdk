@@ -77,7 +77,7 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    let training_df = feature_view.read_with_arrow_flight_client().await?;
+    let training_df = feature_view.read_from_offline_feature_store().await?;
 
     println!("The training dataset: {:#?}", training_df.head(Some(10)));
 

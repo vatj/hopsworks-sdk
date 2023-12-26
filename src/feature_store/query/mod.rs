@@ -1,18 +1,37 @@
 //! Query API
 pub mod filter;
 pub mod join;
-pub mod methods;
 
+use color_eyre::Result;
+use polars::frame::DataFrame;
 use serde::{Deserialize, Serialize};
 
 pub use filter::{QueryFilter, QueryFilterOrLogic, QueryLogic};
 pub use join::{JoinOptions, JoinQuery};
 
 use crate::{
+    core::feature_store::query::{
+        read_query_from_online_feature_store, read_with_arrow_flight_client,
+    },
     feature_store::feature_group::{feature::Feature, FeatureGroup},
     repositories::feature_store::query::entities::QueryDTO,
 };
 
+/// Query object are used to read data from the feature store, both online and offline.
+///
+/// They are usually constructed by calling `FeatureGroup.select()` and
+/// joining with other queries using `Query.join()`.
+/// You can subsequently use `Query.read_from_online_feature_store()`
+/// or `Query.read_from_offline_feature_store()` to read your Feature data.
+///
+/// Query objects support:
+/// - Joining with other queries
+/// - filtering on individual features, see [Feature][`crate::feature_store::feature_group::Feature`]
+/// - real-time reads from the online feature store if all features belong to online-enabled [Feature Group][`crate::feature_store::feature_group::FeatureGroup`]s
+/// - offline (so-called batch) reads from the offline feature store if all features belong to offline-enabled [Feature Group][`crate::feature_store::feature_group::FeatureGroup`]s
+/// - full or per-query time travel, via the `Query.as_of()` method, if all features belong to time travel enabled [Feature Group][`crate::feature_store::feature_group::FeatureGroup`]s
+///
+/// # Examples
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Query {
     left_feature_group: FeatureGroup,
@@ -80,6 +99,63 @@ impl Query {
 
     pub fn joins_mut(&mut self) -> Option<&mut Vec<JoinQuery>> {
         self.joins.as_mut()
+    }
+
+    pub(crate) fn get_feature_group_by_feature(&self, feature: &Feature) -> Option<&FeatureGroup> {
+        let feature_group = self.left_features.iter().find_map(|f| {
+            if f.name() == feature.name() {
+                Some(&self.left_feature_group)
+            } else {
+                None
+            }
+        });
+        match feature_group {
+            Some(feature_group) => Some(feature_group),
+            None => {
+                if let Some(joins) = &self.joins {
+                    for join in joins {
+                        let feature_group = join.query.get_feature_group_by_feature(feature);
+                        if feature_group.is_some() {
+                            return feature_group;
+                        }
+                    }
+                }
+                None
+            }
+        }
+    }
+
+    pub fn feature_groups(&self) -> Vec<&FeatureGroup> {
+        if let Some(joins) = &self.joins {
+            let mut feature_groups: Vec<&FeatureGroup> = joins
+                .iter()
+                .map(|join| &join.query.left_feature_group)
+                .collect();
+            feature_groups.push(&self.left_feature_group);
+            feature_groups
+        } else {
+            vec![&self.left_feature_group]
+        }
+    }
+
+    pub async fn read_from_online_feature_store(&self) -> Result<DataFrame> {
+        read_query_from_online_feature_store(self).await
+    }
+
+    pub async fn read_from_offline_feature_store(&self) -> Result<DataFrame> {
+        read_with_arrow_flight_client(self.clone()).await
+    }
+
+    pub fn join(mut self, query: Query, join_options: JoinOptions) -> Self {
+        if self.joins.is_none() {
+            self.joins = Some(vec![]);
+        }
+        self.joins
+            .as_mut()
+            .unwrap()
+            .push(JoinQuery::new(query, join_options));
+
+        self
     }
 }
 

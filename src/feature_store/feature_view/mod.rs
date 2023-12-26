@@ -109,7 +109,7 @@ pub struct FeatureView {
     //   let fs = hopsworks_login(None).await?.get_feature_store().await?;
     //   let feature_view = fs.get_feature_view("my_feature_view", Some(1)).await?.unwrap();
     //
-    //   let training_dataset_dataframe = feature_view.read_with_arrow_flight_client().await?;
+    //   let training_dataset_dataframe = feature_view.read_from_offline_feature_store().await?;
     //
     //   Ok(())
     // }
@@ -167,7 +167,7 @@ impl FeatureView {
         Ok(())
     }
 
-    pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
+    pub async fn read_from_offline_feature_store(&self) -> Result<DataFrame> {
         read_with_arrow_flight_client(self.query.clone()).await
     }
 

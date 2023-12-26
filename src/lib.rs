@@ -62,7 +62,7 @@
 //!  ).await?;
 //!
 //!  // Read data from the Feature View
-//!  let df = fv.read_with_arrow_flight_client().await?;
+//!  let df = fv.read_from_offline_feature_store().await?;
 //!  
 //!  Ok(())
 //! }

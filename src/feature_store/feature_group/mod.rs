@@ -376,7 +376,7 @@ impl FeatureGroup {
     ///
     ///  let query = feature_group.select(&["number", "word"])?;
     ///
-    ///  let df = query.read_with_arrow_flight_client().await?;
+    ///  let df = query.read_from_offline_feature_store().await?;
     ///
     ///  Ok(())
     /// }
@@ -419,12 +419,12 @@ impl FeatureGroup {
     ///    .await?
     ///    .expect("Feature Group not found");
     ///
-    ///  let df = feature_group.read_with_arrow_flight_client().await?;
+    ///  let df = feature_group.read_from_offline_feature_store().await?;
     ///
     ///  Ok(())
     /// }
     /// ```
-    pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
+    pub async fn read_from_offline_feature_store(&self) -> Result<DataFrame> {
         let query = self.select(&self.get_feature_names())?;
         debug!(
             "Reading data from feature group {} with Arrow Flight client",
