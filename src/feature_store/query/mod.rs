@@ -191,7 +191,7 @@ impl Query {
             None => {
                 if let Some(joins) = &self.joins {
                     for join in joins {
-                        let feature_group = join.query.get_feature_group_by_feature(feature);
+                        let feature_group = join.query().get_feature_group_by_feature(feature);
                         if feature_group.is_some() {
                             return feature_group;
                         }
@@ -206,7 +206,7 @@ impl Query {
         if let Some(joins) = &self.joins {
             let mut feature_groups: Vec<&FeatureGroup> = joins
                 .iter()
-                .map(|join| &join.query.left_feature_group)
+                .map(|join| &join.query().left_feature_group)
                 .collect();
             feature_groups.push(&self.left_feature_group);
             feature_groups
@@ -250,7 +250,7 @@ impl Query {
         self.left_feature_group_start_time = Some(start_time.to_string());
         self.left_feature_group_end_time = Some(end_time.to_string());
         self.joins_mut().iter_mut().for_each(|join| {
-            join.query.as_of_recursive(start_time, end_time);
+            join.query_mut().as_of_recursive(start_time, end_time);
         });
     }
 }

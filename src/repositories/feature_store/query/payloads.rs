@@ -127,12 +127,12 @@ impl PayloadJoinConfig {
 impl From<JoinQuery> for NewJoinQueryPayload {
     fn from(join_query: JoinQuery) -> Self {
         Self {
-            query: NewQueryPayload::from(join_query.query),
-            on: join_query.on,
-            left_on: join_query.left_on,
-            right_on: join_query.right_on,
-            join_type: join_query.join_type,
-            prefix: join_query.prefix,
+            query: NewQueryPayload::from(join_query.query().clone()),
+            on: join_query.on().map(|slice| slice.to_vec()),
+            left_on: join_query.left_on().map(|slice| slice.to_vec()),
+            right_on: join_query.right_on().map(|slice| slice.to_vec()),
+            join_type: join_query.join_type().clone(),
+            prefix: join_query.prefix().map(str::to_string),
         }
     }
 }

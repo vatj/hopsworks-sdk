@@ -6,12 +6,12 @@ use super::Query;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JoinQuery {
-    pub query: Query,
-    pub on: Option<Vec<String>>,
-    pub left_on: Option<Vec<String>>,
-    pub right_on: Option<Vec<String>>,
-    pub prefix: Option<String>,
-    pub join_type: JoinType,
+    query: Query,
+    on: Option<Vec<String>>,
+    left_on: Option<Vec<String>>,
+    right_on: Option<Vec<String>>,
+    prefix: Option<String>,
+    join_type: JoinType,
 }
 
 impl JoinQuery {
@@ -24,6 +24,46 @@ impl JoinQuery {
             join_type: join_options.join_type,
             prefix: join_options.prefix,
         }
+    }
+
+    pub fn query(&self) -> &Query {
+        &self.query
+    }
+
+    pub fn query_mut(&mut self) -> &mut Query {
+        &mut self.query
+    }
+
+    pub fn on(&self) -> Option<&[String]> {
+        self.on.as_deref()
+    }
+
+    pub fn on_mut(&mut self) -> &mut Vec<String> {
+        self.on.get_or_insert_with(std::vec::Vec::new)
+    }
+
+    pub fn left_on(&self) -> Option<&[String]> {
+        self.left_on.as_deref()
+    }
+
+    pub fn left_on_mut(&mut self) -> &mut Vec<String> {
+        self.left_on.get_or_insert_with(std::vec::Vec::new)
+    }
+
+    pub fn right_on(&self) -> Option<&[String]> {
+        self.right_on.as_deref()
+    }
+
+    pub fn right_on_mut(&mut self) -> &mut Vec<String> {
+        self.right_on.get_or_insert_with(std::vec::Vec::new)
+    }
+
+    pub fn prefix(&self) -> Option<&str> {
+        self.prefix.as_deref()
+    }
+
+    pub fn join_type(&self) -> &JoinType {
+        &self.join_type
     }
 }
 
