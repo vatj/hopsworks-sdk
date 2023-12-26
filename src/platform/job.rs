@@ -77,7 +77,7 @@ impl Job {
         Ok(exec)
     }
 
-    /// Get the [`Jobexecution`]s of this job sorted by submission date starting with most recent.
+    /// Get the [`JobExecution`]s of this job sorted by submission date starting with most recent.
     ///
     /// # Returns
     /// * `Result<Vec<JobExecution>>` - The [`JobExecution`]s of this job.

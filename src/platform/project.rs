@@ -1,9 +1,9 @@
 //! Project with Feature Store and Other Platform Resources
 //!
-//! The [`Project`] is the top-level entity in Hopsworks. With its own [`FeatureStore`][crate::feature_store::FeatureStore],
+//! The [`Project`] is the top-level entity in Hopsworks. With its own [`FeatureStore`],
 //! it is intended to hold multiple [`FeatureGroup`][crate::feature_store::FeatureGroup]s and
 //! [`FeatureView`][crate::feature_store::FeatureView]s, the [`Job`]s to backfill
-//! or create [`TrainingDataset`][crate::feature_store::feature_view::TrainingDataset]s, managing [`User`][super::user::User]s access, etc...
+//! or create [`TrainingDataset`][crate::feature_store::feature_view::training_dataset::TrainingDataset]s, managing [`User`][super::user::User]s access, etc...
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
@@ -15,8 +15,8 @@ use super::job::Job;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Project {
-    pub project_name: String,
-    pub id: i32,
+    project_name: String,
+    id: i32,
 }
 
 impl From<ProjectDTO> for Project {
@@ -29,6 +29,16 @@ impl From<ProjectDTO> for Project {
 }
 
 impl Project {
+    /// Get the name of the project.
+    pub fn name(&self) -> &str {
+        self.project_name.as_str()
+    }
+
+    /// Get the id of the project.
+    pub fn id(&self) -> i32 {
+        self.id
+    }
+
     /// Get the default [`FeatureStore`] for the project. Use it once the connection is established to start
     /// managing the Feature Store, e.g. creating/updating Feature Groups and Feature Views, inserting or reading
     /// feature data.

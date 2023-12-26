@@ -6,7 +6,7 @@ use crate::{
     repositories::feature_store::feature::entities::FeatureDTO,
 };
 
-/// Feature entity gathering metadata about a feature in a feature group.
+/// Feature entity gathering metadata about a feature in a [`FeatureGroup`][super::FeatureGroup].
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Feature {
     name: String,
@@ -69,8 +69,9 @@ impl Feature {
 }
 
 impl Feature {
-    /// Create a new filter for this feature. Often used in combination with a query,
-    /// to create a new feature view including only the features matching the filter.
+    /// Create a new [`Filter`][crate::feature_store::query::filter::QueryFilterOrLogic] for this feature.
+    /// Often used in combination with a [`Query`][crate::feature_store::query::Query],
+    /// to create a new [`FeatureView`][crate::feature_store::feature_view::FeatureView] including only the feature data matching the filter.
     ///
     /// # Arguments
     /// * `pattern` - The pattern to match.
@@ -100,11 +101,13 @@ impl Feature {
         Ok(QueryFilter::new_like(pattern, self.clone())?.into())
     }
 
-    /// Create a new filter for this feature. Often used in combination with a query,
-    /// to create a new feature view including only the features matching the filter.
+    /// Create a new [`Filter`][crate::feature_store::query::filter::QueryFilterOrLogic] for this feature.
+    /// Often used in combination with a [`Query`][crate::feature_store::query::Query],
+    /// to create a new [`FeatureView`][crate::feature_store::feature_view::FeatureView] including only the feature data
+    /// in the provided set.
     ///
     /// # Arguments
-    /// * `pattern` - The pattern to match.
+    /// * `values` - The allowed values for this feature.
     ///
     /// # Example
     /// ```no_run
@@ -134,11 +137,13 @@ impl Feature {
         Ok(QueryFilter::new_in(values, self.clone())?.into())
     }
 
-    /// Create a new filter for this feature. Often used in combination with a query,
-    /// to create a new feature view including only the features matching the filter.
+    /// Create a new [`Filter`][crate::feature_store::query::filter::QueryFilterOrLogic] for this feature.
+    /// Often used in combination with a [`Query`][crate::feature_store::query::Query],
+    /// to create a new [`FeatureView`][crate::feature_store::feature_view::FeatureView] including only the feature data different
+    /// from the provided value.
     ///
     /// # Arguments
-    /// * `pattern` - The pattern to match.
+    /// * `value` - The disallowed value.
     ///
     /// # Example
     /// ```no_run
@@ -171,11 +176,12 @@ impl Feature {
         )
     }
 
-    /// Create a new filter for this feature. Often used in combination with a query,
-    /// to create a new feature view including only the features matching the filter.
+    /// Create a new [`Filter`][crate::feature_store::query::filter::QueryFilterOrLogic] for this feature.
+    /// Often used in combination with a [`Query`][crate::feature_store::query::Query],
+    /// to create a new [`FeatureView`][crate::feature_store::feature_view::FeatureView] including only the feature data equal to value.
     ///
     /// # Arguments
-    /// * `pattern` - The pattern to match.
+    /// * `value` - The allowed value.
     ///
     /// # Example
     /// ```no_run
@@ -204,21 +210,14 @@ impl Feature {
     {
         Ok(QueryFilter::new_partial_eq(value, QueryFilterCondition::Equal, self.clone())?.into())
     }
-    pub fn filter_gt<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
-    where
-        T: 'a + PartialOrd + serde::Serialize + serde::de::DeserializeOwned,
-    {
-        Ok(
-            QueryFilter::new_partial_ord(value, QueryFilterCondition::GreaterThan, self.clone())?
-                .into(),
-        )
-    }
 
-    /// Create a new filter for this feature. Often used in combination with a query,
-    /// to create a new feature view including only the features matching the filter.
+    /// Create a new [`Filter`][crate::feature_store::query::filter::QueryFilterOrLogic] for this feature.
+    /// Often used in combination with a [`Query`][crate::feature_store::query::Query],
+    /// to create a new [`FeatureView`][crate::feature_store::feature_view::FeatureView]
+    /// including only the feature data greater than or equal to value.
     ///
     /// # Arguments
-    /// * `pattern` - The pattern to match.
+    /// * `value` - The lower limit value for feature data.
     ///
     /// # Example
     /// ```no_run
@@ -248,11 +247,47 @@ impl Feature {
         .into())
     }
 
-    /// Create a new filter for this feature. Often used in combination with a query,
-    /// to create a new feature view including only the features matching the filter.
+    /// Create a new [`Filter`][crate::feature_store::query::filter::QueryFilterOrLogic] for this feature.
+    /// Often used in combination with a [`Query`][crate::feature_store::query::Query],
+    /// to create a new [`FeatureView`][crate::feature_store::feature_view::FeatureView]
+    /// including only the feature data greater than value.
     ///
     /// # Arguments
-    /// * `pattern` - The pattern to match.
+    /// * `value` - The lower bound value for feature data.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// # use hopsworks_rs::hopsworks_login;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<()> {
+    /// let feature_group = hopsworks_login(None).await?
+    ///   .get_feature_store().await?
+    ///   .get_feature_group("demo_feature_group", Some(1)).await?
+    ///   .expect("Feature group not found");
+    ///
+    /// let mut query = feature_group.select(&["feature_1", "feature_2"])?;
+    /// query.filters_mut().extend(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_gte(3.)?]);
+    /// # Ok(())
+    /// # }
+    pub fn filter_gt<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
+    where
+        T: 'a + PartialOrd + serde::Serialize + serde::de::DeserializeOwned,
+    {
+        Ok(
+            QueryFilter::new_partial_ord(value, QueryFilterCondition::GreaterThan, self.clone())?
+                .into(),
+        )
+    }
+
+    /// Create a new [`Filter`][crate::feature_store::query::filter::QueryFilterOrLogic] for this feature.
+    /// Often used in combination with a [`Query`][crate::feature_store::query::Query],
+    /// to create a new [`FeatureView`][crate::feature_store::feature_view::FeatureView]
+    /// including only the feature data lesser than value.
+    ///
+    /// # Arguments
+    /// * `value` - The higher bound value for feature data.
     ///
     /// # Example
     /// ```no_run
@@ -280,11 +315,13 @@ impl Feature {
         )
     }
 
-    /// Create a new filter for this feature. Often used in combination with a query,
-    /// to create a new feature view including only the features matching the filter.
+    /// Create a new [`Filter`][crate::feature_store::query::filter::QueryFilterOrLogic] for this feature.
+    /// Often used in combination with a [`Query`][crate::feature_store::query::Query],
+    /// to create a new [`FeatureView`][crate::feature_store::feature_view::FeatureView]
+    /// including only the feature data lesser than or equal to value.
     ///
     /// # Arguments
-    /// * `pattern` - The pattern to match.
+    /// * `value` - The higher limit value for feature data.
     ///
     /// # Example
     /// ```no_run

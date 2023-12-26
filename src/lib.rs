@@ -1,6 +1,6 @@
 //! # Hopsworks SDK for Rust
 //!
-//! The `hopsworks-rs` crate is a Rust SDK to interact with the Hopsworks Platform and [`FeatureStore`][feature_store::FeatureStore]. It is intended
+//! The `hopsworks-rs` crate is a Rust SDK to interact with the Hopsworks Platform and [`FeatureStore`]. It is intended
 //! to be used in conjunction with a [Hopsworks](https://www.hopsworks.ai/) cluster to build end-to-end machine
 //! learning pipelines. With Hopsworks you can:
 //! - Schedule Feature Engineering Jobs to ingest data from various sources into the Feature Store

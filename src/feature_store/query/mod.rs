@@ -30,7 +30,7 @@ use self::read_option::{OfflineReadOptions, OnlineReadOptions};
 ///
 /// Query objects support:
 /// - Joining with other queries
-/// - filtering on individual features, see [Feature][`crate::feature_store::feature_group::Feature`]
+/// - filtering on individual features, see [Feature][`crate::feature_store::feature_group::feature::Feature`]
 /// - real-time reads from the online feature store if all features belong to online-enabled [Feature Group][`crate::feature_store::feature_group::FeatureGroup`]s
 /// - offline (so-called batch) reads from the offline feature store if all features belong to offline-enabled [Feature Group][`crate::feature_store::feature_group::FeatureGroup`]s
 /// - full or per-query time travel, via the `Query.as_of()` method, if all features belong to time travel enabled [Feature Group][`crate::feature_store::feature_group::FeatureGroup`]s
@@ -250,11 +250,7 @@ impl Query {
         self.left_feature_group_start_time = Some(start_time.to_string());
         self.left_feature_group_end_time = Some(end_time.to_string());
         self.joins_mut().iter_mut().for_each(|join| {
-            if join.query.left_feature_group_start_time.is_none()
-                && join.query.left_feature_group_end_time.is_none()
-            {
-                join.query.as_of_recursive(start_time, end_time);
-            }
+            join.query.as_of_recursive(start_time, end_time);
         });
     }
 }
