@@ -2,13 +2,10 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use crate::{
-    feature_store::{
-        feature_group::feature::Feature,
-        query::{
-            filter::{QueryFilterCondition, QueryLogicType},
-            join::JoinType,
-            JoinQuery, Query, QueryFilter, QueryFilterOrLogic, QueryLogic,
-        },
+    feature_store::query::{
+        filter::{QueryFilterCondition, QueryLogicType},
+        join::JoinType,
+        JoinQuery, Query, QueryFilter, QueryFilterOrLogic, QueryLogic,
     },
     repositories::feature_store::{
         feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO,
@@ -82,13 +79,13 @@ pub struct FeatureStoreQueryDTO {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct JoinQueryDTO {
-    query: QueryDTO,
+    pub(crate) query: QueryDTO,
     #[serde(rename = "type")]
-    join_type: JoinType,
-    on: Option<Vec<String>>,
-    left_on: Option<Vec<String>>,
-    right_on: Option<Vec<String>>,
-    prefix: Option<String>,
+    pub(crate) join_type: JoinType,
+    pub(crate) on: Option<Vec<String>>,
+    pub(crate) left_on: Option<Vec<String>>,
+    pub(crate) right_on: Option<Vec<String>>,
+    pub(crate) prefix: Option<String>,
 }
 
 impl From<JoinQuery> for JoinQueryDTO {
@@ -127,45 +124,45 @@ pub enum QueryFilterOrLogicDTO {
     Filter(QueryFilterDTO),
 }
 
-impl From<QueryFilterDTO> for QueryFilter {
-    fn from(query_filter: QueryFilterDTO) -> Self {
-        QueryFilter::new(
-            query_filter.value,
-            query_filter.condition,
-            Feature::from(query_filter.feature),
-        )
-    }
-}
-
-impl From<QueryLogicDTO> for QueryLogic {
-    fn from(query_logic: QueryLogicDTO) -> Self {
-        QueryLogic::new(
-            query_logic.logic_type,
-            query_logic
-                .left_logic
-                .map(|logic| Box::new(QueryLogic::from(*logic))),
-            query_logic
-                .right_logic
-                .map(|logic| Box::new(QueryLogic::from(*logic))),
-            query_logic
-                .left_filter
-                .map(|filter| QueryFilter::from(filter)),
-            query_logic
-                .right_filter
-                .map(|filter| QueryFilter::from(filter)),
-        )
-    }
-}
-
-impl From<QueryFilterOrLogicDTO> for QueryFilterOrLogic {
-    fn from(query_filter_or_logic: QueryFilterOrLogicDTO) -> Self {
+impl From<QueryFilterOrLogic> for QueryFilterOrLogicDTO {
+    fn from(query_filter_or_logic: QueryFilterOrLogic) -> Self {
         match query_filter_or_logic {
-            QueryFilterOrLogicDTO::Logic(logic) => {
-                QueryFilterOrLogic::Logic(QueryLogic::from(logic))
-            }
-            QueryFilterOrLogicDTO::Filter(filter) => {
-                QueryFilterOrLogic::Filter(QueryFilter::from(filter))
-            }
+            QueryFilterOrLogic::Logic(logic) => QueryFilterOrLogicDTO::Logic(logic.into()),
+            QueryFilterOrLogic::Filter(filter) => QueryFilterOrLogicDTO::Filter(filter.into()),
+        }
+    }
+}
+
+impl From<QueryFilter> for QueryFilterDTO {
+    fn from(query_filter: QueryFilter) -> Self {
+        Self {
+            feature: FeatureDTO::from(query_filter.feature),
+            condition: query_filter.condition,
+            value: query_filter.value,
+        }
+    }
+}
+
+impl From<QueryLogic> for QueryLogicDTO {
+    fn from(value: QueryLogic) -> Self {
+        Self {
+            logic_type: value.logic_type,
+            left_logic: match value.left_logic {
+                Some(left_logic) => Some(Box::new(QueryLogicDTO::from(*left_logic.clone()))),
+                None => None,
+            },
+            right_logic: match value.right_logic {
+                Some(right_logic) => Some(Box::new(QueryLogicDTO::from(*right_logic.clone()))),
+                None => None,
+            },
+            left_filter: match value.left_filter {
+                Some(left_filter) => Some(left_filter.into()),
+                None => None,
+            },
+            right_filter: match value.right_filter {
+                Some(right_filter) => Some(right_filter.into()),
+                None => None,
+            },
         }
     }
 }

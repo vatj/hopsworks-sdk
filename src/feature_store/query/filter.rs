@@ -1,7 +1,12 @@
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::feature_store::feature_group::feature::Feature;
+use crate::{
+    feature_store::feature_group::feature::Feature,
+    repositories::feature_store::query::entities::{
+        QueryFilterDTO, QueryFilterOrLogicDTO, QueryLogicDTO,
+    },
+};
 
 #[derive(PartialEq)]
 pub enum QueryFilterCondition {
@@ -42,6 +47,45 @@ pub struct QueryLogic {
 pub enum QueryFilterOrLogic {
     Filter(QueryFilter),
     Logic(QueryLogic),
+}
+
+impl From<QueryFilterOrLogicDTO> for QueryFilterOrLogic {
+    fn from(query_filter_or_logic: QueryFilterOrLogicDTO) -> Self {
+        match query_filter_or_logic {
+            QueryFilterOrLogicDTO::Logic(logic) => {
+                QueryFilterOrLogic::Logic(QueryLogic::from(logic))
+            }
+            QueryFilterOrLogicDTO::Filter(filter) => {
+                QueryFilterOrLogic::Filter(QueryFilter::from(filter))
+            }
+        }
+    }
+}
+
+impl From<QueryFilterDTO> for QueryFilter {
+    fn from(query_filter: QueryFilterDTO) -> Self {
+        QueryFilter::new(
+            query_filter.value,
+            query_filter.condition,
+            Feature::from(query_filter.feature),
+        )
+    }
+}
+
+impl From<QueryLogicDTO> for QueryLogic {
+    fn from(query_logic: QueryLogicDTO) -> Self {
+        QueryLogic::new(
+            query_logic.logic_type,
+            query_logic
+                .left_logic
+                .map(|logic| Box::new(QueryLogic::from(*logic))),
+            query_logic
+                .right_logic
+                .map(|logic| Box::new(QueryLogic::from(*logic))),
+            query_logic.left_filter.map(QueryFilter::from),
+            query_logic.right_filter.map(QueryFilter::from),
+        )
+    }
 }
 
 impl QueryFilter {
@@ -159,7 +203,9 @@ impl std::fmt::Display for QueryFilter {
         write!(
             f,
             "QueryFilter({} {} {})",
-            self.feature.name, self.condition, value
+            self.feature.name(),
+            self.condition,
+            value
         )
     }
 }

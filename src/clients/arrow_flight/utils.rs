@@ -15,14 +15,14 @@ use super::filter::{
 };
 
 pub(super) fn serialize_feature_group_connector(
-    _feature_group: FeatureGroup,
-    _query: Query,
+    _feature_group: &FeatureGroup,
+    _query: &Query,
     _on_demand_fg_aliases: Vec<String>,
 ) -> Result<FeatureGroupConnectorArrowFlightPayload> {
     Ok(FeatureGroupConnectorArrowFlightPayload::new_hudi_connector())
 }
 
-pub(super) fn serialize_feature_group_name(feature_group: FeatureGroup) -> String {
+pub(super) fn serialize_feature_group_name(feature_group: &FeatureGroup) -> String {
     format!(
         "{}.{}_{}",
         feature_group.get_project_name(),
@@ -37,18 +37,18 @@ pub(super) fn serialize_feature_name(
     short_name: bool,
 ) -> Result<String> {
     if short_name {
-        debug!("Serializing short feature name: {}", feature.name);
-        Ok(feature.name.clone())
+        debug!("Serializing short feature name: {}", feature.name());
+        Ok(feature.name().to_string())
     } else {
         let opt_fg = query_obj.get_feature_group_by_feature(feature);
         if let Some(fg) = opt_fg {
-            let name = format!("{}.{}", serialize_feature_group_name(fg), feature.name);
+            let name = format!("{}.{}", serialize_feature_group_name(fg), feature.name());
             debug!("Serializing full feature name: {}", name);
             Ok(name)
         } else {
             Err(color_eyre::Report::msg(format!(
                 "Feature {} not found in query object",
-                feature.name
+                feature.name()
             )))
         }
     }
@@ -161,8 +161,8 @@ pub(super) fn translate_to_duckdb(query: &Query, query_str: String) -> Result<St
     debug!("Translating query to duckdb sql style: {:#?}", query);
     Ok(query_str
         .replace(
-            format!("`{}`.`", query.left_feature_group.feature_store_name()).as_str(),
-            format!("`{}.", query.left_feature_group.get_project_name()).as_str(),
+            format!("`{}`.`", query.left_feature_group().feature_store_name()).as_str(),
+            format!("`{}.", query.left_feature_group().get_project_name()).as_str(),
         )
         .replace('`', '"'.to_string().as_str()))
 }

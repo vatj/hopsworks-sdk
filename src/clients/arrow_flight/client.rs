@@ -281,30 +281,30 @@ impl HopsworksArrowFlightClient {
     ) -> Result<QueryArrowFlightPayload> {
         info!(
             "Creating arrow flight query payload for query with left_feature_group {}",
-            query.left_feature_group.name()
+            query.left_feature_group().name()
         );
         let mut feature_names: HashMap<String, Vec<String>> = HashMap::new();
         let mut connectors: HashMap<String, FeatureGroupConnectorArrowFlightPayload> =
             HashMap::new();
         for feature_group in query.feature_groups() {
-            let fg_name = utils::serialize_feature_group_name(feature_group.clone());
+            let fg_name = utils::serialize_feature_group_name(feature_group);
             feature_names.insert(
                 fg_name.clone(),
                 feature_group
                     .features()
                     .iter()
-                    .map(|feature| feature.name.to_string())
+                    .map(|feature| feature.name().to_string())
                     .collect(),
             );
             let fg_connector = utils::serialize_feature_group_connector(
                 feature_group,
-                query.clone(),
+                &query,
                 on_demand_fg_aliases.clone(),
             )?;
             connectors.insert(fg_name, fg_connector);
         }
-        let filters = match query.filters.clone() {
-            Some(filters) => utils::serialize_filter_expression(filters, &query, false)?,
+        let filters = match query.filters() {
+            Some(filters) => utils::serialize_filter_expression(filters.clone(), &query, false)?,
             None => None,
         };
         Ok(QueryArrowFlightPayload::new(

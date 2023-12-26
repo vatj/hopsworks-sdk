@@ -248,11 +248,10 @@ impl FeatureGroup {
     ///
     /// # Arguments
     /// * `feature_name` - The name of the feature to get.
-    pub fn get_feature(&self, feature_name: &str) -> Option<Feature> {
+    pub fn get_feature(&self, feature_name: &str) -> Option<&Feature> {
         self.features()
             .iter()
-            .find(|feature| feature.name == feature_name)
-            .cloned()
+            .find(|feature| feature.name() == feature_name)
     }
 
     /// Inserts or upserts data into the Feature Group table.
@@ -343,14 +342,14 @@ impl FeatureGroup {
 
     /// Returns the list of owned feature names for the feature group.
     pub fn get_feature_names(&self) -> Vec<&str> {
-        self.features.iter().map(|f| f.name.as_str()).collect()
+        self.features.iter().map(|f| f.name()).collect()
     }
 
     /// Returns the list of owned feature names for the feature group.
     pub fn get_feature_names_owned(&self) -> Vec<String> {
         self.features()
             .iter()
-            .map(|feature| feature.name.clone())
+            .map(|feature| feature.name().to_string())
             .collect()
     }
 
@@ -392,7 +391,7 @@ impl FeatureGroup {
             self.features()
                 .iter()
                 .filter_map(|feature| {
-                    if feature_names.contains(&feature.name.as_str()) {
+                    if feature_names.contains(&feature.name()) {
                         Some(feature.clone())
                     } else {
                         None

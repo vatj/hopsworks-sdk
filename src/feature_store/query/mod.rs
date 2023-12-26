@@ -59,19 +59,19 @@ impl Query {
     }
 
     pub fn left_feature_group_start_time(&self) -> Option<&str> {
-        self.left_feature_group_start_time.as_str()
+        self.left_feature_group_start_time.as_deref()
     }
 
     pub fn left_feature_group_end_time(&self) -> Option<&str> {
-        self.left_feature_group_end_time.as_str()
+        self.left_feature_group_end_time.as_deref()
     }
 
     pub fn filters(&self) -> Option<&Vec<QueryFilterOrLogic>> {
         self.filters.as_ref()
     }
 
-    pub fn filters_mut(&mut self) -> Option<&mut Vec<QueryFilterOrLogic>> {
-        self.filters.as_mut()
+    pub fn filters_mut(&mut self) -> &mut Vec<QueryFilterOrLogic> {
+        self.filters.get_or_insert_with(std::vec::Vec::new)
     }
 
     pub fn joins(&self) -> Option<&Vec<JoinQuery>> {
@@ -94,24 +94,18 @@ impl From<QueryDTO> for Query {
                 .collect(),
             feature_store_name: dto.feature_store_name.clone(),
             feature_store_id: dto.feature_store_id,
-            joins: match dto.joins {
-                Some(joins) => Some(
-                    joins
-                        .iter()
-                        .map(|join| JoinQuery::from(join.clone()))
-                        .collect(),
-                ),
-                None => None,
-            },
-            filters: match dto.filters {
-                Some(filters) => Some(
-                    filters
-                        .iter()
-                        .map(|filter| QueryFilterOrLogic::from(filter.clone()))
-                        .collect(),
-                ),
-                None => None,
-            },
+            joins: dto.joins.map(|joins| {
+                joins
+                    .iter()
+                    .map(|join| JoinQuery::from(join.clone()))
+                    .collect()
+            }),
+            filters: dto.filters.map(|filters| {
+                filters
+                    .iter()
+                    .map(|filter| QueryFilterOrLogic::from(filter.clone()))
+                    .collect()
+            }),
             left_feature_group_start_time: dto.left_feature_group_start_time,
             left_feature_group_end_time: dto.left_feature_group_end_time,
         }

@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::repositories::feature_store::query::entities::JoinQueryDTO;
+
 use super::Query;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -21,6 +23,19 @@ impl JoinQuery {
             right_on: join_options.right_on,
             join_type: join_options.join_type,
             prefix: join_options.prefix,
+        }
+    }
+}
+
+impl From<JoinQueryDTO> for JoinQuery {
+    fn from(dto: JoinQueryDTO) -> Self {
+        Self {
+            query: Query::from(dto.query),
+            on: dto.on,
+            left_on: dto.left_on,
+            right_on: dto.right_on,
+            join_type: dto.join_type,
+            prefix: dto.prefix,
         }
     }
 }

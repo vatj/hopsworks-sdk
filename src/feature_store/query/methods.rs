@@ -8,13 +8,13 @@ use crate::{
     feature_store::feature_group::{feature::Feature, FeatureGroup},
 };
 
-use super::{JoinOptions, JoinQuery, Query, QueryFilterOrLogic};
+use super::{JoinOptions, JoinQuery, Query};
 
 impl Query {
-    pub(crate) fn get_feature_group_by_feature(&self, feature: &Feature) -> Option<FeatureGroup> {
+    pub(crate) fn get_feature_group_by_feature(&self, feature: &Feature) -> Option<&FeatureGroup> {
         let feature_group = self.left_features.iter().find_map(|f| {
-            if f.name == feature.name {
-                Some(self.left_feature_group.clone())
+            if f.name() == feature.name() {
+                Some(&self.left_feature_group)
             } else {
                 None
             }
@@ -35,29 +35,17 @@ impl Query {
         }
     }
 
-    pub fn feature_groups(&self) -> Vec<FeatureGroup> {
+    pub fn feature_groups(&self) -> Vec<&FeatureGroup> {
         if let Some(joins) = &self.joins {
-            let mut feature_groups: Vec<FeatureGroup> = joins
+            let mut feature_groups: Vec<&FeatureGroup> = joins
                 .iter()
-                .map(|join| join.query.left_feature_group.clone())
+                .map(|join| &join.query.left_feature_group)
                 .collect();
-            feature_groups.push(self.left_feature_group.clone());
+            feature_groups.push(&self.left_feature_group);
             feature_groups
         } else {
-            vec![self.left_feature_group.clone()]
+            vec![&self.left_feature_group]
         }
-    }
-
-    pub fn add_filters(&mut self, filters: Vec<QueryFilterOrLogic>) {
-        if self.filters.is_none() {
-            self.filters = Some(vec![]);
-        }
-        self.filters.as_mut().unwrap().extend(filters);
-    }
-
-    pub fn with_filters(mut self, filters: Vec<QueryFilterOrLogic>) -> Self {
-        self.add_filters(filters);
-        self
     }
 
     pub async fn read_from_online_feature_store(&self) -> Result<DataFrame> {

@@ -32,16 +32,16 @@ pub async fn create_training_dataset_attached_to_feature_view(
 ) -> Result<TrainingDataset> {
     let features = feature_view
         .query
-        .left_features
+        .left_features()
         .clone()
         .iter()
         .map(|feature| {
             TrainingDatasetFeatureDTO::new_from_feature_and_transformation_function(
                 FeatureDTO::from(feature.clone()),
-                FeatureGroupDTO::from(feature_view.query.left_feature_group.clone()),
+                FeatureGroupDTO::from(feature_view.query.left_feature_group().clone()),
                 feature_view
                     .transformation_functions
-                    .get(&feature.name)
+                    .get(feature.name())
                     .map(|transformation_function| {
                         TransformationFunctionDTO::from(transformation_function.clone())
                     }),

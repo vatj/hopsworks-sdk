@@ -9,12 +9,12 @@ use crate::{
 /// Feature entity gathering metadata about a feature in a feature group.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Feature {
-    pub name: String,
-    pub description: Option<String>,
-    pub data_type: String,
-    pub primary: bool,
-    pub partition: bool,
-    pub hudi_precombine_key: bool,
+    name: String,
+    description: Option<String>,
+    data_type: String,
+    primary: bool,
+    partition: bool,
+    hudi_precombine_key: bool,
     feature_group_id: Option<i32>,
 }
 
@@ -42,6 +42,30 @@ impl Feature {
     pub fn feature_group_id(&self) -> Option<i32> {
         self.feature_group_id
     }
+
+    pub fn name(&self) -> &str {
+        self.name.as_ref()
+    }
+
+    pub fn description(&self) -> Option<&str> {
+        self.description.as_deref()
+    }
+
+    pub fn data_type(&self) -> &str {
+        self.data_type.as_ref()
+    }
+
+    pub fn is_primary(&self) -> bool {
+        self.primary
+    }
+
+    pub fn is_partition(&self) -> bool {
+        self.partition
+    }
+
+    pub fn is_hudi_precombine_key(&self) -> bool {
+        self.hudi_precombine_key
+    }
 }
 
 impl Feature {
@@ -64,7 +88,12 @@ impl Feature {
     ///   .expect("Feature group not found");
     ///
     /// let mut query = feature_group.select(&["feature_1", "feature_2"])?;
-    /// query.add_filters(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_like("pattern")?]);
+    /// query.filters_mut().extend(
+    ///   vec![
+    ///     feature_group.get_feature("feature_1").expect("feature_1 not found")
+    ///     .filter_like(&String::from("pattern"))?
+    ///   ]
+    /// );
     /// # Ok(())
     /// # }
     pub fn filter_like(&self, pattern: &str) -> Result<QueryFilterOrLogic> {
@@ -90,7 +119,12 @@ impl Feature {
     ///   .expect("Feature group not found");
     ///
     /// let mut query = feature_group.select(&["feature_1", "feature_2"])?;
-    /// query.add_filters(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_in(vec!["Alice", "Bob"])?]);
+    /// query.filters_mut().extend(
+    ///   vec![
+    ///     feature_group.get_feature("feature_1").expect("feature_1 not found")
+    ///     .filter_in(vec![String::from("Alice"), String::from("Bob")])?
+    ///   ]
+    /// );
     /// # Ok(())
     /// # }
     pub fn filter_in<T>(&self, values: Vec<T>) -> Result<QueryFilterOrLogic>
@@ -119,7 +153,12 @@ impl Feature {
     ///   .expect("Feature group not found");
     ///
     /// let mut query = feature_group.select(&["feature_1", "feature_2"])?;
-    /// query.add_filters(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_neq("Deleted")?]);
+    /// query.filters_mut().extend(
+    ///   vec![
+    ///     feature_group.get_feature("feature_1").expect("feature_1 not found")
+    ///     .filter_neq(String::from("Deleted"))?
+    ///   ]
+    /// );
     /// # Ok(())
     /// # }
     pub fn filter_neq<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
@@ -151,7 +190,12 @@ impl Feature {
     ///   .expect("Feature group not found");
     ///
     /// let mut query = feature_group.select(&["feature_1", "feature_2"])?;
-    /// query.add_filters(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_eq("Active")?]);
+    /// query.filters_mut().extend(
+    ///   vec![
+    ///     feature_group.get_feature("feature_1").expect("feature_1 not found")
+    ///     .filter_eq(String::from("Active"))?
+    ///   ]
+    /// );
     /// # Ok(())
     /// # }
     pub fn filter_eq<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
@@ -189,7 +233,7 @@ impl Feature {
     ///   .expect("Feature group not found");
     ///
     /// let mut query = feature_group.select(&["feature_1", "feature_2"])?;
-    /// query.add_filters(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_gte(3.)?]);
+    /// query.filters_mut().extend(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_gte(3.)?]);
     /// # Ok(())
     /// # }
     pub fn filter_gte<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
@@ -223,7 +267,7 @@ impl Feature {
     ///   .expect("Feature group not found");
     ///
     /// let mut query = feature_group.select(&["feature_1", "feature_2"])?;
-    /// query.add_filters(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_lt(3.)?]);
+    /// query.filters_mut().extend(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_lt(3.)?]);
     /// # Ok(())
     /// # }
     pub fn filter_lt<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
@@ -255,7 +299,7 @@ impl Feature {
     ///   .expect("Feature group not found");
     ///
     /// let mut query = feature_group.select(&["feature_1", "feature_2"])?;
-    /// query.add_filters(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_lte(3.)?]);
+    /// query.filters_mut().extend(vec![feature_group.get_feature("feature_1").expect("feature_1 not found").filter_lte(3.)?]);
     /// # Ok(())
     /// # }
     pub fn filter_lte<'a, T>(&self, value: T) -> Result<QueryFilterOrLogic>
