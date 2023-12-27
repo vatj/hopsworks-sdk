@@ -22,15 +22,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_feature_group(fg_name.as_str(), Some(1))
         .await?
     {
-        let query = feature_group.select(
-            feature_group
-                .get_feature_names()
-                .iter()
-                .map(|s| s.as_ref())
-                .collect(),
-        )?;
+        let query = feature_group.select(&feature_group.get_feature_names())?;
         let now = Instant::now();
-        let read_df = query.read_from_online_feature_store().await?;
+        let read_df = query.read_from_online_feature_store(None).await?;
         println!(
             "Read feature group took {:.2?} seconds and returned :\n{:#?}",
             now.elapsed(),

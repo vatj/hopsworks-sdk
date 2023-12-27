@@ -19,12 +19,14 @@ use crate::{
             create_train_test_split, create_training_dataset_attached_to_feature_view,
         },
     },
-    feature_store::query::entities::Query,
+    feature_store::query::Query,
     repositories::feature_store::feature_view::entities::FeatureViewDTO,
 };
 use std::collections::HashMap;
 
 use self::transformation_function::TransformationFunction;
+
+use super::query::read_option::{OfflineReadOptions, OnlineReadOptions};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureView {
@@ -65,8 +67,8 @@ pub struct FeatureView {
     //
     //   let fg_1 = fs.get_feature_group_by_name_and_version("my_fg_1", 1).await?.unwrap();
     //   let fg_2 = fs.get_feature_group_by_name_and_version("my_fg_2", 1).await?.unwrap();
-    //   let query = fg_1.select(vec!["feature_1", "feature_2"])?.join(
-    //     fg_2.select(vec!["feature_3", "feature_4"])?,
+    //   let query = fg_1.select(&["feature_1", "feature_2"])?.join(
+    //     fg_2.select(&["feature_3", "feature_4"])?,
     //     None,
     //   );
     //
@@ -109,7 +111,7 @@ pub struct FeatureView {
     //   let fs = hopsworks_login(None).await?.get_feature_store().await?;
     //   let feature_view = fs.get_feature_view("my_feature_view", Some(1)).await?.unwrap();
     //
-    //   let training_dataset_dataframe = feature_view.read_with_arrow_flight_client().await?;
+    //   let training_dataset_dataframe = feature_view.read_from_offline_feature_store(None).await?;
     //
     //   Ok(())
     // }
@@ -119,13 +121,13 @@ pub struct FeatureView {
     //
     // > Note: This feature is not yet supported in the Rust API. Check out the official Python client to
     // make full use of this fonctionality.
-    pub id: i32,
-    pub name: String,
-    pub version: i32,
-    pub query: Query,
-    pub transformation_functions: HashMap<String, TransformationFunction>,
-    pub feature_store_id: i32,
-    pub feature_store_name: String,
+    id: i32,
+    name: String,
+    version: i32,
+    query: Query,
+    transformation_functions: HashMap<String, TransformationFunction>,
+    feature_store_id: i32,
+    feature_store_name: String,
 }
 
 impl From<FeatureViewDTO> for FeatureView {
@@ -143,6 +145,42 @@ impl From<FeatureViewDTO> for FeatureView {
 }
 
 impl FeatureView {
+    pub fn feature_store_id(&self) -> i32 {
+        self.feature_store_id
+    }
+
+    pub fn feature_store_name(&self) -> &str {
+        self.feature_store_name.as_str()
+    }
+
+    pub fn id(&self) -> i32 {
+        self.id
+    }
+
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    pub fn version(&self) -> i32 {
+        self.version
+    }
+
+    pub fn query(&self) -> &Query {
+        &self.query
+    }
+
+    pub fn query_mut(&mut self) -> &mut Query {
+        &mut self.query
+    }
+
+    pub fn transformation_functions(&self) -> &HashMap<String, TransformationFunction> {
+        &self.transformation_functions
+    }
+
+    pub fn transformation_functions_mut(&mut self) -> &mut HashMap<String, TransformationFunction> {
+        &mut self.transformation_functions
+    }
+
     pub async fn create_train_test_split(
         &self,
         // train_start: &str,
@@ -167,11 +205,17 @@ impl FeatureView {
         Ok(())
     }
 
-    pub async fn read_with_arrow_flight_client(&self) -> Result<DataFrame> {
-        read_with_arrow_flight_client(self.query.clone()).await
+    pub async fn read_from_offline_feature_store(
+        &self,
+        offline_read_options: Option<OfflineReadOptions>,
+    ) -> Result<DataFrame> {
+        read_with_arrow_flight_client(self.query.clone(), offline_read_options).await
     }
 
-    pub async fn read_from_online_feature_store(&self) -> Result<DataFrame> {
-        read_query_from_online_feature_store(&self.query.clone()).await
+    pub async fn read_from_online_feature_store(
+        &self,
+        online_read_options: Option<OnlineReadOptions>,
+    ) -> Result<DataFrame> {
+        read_query_from_online_feature_store(&self.query.clone(), online_read_options).await
     }
 }

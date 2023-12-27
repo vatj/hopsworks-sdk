@@ -133,16 +133,17 @@ impl HopsworksClient {
         }
 
         let project = self.get_the_project_or_default().await?;
-        self.set_project_id(Some(project.id)).await;
+        self.set_project_id(Some(project.id())).await;
         info!(
             "Connected to Hopsworks project : {} at url {} !",
-            project.project_name, self.url
+            project.name(),
+            self.url
         );
 
         let cert_dir = self.get_cert_dir().lock().await.clone();
         self.set_cert_dir(
             Path::new(cert_dir.as_str())
-                .join(&project.project_name)
+                .join(project.name())
                 .to_str()
                 .unwrap()
                 .to_string(),

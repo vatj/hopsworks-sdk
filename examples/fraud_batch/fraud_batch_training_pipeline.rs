@@ -2,8 +2,11 @@ use color_eyre::Result;
 use std::collections::HashMap;
 
 use hopsworks_rs::{
-    feature_store::feature_view::transformation_function::TransformationFunction, hopsworks_login,
-    HopsworksClientBuilder,
+    feature_store::{
+        feature_view::transformation_function::TransformationFunction,
+        query::{join::JoinType, JoinOptions},
+    },
+    hopsworks_login, HopsworksClientBuilder,
 };
 
 #[tokio::main]
@@ -43,8 +46,8 @@ async fn main() -> Result<()> {
         .await?
         .expect("Feature Group not found. Check that window_len matches the fraud_batch_ingestion_pipeline example.");
 
-    let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?.join(
-        window_aggs_fg.select(vec![
+    let query = trans_fg.select(&["cc_num", "datetime", "amount"])?.join(
+        window_aggs_fg.select(&[
             "cc_num",
             "datetime",
             "amount_mean",
@@ -52,7 +55,7 @@ async fn main() -> Result<()> {
             "amount_min",
             "amount_max",
         ])?,
-        None,
+        JoinOptions::new(JoinType::Inner).with_on(&["cc_num"]),
     );
 
     let min_max_scaler = fs
@@ -74,7 +77,7 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    let training_df = feature_view.read_with_arrow_flight_client().await?;
+    let training_df = feature_view.read_from_offline_feature_store(None).await?;
 
     println!("The training dataset: {:#?}", training_df.head(Some(10)));
 

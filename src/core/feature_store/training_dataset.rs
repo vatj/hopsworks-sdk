@@ -19,7 +19,7 @@ use crate::{
     },
     {
         feature_store::feature_view::{training_dataset::TrainingDataset, FeatureView},
-        feature_store::query::entities::Query,
+        feature_store::query::Query,
     },
 };
 
@@ -31,17 +31,17 @@ pub async fn create_training_dataset_attached_to_feature_view(
     feature_view: &FeatureView,
 ) -> Result<TrainingDataset> {
     let features = feature_view
-        .query
-        .left_features
+        .query()
+        .left_features()
         .clone()
         .iter()
         .map(|feature| {
             TrainingDatasetFeatureDTO::new_from_feature_and_transformation_function(
                 FeatureDTO::from(feature.clone()),
-                FeatureGroupDTO::from(feature_view.query.left_feature_group.clone()),
+                FeatureGroupDTO::from(feature_view.query().left_feature_group().clone()),
                 feature_view
-                    .transformation_functions
-                    .get(&feature.name)
+                    .transformation_functions()
+                    .get(feature.name())
                     .map(|transformation_function| {
                         TransformationFunctionDTO::from(transformation_function.clone())
                     }),
@@ -50,19 +50,19 @@ pub async fn create_training_dataset_attached_to_feature_view(
         .collect();
 
     let new_training_dataset_payload = NewTrainingDatasetPayload::new(
-        feature_view.feature_store_id,
-        feature_view.feature_store_name.clone(),
+        feature_view.feature_store_id(),
+        feature_view.feature_store_name().to_string(),
         "trans_view_1_1".to_owned(),
         1,
-        QueryDTO::from(feature_view.query.clone()),
-        Some(construct_query(feature_view.query.clone()).await?),
+        QueryDTO::from(feature_view.query().clone()),
+        Some(construct_query(feature_view.query().clone()).await?),
         features,
     );
 
     let training_dataset_dto =
         feature_view_service::create_training_dataset_attached_to_feature_view(
-            &feature_view.name,
-            feature_view.version,
+            feature_view.name(),
+            feature_view.version(),
             new_training_dataset_payload,
         )
         .await?;
@@ -70,11 +70,11 @@ pub async fn create_training_dataset_attached_to_feature_view(
     debug!("The training dataset :\n{:#?}", training_dataset_dto);
 
     let job_dto = compute_training_dataset_attached_to_feature_view(
-        feature_view.feature_store_id,
-        &feature_view.name,
-        feature_view.version,
+        feature_view.feature_store_id(),
+        feature_view.name(),
+        feature_view.version(),
         training_dataset_dto.version,
-        feature_view.query.clone(),
+        feature_view.query().clone(),
     )
     .await?;
 

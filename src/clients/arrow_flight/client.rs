@@ -11,13 +11,11 @@ use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity
 use crate::{
     clients::arrow_flight::{decoder, utils},
     feature_store::{
-        feature_view::training_dataset::TrainingDataset, feature_view::FeatureView,
-        query::entities::Query,
+        feature_view::training_dataset::TrainingDataset, feature_view::FeatureView, query::Query,
     },
     get_hopsworks_client,
     repositories::{
         feature_store::{
-            query::payloads::QueryArrowFlightPayload,
             storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
             training_dataset::payloads::TrainingDatasetArrowFlightPayload,
         },
@@ -25,6 +23,8 @@ use crate::{
     },
     util,
 };
+
+use super::filter::QueryArrowFlightPayload;
 
 #[derive(Debug, Clone, Default)]
 pub struct HopsworksArrowFlightClientBuilder {}
@@ -249,8 +249,8 @@ impl HopsworksArrowFlightClient {
     ) -> Result<()> {
         let training_dataset_payload = TrainingDatasetArrowFlightPayload::new(
             util::strip_feature_store_suffix(&training_dataset_obj.feature_store_name),
-            feature_view_obj.name,
-            feature_view_obj.version,
+            feature_view_obj.name().to_string(),
+            feature_view_obj.version(),
             training_dataset_obj.version,
             serde_json::to_string(&query_obj)?,
         );
@@ -281,31 +281,34 @@ impl HopsworksArrowFlightClient {
     ) -> Result<QueryArrowFlightPayload> {
         info!(
             "Creating arrow flight query payload for query with left_feature_group {}",
-            query.left_feature_group.name.clone()
+            query.left_feature_group().name()
         );
         let mut feature_names: HashMap<String, Vec<String>> = HashMap::new();
         let mut connectors: HashMap<String, FeatureGroupConnectorArrowFlightPayload> =
             HashMap::new();
         for feature_group in query.feature_groups() {
-            let fg_name = utils::serialize_feature_group_name(feature_group.clone());
+            let fg_name = utils::serialize_feature_group_name(feature_group);
             feature_names.insert(
                 fg_name.clone(),
                 feature_group
-                    .get_features()
+                    .features()
                     .iter()
-                    .map(|feature| feature.name.clone())
+                    .map(|feature| feature.name().to_string())
                     .collect(),
             );
             let fg_connector = utils::serialize_feature_group_connector(
                 feature_group,
-                query.clone(),
+                &query,
                 on_demand_fg_aliases.clone(),
             )?;
             connectors.insert(fg_name, fg_connector);
         }
-        let filters = utils::serialize_filter_expression(query.filters(), query.clone(), false)?;
+        let filters = match query.filters() {
+            Some(filters) => utils::serialize_filter_expression(filters.clone(), &query, false)?,
+            None => None,
+        };
         Ok(QueryArrowFlightPayload::new(
-            utils::translate_to_duckdb(query.clone(), query_str)?,
+            utils::translate_to_duckdb(&query, query_str)?,
             feature_names,
             Some(connectors),
             filters,

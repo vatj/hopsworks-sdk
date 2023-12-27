@@ -67,7 +67,7 @@ async fn main() -> Result<()> {
 
     let fs = project.get_feature_store().await?;
 
-    let trans_fg = fs
+    let mut trans_fg = fs
         .get_or_create_feature_group(
             format!("transactions_fraud_batch_fg_{iteration}_rust").as_str(),
             Some(1),
@@ -81,7 +81,7 @@ async fn main() -> Result<()> {
     let n_rows = 10;
     trans_fg.insert(&mut trans_df.head(Some(n_rows))).await?;
 
-    let window_aggs_fg = fs
+    let mut window_aggs_fg = fs
         .get_or_create_feature_group(
             format!(
                 "transactions_{}_aggs_fraud_batch_fg_{iteration}_rust",
@@ -100,7 +100,7 @@ async fn main() -> Result<()> {
         .insert(&mut window_agg_df.head(Some(n_rows)))
         .await?;
 
-    let query = trans_fg.select(vec!["cc_num", "datetime", "amount"])?;
+    let query = trans_fg.select(&["cc_num", "datetime", "amount"])?;
 
     let min_max_scaler = fs
         .get_transformation_function("min_max_scaler", None)

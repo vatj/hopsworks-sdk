@@ -5,9 +5,7 @@ use crate::get_hopsworks_client;
 
 use super::{entities::FeatureStoreQueryDTO, payloads::NewQueryPayload};
 
-pub async fn construct_query<'a>(
-    query_payload: NewQueryPayload<'_>,
-) -> Result<FeatureStoreQueryDTO> {
+pub async fn construct_query(query_payload: NewQueryPayload) -> Result<FeatureStoreQueryDTO> {
     let res = get_hopsworks_client()
         .await
         .request(Method::PUT, "featurestores/query", true, true)

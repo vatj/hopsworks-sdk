@@ -6,7 +6,7 @@ use crate::{
     core::feature_store::query::construct_query,
     feature_store::{
         feature_view::{transformation_function::TransformationFunction, FeatureView},
-        query::entities::Query,
+        query::Query,
     },
     repositories::feature_store::{
         feature::entities::{FeatureDTO, TrainingDatasetFeatureDTO},
@@ -30,15 +30,15 @@ pub async fn create_feature_view(
         Some(transformation_functions) => transformation_functions,
     };
     let features = query
-        .left_features
+        .left_features()
         .clone()
         .iter()
         .map(|feature| {
             TrainingDatasetFeatureDTO::new_from_feature_and_transformation_function(
                 FeatureDTO::from(feature.clone()),
-                FeatureGroupDTO::from(query.left_feature_group.clone()),
+                FeatureGroupDTO::from(query.left_feature_group().clone()),
                 transformation_functions
-                    .get(&feature.name)
+                    .get(feature.name())
                     .map(|transformation_function| {
                         TransformationFunctionDTO::from(transformation_function.clone())
                     }),

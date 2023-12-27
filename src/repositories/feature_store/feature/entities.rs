@@ -44,13 +44,13 @@ impl From<Feature> for FeatureDTO {
 impl FeatureDTO {
     pub fn new_from_feature(feature: Feature) -> Self {
         Self {
-            name: feature.name,
-            description: feature.description,
-            data_type: feature.data_type,
-            primary: feature.primary,
-            partition: feature.partition,
-            hudi_precombine_key: feature.hudi_precombine_key,
-            feature_group_id: feature.feature_group_id,
+            feature_group_id: feature.feature_group_id(),
+            primary: feature.is_primary(),
+            name: feature.name().to_string(),
+            description: feature.description().map(String::from),
+            data_type: feature.data_type().to_string(),
+            partition: feature.is_partition(),
+            hudi_precombine_key: feature.is_hudi_precombine_key(),
         }
     }
 }

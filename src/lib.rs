@@ -1,6 +1,6 @@
 //! # Hopsworks SDK for Rust
 //!
-//! The `hopsworks-rs` crate is a Rust SDK to interact with the Hopsworks Platform and [`FeatureStore`][feature_store::FeatureStore]. It is intended
+//! The `hopsworks-rs` crate is a Rust SDK to interact with the Hopsworks Platform and [`FeatureStore`]. It is intended
 //! to be used in conjunction with a [Hopsworks](https://www.hopsworks.ai/) cluster to build end-to-end machine
 //! learning pipelines. With Hopsworks you can:
 //! - Schedule Feature Engineering Jobs to ingest data from various sources into the Feature Store
@@ -42,7 +42,7 @@
 //!
 //!  // Create a new feature group and ingest local data to the Feature Store
 //!  let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
-//!  let fg = fs.create_feature_group(
+//!  let mut fg = fs.create_feature_group(
 //!    "my_fg",
 //!    1,
 //!    None,
@@ -57,12 +57,12 @@
 //!  let fv = fs.create_feature_view(
 //!    "my_fv",
 //!    1,
-//!    fg.select(vec!["feature1", "feature2"])?,
+//!    fg.select(&["feature1", "feature2"])?,
 //!    None,
 //!  ).await?;
 //!
 //!  // Read data from the Feature View
-//!  let df = fv.read_with_arrow_flight_client().await?;
+//!  let df = fv.read_from_offline_feature_store(None).await?;
 //!  
 //!  Ok(())
 //! }

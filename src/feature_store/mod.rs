@@ -24,7 +24,7 @@ use self::{
     feature_view::{
         training_dataset::TrainingDataset, transformation_function::TransformationFunction,
     },
-    query::entities::Query,
+    query::Query,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -85,12 +85,12 @@ pub struct FeatureStore {
     //  let fg2 = fs.get_feature_group("fg2", Some(1)).await?.expect("Feature Group not found");
     //
     //  // Create a Feature View
-    //  let query = fg1.select(vec!["feature1", "feature2"])?
-    //     .join(fg2.select(vec!["feature3"])?, None);
+    //  let query = fg1.select(&["feature1", "feature2"])?
+    //     .join(fg2.select(&["feature3"])?, None);
     //  let feature_view = fs.create_feature_view("my_feature_view", 1, query, None).await?;
     //
     //  // Read data from the Feature View
-    //  let df = feature_view.read_with_arrow_flight_client().await?;
+    //  let df = feature_view.read_from_offline_feature_store(None).await?;
     // #  Ok(())
     // # }
     // ```
@@ -172,7 +172,7 @@ impl FeatureStore {
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
     ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
-    ///   let feature_group = feature_store.get_feature_group("my_fg", Some(1)).await?.expect("Feature Group not found");
+    ///   let mut feature_group = feature_store.get_feature_group("my_fg", Some(1)).await?.expect("Feature Group not found");
     ///
     ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
     ///   feature_group.insert(&mut df).await?;
@@ -218,7 +218,7 @@ impl FeatureStore {
     ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
     ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
     ///
-    ///   let feature_group = feature_store.get_or_create_feature_group(
+    ///   let mut feature_group = feature_store.get_or_create_feature_group(
     ///     "my_fg",
     ///     Some(1),
     ///     None,
@@ -287,7 +287,7 @@ impl FeatureStore {
     ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
     ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
     ///
-    ///   let feature_group = feature_store.create_feature_group(
+    ///   let mut feature_group = feature_store.create_feature_group(
     ///     "my_fg",
     ///     1,
     ///     None,
@@ -347,7 +347,7 @@ impl FeatureStore {
     ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
     ///   let feature_group = feature_store.get_feature_group("my_fg", None).await?.expect("Feature Group not found");
     ///
-    ///   let query = feature_group.select(vec!["feature1", "feature2"])?;
+    ///   let query = feature_group.select(&["feature1", "feature2"])?;
     ///   let feature_view = feature_store.create_feature_view(
     ///     "my_feature_view",
     ///     1,
@@ -355,7 +355,7 @@ impl FeatureStore {
     ///     None
     ///   ).await?;
     ///
-    ///   let df = feature_view.read_with_arrow_flight_client().await?;
+    ///   let df = feature_view.read_from_offline_feature_store(None).await?;
     ///
     ///   Ok(())
     /// }
@@ -397,7 +397,7 @@ impl FeatureStore {
     ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
     ///   let feature_view = feature_store.get_feature_view("my_feature_view", Some(1)).await?.expect("Feature View not found");
     ///
-    ///   let my_df = feature_view.read_with_arrow_flight_client().await?;
+    ///   let my_df = feature_view.read_from_offline_feature_store(None).await?;
     ///
     ///   Ok(())
     /// }
@@ -433,7 +433,7 @@ impl FeatureStore {
     ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
     ///   let feature_group = feature_store.get_feature_group("my_fg", None).await?.expect("Feature Group not found");
     ///
-    ///   let query = feature_group.select(vec!["feature1", "feature2"])?;
+    ///   let query = feature_group.select(&["feature1", "feature2"])?;
     ///   let transformation_function = feature_store.get_transformation_function("min_max_scaler", Some(1)).await?;
     ///   let transformation_functions = HashMap::from([("feature1".to_owned(), transformation_function.unwrap())]);
     ///   

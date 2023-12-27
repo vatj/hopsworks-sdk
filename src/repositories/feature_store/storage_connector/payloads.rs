@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::feature_store::query::payloads::QueryFilterOrLogicArrowFlightPayload;
+use crate::clients::arrow_flight::filter::QueryFilterOrLogicArrowFlightPayload;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureGroupConnectorArrowFlightPayload {

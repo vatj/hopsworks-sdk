@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
 
     println!("{:#?}", feature_store);
 
-    if let Some(feature_group) = feature_store
+    if let Some(mut feature_group) = feature_store
         .get_feature_group(
             std::env::var("HOPSWORKS_FEATURE_GROUP_NAME")
                 .unwrap_or_default()

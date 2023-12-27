@@ -102,7 +102,7 @@ impl JobExecution {
     ///   let feature_store = hopsworks_login(None).await?
     ///     .get_feature_store().await?;
     ///
-    ///   let feature_group = feature_store
+    ///   let mut feature_group = feature_store
     ///     .get_feature_group("my_feature_group", Some(1)).await?
     ///     .expect("Feature Group not found");
     ///   
@@ -116,7 +116,7 @@ impl JobExecution {
     ///     .get_feature_view("my_feature_view", Some(1)).await?
     ///     .expect("Feature View not found");
     ///
-    ///   let updated_training_df = feature_view.read_with_arrow_flight_client().await?;
+    ///   let updated_training_df = feature_view.read_from_offline_feature_store(None).await?;
     ///
     ///   // Do stuff with the updated training dataset
     ///

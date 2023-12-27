@@ -4,52 +4,51 @@ use log::debug;
 use crate::{
     feature_store::{
         feature_group::{feature::Feature, FeatureGroup},
-        query::entities::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
+        query::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
     },
-    repositories::feature_store::{
-        query::payloads::{
-            QueryFilterArrowFlightPayload, QueryFilterOrLogicArrowFlightPayload,
-            QueryLogicArrowFlightPayload,
-        },
-        storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
-    },
+    repositories::feature_store::storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
+};
+
+use super::filter::{
+    QueryFilterArrowFlightPayload, QueryFilterOrLogicArrowFlightPayload,
+    QueryLogicArrowFlightPayload,
 };
 
 pub(super) fn serialize_feature_group_connector(
-    _feature_group: FeatureGroup,
-    _query: Query,
+    _feature_group: &FeatureGroup,
+    _query: &Query,
     _on_demand_fg_aliases: Vec<String>,
 ) -> Result<FeatureGroupConnectorArrowFlightPayload> {
     Ok(FeatureGroupConnectorArrowFlightPayload::new_hudi_connector())
 }
 
-pub(super) fn serialize_feature_group_name(feature_group: FeatureGroup) -> String {
+pub(super) fn serialize_feature_group_name(feature_group: &FeatureGroup) -> String {
     format!(
         "{}.{}_{}",
         feature_group.get_project_name(),
-        feature_group.name,
-        feature_group.version
+        feature_group.name(),
+        feature_group.version()
     )
 }
 
 pub(super) fn serialize_feature_name(
-    feature: Feature,
-    query_obj: Query,
+    feature: &Feature,
+    query_obj: &Query,
     short_name: bool,
 ) -> Result<String> {
     if short_name {
-        debug!("Serializing short feature name: {}", feature.name);
-        Ok(feature.name)
+        debug!("Serializing short feature name: {}", feature.name());
+        Ok(feature.name().to_string())
     } else {
-        let opt_fg = query_obj.get_feature_group_by_feature(feature.clone());
+        let opt_fg = query_obj.get_feature_group_by_feature(feature);
         if let Some(fg) = opt_fg {
-            let name = format!("{}.{}", serialize_feature_group_name(fg), feature.name);
+            let name = format!("{}.{}", serialize_feature_group_name(fg), feature.name());
             debug!("Serializing full feature name: {}", name);
             Ok(name)
         } else {
             Err(color_eyre::Report::msg(format!(
                 "Feature {} not found in query object",
-                feature.name
+                feature.name()
             )))
         }
     }
@@ -57,7 +56,7 @@ pub(super) fn serialize_feature_name(
 
 pub(super) fn serialize_filter_expression(
     filters: Vec<QueryFilterOrLogic>,
-    query: Query,
+    query: &Query,
     short_name: bool,
 ) -> Result<Option<Vec<QueryFilterOrLogicArrowFlightPayload>>> {
     debug!(
@@ -74,12 +73,12 @@ pub(super) fn serialize_filter_expression(
             QueryFilterOrLogic::Filter(filter) => {
                 debug!("Found filter: {:#?}", filter);
                 serialized_filters.push(QueryFilterOrLogicArrowFlightPayload::Filter(
-                    serialize_filter(filter, query.clone(), short_name)?,
+                    serialize_filter(filter, query, short_name)?,
                 ));
             }
             QueryFilterOrLogic::Logic(logic) => {
                 debug!("Found logic: {:#?}", logic);
-                serialized_filters.push(serialize_logic(logic, query.clone(), short_name)?);
+                serialized_filters.push(serialize_logic(logic, query, short_name)?);
             }
         }
     }
@@ -88,7 +87,7 @@ pub(super) fn serialize_filter_expression(
 
 pub(super) fn serialize_filter(
     filter: QueryFilter,
-    query: Query,
+    query: &Query,
     short_name: bool,
 ) -> Result<QueryFilterArrowFlightPayload> {
     debug!(
@@ -98,13 +97,13 @@ pub(super) fn serialize_filter(
     Ok(QueryFilterArrowFlightPayload::new(
         filter.condition,
         filter.value,
-        serialize_feature_name(filter.feature, query.clone(), short_name)?,
+        serialize_feature_name(&filter.feature, query, short_name)?,
     ))
 }
 
 pub(super) fn serialize_logic(
     logic: QueryLogic,
-    query: Query,
+    query: &Query,
     short_name: bool,
 ) -> Result<QueryFilterOrLogicArrowFlightPayload> {
     debug!(
@@ -114,13 +113,13 @@ pub(super) fn serialize_logic(
     let left_filter = serialize_filter_or_logic(
         logic.left_filter,
         logic.left_logic.as_deref().cloned(),
-        query.clone(),
+        query,
         short_name,
     )?;
     let right_filter = serialize_filter_or_logic(
         logic.right_filter,
         logic.right_logic.as_deref().cloned(),
-        query.clone(),
+        query,
         short_name,
     )?;
     Ok(QueryFilterOrLogicArrowFlightPayload::Logic(
@@ -131,7 +130,7 @@ pub(super) fn serialize_logic(
 pub(super) fn serialize_filter_or_logic(
     opt_filter: Option<QueryFilter>,
     opt_logic: Option<QueryLogic>,
-    query: Query,
+    query: &Query,
     short_name: bool,
 ) -> Result<Option<Box<QueryFilterOrLogicArrowFlightPayload>>> {
     debug!(
@@ -158,12 +157,12 @@ pub(super) fn serialize_filter_or_logic(
     )?)))
 }
 
-pub(super) fn translate_to_duckdb(query: Query, query_str: String) -> Result<String> {
+pub(super) fn translate_to_duckdb(query: &Query, query_str: String) -> Result<String> {
     debug!("Translating query to duckdb sql style: {:#?}", query);
     Ok(query_str
         .replace(
-            format!("`{}`.`", query.left_feature_group.featurestore_name).as_str(),
-            format!("`{}.", query.left_feature_group.get_project_name()).as_str(),
+            format!("`{}`.`", query.left_feature_group().feature_store_name()).as_str(),
+            format!("`{}.", query.left_feature_group().get_project_name()).as_str(),
         )
         .replace('`', '"'.to_string().as_str()))
 }
