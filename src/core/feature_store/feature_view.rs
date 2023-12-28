@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
 use color_eyre::Result;
+use polars::frame::DataFrame;
 
 use crate::{
     core::feature_store::query::construct_query,
     feature_store::{
         feature_view::{transformation_function::TransformationFunction, FeatureView},
-        query::{builder::BatchQueryOptions, Query},
+        query::{builder::BatchQueryOptions, read_option, Query},
     },
     repositories::feature_store::{
         feature::entities::{FeatureDTO, TrainingDatasetFeatureDTO},
@@ -106,4 +107,16 @@ pub async fn get_batch_query(
     .await?;
 
     Ok(Query::from(query_dto))
+}
+
+pub async fn get_batch_data(
+    feature_view: &FeatureView,
+    batch_query_options: &BatchQueryOptions,
+    offline_read_options: Option<read_option::OfflineReadOptions>,
+) -> Result<DataFrame> {
+    let batch_query = get_batch_query(feature_view, batch_query_options).await?;
+
+    batch_query
+        .read_from_offline_feature_store(offline_read_options)
+        .await
 }

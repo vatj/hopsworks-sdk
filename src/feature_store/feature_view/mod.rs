@@ -28,7 +28,7 @@ use self::transformation_function::TransformationFunction;
 
 use super::query::{
     builder::BatchQueryOptions,
-    read_option::{OfflineReadOptions, OnlineReadOptions},
+    read_option::{self, OfflineReadOptions, OnlineReadOptions},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -194,6 +194,19 @@ impl FeatureView {
 
     pub async fn get_batch_query(&self, batch_query_options: &BatchQueryOptions) -> Result<Query> {
         crate::core::feature_store::feature_view::get_batch_query(self, batch_query_options).await
+    }
+
+    pub async fn get_batch_data(
+        &self,
+        batch_query_options: &BatchQueryOptions,
+        offline_read_options: Option<read_option::OfflineReadOptions>,
+    ) -> Result<DataFrame> {
+        crate::core::feature_store::feature_view::get_batch_data(
+            self,
+            batch_query_options,
+            offline_read_options,
+        )
+        .await
     }
 
     pub async fn create_train_test_split(

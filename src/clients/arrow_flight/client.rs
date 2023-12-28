@@ -248,10 +248,10 @@ impl HopsworksArrowFlightClient {
         query_obj: Query,
     ) -> Result<()> {
         let training_dataset_payload = TrainingDatasetArrowFlightPayload::new(
-            util::strip_feature_store_suffix(&training_dataset_obj.feature_store_name),
+            util::strip_feature_store_suffix(training_dataset_obj.feature_store_name()),
             feature_view_obj.name().to_string(),
             feature_view_obj.version(),
-            training_dataset_obj.version,
+            training_dataset_obj.version(),
             serde_json::to_string(&query_obj)?,
         );
 

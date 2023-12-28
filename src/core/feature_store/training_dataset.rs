@@ -80,10 +80,10 @@ pub async fn create_training_dataset_attached_to_feature_view(
 
     debug!("The job :\n{:?}", job_dto);
 
-    Ok(TrainingDataset {
-        feature_store_name: training_dataset_dto.featurestore_name,
-        version: training_dataset_dto.version,
-    })
+    Ok(TrainingDataset::new(
+        &training_dataset_dto.featurestore_name,
+        training_dataset_dto.version,
+    ))
 }
 
 pub async fn compute_training_dataset_attached_to_feature_view(
@@ -119,10 +119,10 @@ pub async fn get_training_dataset_by_name_and_version(
         .await?;
 
     match opt_training_dataset_dto {
-        Some(training_dataset_dto) => Ok(Some(TrainingDataset {
-            feature_store_name: training_dataset_dto.featurestore_name,
-            version: training_dataset_dto.version,
-        })),
+        Some(training_dataset_dto) => Ok(Some(TrainingDataset::new(
+            &training_dataset_dto.featurestore_name,
+            training_dataset_dto.version,
+        ))),
         None => Ok(None),
     }
 }
