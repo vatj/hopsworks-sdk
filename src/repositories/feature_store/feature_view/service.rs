@@ -1,13 +1,19 @@
 use color_eyre::Result;
 use reqwest::{Method, StatusCode};
 
-use super::{entities::FeatureViewDTO, payloads::NewFeatureViewPayload};
+use super::{
+    entities::FeatureViewDTO,
+    payloads::{FeatureViewBatchQueryPayload, NewFeatureViewPayload},
+};
 use crate::{
     get_hopsworks_client,
     repositories::{
-        feature_store::training_dataset::{
-            entities::TrainingDatasetDTO,
-            payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
+        feature_store::{
+            query::entities::QueryDTO,
+            training_dataset::{
+                entities::TrainingDatasetDTO,
+                payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
+            },
         },
         platform::job::JobDTO,
     },
@@ -133,5 +139,37 @@ pub async fn compute_training_dataset_attached_to_feature_view(
             res.status(),
             res.text_with_charset("utf-8").await?
         ),
+    }
+}
+
+pub async fn get_feature_view_batch_query(
+    feature_store_id: i32,
+    name: &str,
+    version: i32,
+    batch_query_payload: FeatureViewBatchQueryPayload,
+) -> Result<QueryDTO> {
+    let resp = get_hopsworks_client()
+        .await
+        .request(
+            Method::GET,
+            format!(
+                "featurestores/{feature_store_id}/featureview/{name}/version/{version}/query/batch",
+            )
+            .as_str(),
+            true,
+            true,
+        )
+        .await?
+        .json(&batch_query_payload)
+        .send()
+        .await?;
+
+    match resp.status() {
+        StatusCode::OK => Ok(resp.json::<QueryDTO>().await?),
+        _ => Err(color_eyre::eyre::eyre!(
+            "get_feature_view_batch_query failed with status : {:?}, here is the response :\n{:?}",
+            resp.status(),
+            resp.text_with_charset("utf-8").await?
+        )),
     }
 }

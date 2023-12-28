@@ -1,8 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::feature_store::{
-    feature::entities::TrainingDatasetFeatureDTO,
-    query::entities::{FeatureStoreQueryDTO, QueryDTO},
+use crate::{
+    feature_store::query::builder::BatchQueryOptions,
+    repositories::feature_store::{
+        feature::entities::TrainingDatasetFeatureDTO,
+        query::entities::{FeatureStoreQueryDTO, QueryDTO},
+    },
 };
 
 use super::entities::{KeywordDTO, TagsDTO};
@@ -48,6 +51,36 @@ impl NewFeatureViewPayload {
             features,
             keywords: None,
             tags: None,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct FeatureViewBatchQueryPayload {
+    start_time: i64,
+    end_time: i64,
+    td_version: Option<i32>,
+    with_label: bool,
+    with_primary_keys: bool,
+    with_event_time: bool,
+    training_helper_columns: Vec<String>,
+    inference_helper_columns: Vec<String>,
+    is_hive_engine: bool,
+}
+
+impl From<&BatchQueryOptions> for FeatureViewBatchQueryPayload {
+    fn from(options: &BatchQueryOptions) -> Self {
+        Self {
+            start_time: options.start_time.timestamp_millis(),
+            end_time: options.end_time.timestamp_millis(),
+            td_version: options.td_version,
+            with_label: options.with_label,
+            with_primary_keys: options.with_primary_keys,
+            with_event_time: options.with_event_time,
+            training_helper_columns: options.training_helper_columns.clone(),
+            inference_helper_columns: options.inference_helper_columns.clone(),
+            is_hive_engine: false,
         }
     }
 }

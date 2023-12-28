@@ -26,7 +26,10 @@ use std::collections::HashMap;
 
 use self::transformation_function::TransformationFunction;
 
-use super::query::read_option::{OfflineReadOptions, OnlineReadOptions};
+use super::query::{
+    builder::BatchQueryOptions,
+    read_option::{OfflineReadOptions, OnlineReadOptions},
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureView {
@@ -179,6 +182,18 @@ impl FeatureView {
 
     pub fn transformation_functions_mut(&mut self) -> &mut HashMap<String, TransformationFunction> {
         &mut self.transformation_functions
+    }
+
+    pub async fn get_batch_query_string(
+        &self,
+        batch_query_options: &BatchQueryOptions,
+    ) -> Result<String> {
+        crate::core::feature_store::feature_view::get_batch_query_string(self, batch_query_options)
+            .await
+    }
+
+    pub async fn get_batch_query(&self, batch_query_options: &BatchQueryOptions) -> Result<Query> {
+        crate::core::feature_store::feature_view::get_batch_query(self, batch_query_options).await
     }
 
     pub async fn create_train_test_split(

@@ -6,7 +6,7 @@ use crate::{
     core::feature_store::query::construct_query,
     feature_store::{
         feature_view::{transformation_function::TransformationFunction, FeatureView},
-        query::Query,
+        query::{builder::BatchQueryOptions, Query},
     },
     repositories::feature_store::{
         feature::entities::{FeatureDTO, TrainingDatasetFeatureDTO},
@@ -79,4 +79,31 @@ pub async fn get_feature_view_by_name_and_version(
         Some(feature_view_dto) => Ok(Some(FeatureView::from(feature_view_dto))),
         None => Ok(None),
     }
+}
+
+pub async fn get_batch_query_string(
+    feature_view: &FeatureView,
+    batch_query_options: &BatchQueryOptions,
+) -> Result<String> {
+    let batch_query = get_batch_query(feature_view, batch_query_options).await?;
+    let fs_query = construct_query(batch_query).await?;
+
+    Ok(fs_query.pit_query.unwrap_or(fs_query.query))
+}
+
+pub async fn get_batch_query(
+    feature_view: &FeatureView,
+    batch_query_options: &BatchQueryOptions,
+) -> Result<Query> {
+    let batch_query_payload =
+        feature_view::payloads::FeatureViewBatchQueryPayload::from(batch_query_options);
+    let query_dto = feature_view::service::get_feature_view_batch_query(
+        feature_view.feature_store_id(),
+        feature_view.name(),
+        feature_view.version(),
+        batch_query_payload,
+    )
+    .await?;
+
+    Ok(Query::from(query_dto))
 }
