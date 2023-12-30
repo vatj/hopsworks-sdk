@@ -1,8 +1,10 @@
 use color_eyre::Result;
 use log::debug;
+use polars::frame::DataFrame;
 
 use crate::{
     core::feature_store::query::construct_query,
+    feature_store::feature_view::training_dataset::TrainingDatasetBuilder,
     repositories::{
         feature_store::{
             feature::entities::{FeatureDTO, TrainingDatasetFeatureDTO},
@@ -27,27 +29,29 @@ pub async fn create_train_test_split() -> Result<()> {
     todo!("create_train_test_split is not implemented");
 }
 
+pub async fn register_training_dataset(
+    _training_dataset_builder: &TrainingDatasetBuilder,
+) -> Result<TrainingDataset> {
+    todo!("register_training_dataset is not implemented");
+}
+
+pub async fn read_from_offline_feature_store(
+    _training_dataset: &TrainingDataset,
+) -> Result<DataFrame> {
+    todo!("read_from_offline_feature_store is not implemented");
+}
+
+pub async fn materialize_on_cluster(
+    _training_dataset_builder: &TrainingDatasetBuilder,
+) -> Result<TrainingDataset> {
+    todo!("materialize_on_cluster is not implemented");
+}
+
 pub async fn create_training_dataset_attached_to_feature_view(
     feature_view: &FeatureView,
 ) -> Result<TrainingDataset> {
-    let features = feature_view
-        .query()
-        .left_features()
-        .clone()
-        .iter()
-        .map(|feature| {
-            TrainingDatasetFeatureDTO::new_from_feature_and_transformation_function(
-                FeatureDTO::from(feature.clone()),
-                FeatureGroupDTO::from(feature_view.query().left_feature_group().clone()),
-                feature_view
-                    .transformation_functions()
-                    .get(feature.name())
-                    .map(|transformation_function| {
-                        TransformationFunctionDTO::from(transformation_function.clone())
-                    }),
-            )
-        })
-        .collect();
+    let features =
+        crate::core::feature_store::feature_view::features_to_transformed_features(feature_view)?;
 
     let new_training_dataset_payload = NewTrainingDatasetPayload::new(
         feature_view.feature_store_id(),

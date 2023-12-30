@@ -139,11 +139,11 @@ impl Query {
         }
     }
 
-    pub fn feature_store_name(&self) -> &str {
+    pub(crate) fn feature_store_name(&self) -> &str {
         self.feature_store_name.as_ref()
     }
 
-    pub fn feature_store_id(&self) -> i32 {
+    pub(crate) fn feature_store_id(&self) -> i32 {
         self.feature_store_id
     }
 

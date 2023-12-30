@@ -152,7 +152,7 @@ impl FeatureView {
         self.feature_store_id
     }
 
-    pub fn feature_store_name(&self) -> &str {
+    pub(crate) fn feature_store_name(&self) -> &str {
         self.feature_store_name.as_str()
     }
 
@@ -207,6 +207,10 @@ impl FeatureView {
             offline_read_options,
         )
         .await
+    }
+
+    pub fn training_dataset_builder(&self) -> self::training_dataset::TrainingDatasetBuilder {
+        self::training_dataset::TrainingDatasetBuilder::new_default_from_feature_view(self)
     }
 
     pub async fn create_train_test_split(

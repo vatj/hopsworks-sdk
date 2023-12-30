@@ -120,3 +120,26 @@ pub async fn get_batch_data(
         .read_from_offline_feature_store(offline_read_options)
         .await
 }
+
+pub fn features_to_transformed_features(
+    feature_view: &FeatureView,
+) -> Result<Vec<TrainingDatasetFeatureDTO>> {
+    Ok(feature_view
+        .query()
+        .left_features()
+        .clone()
+        .iter()
+        .map(|feature| {
+            TrainingDatasetFeatureDTO::new_from_feature_and_transformation_function(
+                FeatureDTO::from(feature.clone()),
+                FeatureGroupDTO::from(feature_view.query().left_feature_group().clone()),
+                feature_view
+                    .transformation_functions()
+                    .get(feature.name())
+                    .map(|transformation_function| {
+                        TransformationFunctionDTO::from(transformation_function.clone())
+                    }),
+            )
+        })
+        .collect())
+}
