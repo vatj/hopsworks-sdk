@@ -89,7 +89,7 @@ pub async fn get_feature_group_by_id(
 
 pub async fn create_feature_group(
     feature_store_id: i32,
-    new_feature_group_payload: &NewFeatureGroupPayload<'_>,
+    new_feature_group_payload: &NewFeatureGroupPayload,
 ) -> Result<FeatureGroupDTO> {
     let response = get_hopsworks_client()
         .await

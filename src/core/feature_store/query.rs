@@ -18,7 +18,7 @@ use crate::{
     },
 };
 
-pub async fn construct_query(query: Query) -> Result<FeatureStoreQueryDTO> {
+pub async fn construct_query(query: &Query) -> Result<FeatureStoreQueryDTO> {
     let query_payload = NewQueryPayload::from(query);
 
     query::service::construct_query(query_payload).await
@@ -75,7 +75,7 @@ pub async fn read_query_from_online_feature_store(
     .await?;
     let builder = MySQLSource::<BinaryProtocol>::new(connection_string.as_str(), 2).unwrap();
 
-    let constructed_query = construct_query(query.clone()).await?;
+    let constructed_query = construct_query(query).await?;
     let queries = vec![CXQuery::from(&constructed_query.query_online)];
     let mut destination = Arrow2Destination::new();
 
@@ -97,7 +97,7 @@ pub async fn read_with_arrow_flight_client(
 ) -> Result<DataFrame> {
     // Create Feature Store Query based on query object obtained via fg.select()
     let _offline_read_options = offline_read_options.unwrap_or_default();
-    let feature_store_query_dto = construct_query(query_object.clone()).await?;
+    let feature_store_query_dto = construct_query(&query_object).await?;
 
     // Create Arrow Flight Client
     let mut arrow_flight_client = HopsworksArrowFlightClientBuilder::default().build().await?;

@@ -47,25 +47,18 @@ impl NewQueryPayload {
     }
 }
 
-impl From<Query> for NewQueryPayload {
-    fn from(query: Query) -> Self {
+impl From<&Query> for NewQueryPayload {
+    fn from(query: &Query) -> Self {
         Self {
             feature_store_name: String::from(query.feature_store_name()),
             feature_store_id: query.feature_store_id(),
-            left_feature_group: FeatureGroupDTO::from(query.left_feature_group().clone()),
-            left_features: query
-                .left_features()
-                .iter()
-                .map(|feature| FeatureDTO::from(feature.clone()))
-                .collect(),
+            left_feature_group: FeatureGroupDTO::from(query.left_feature_group()),
+            left_features: query.left_features().iter().map(FeatureDTO::from).collect(),
             left_feature_group_start_time: None,
             left_feature_group_end_time: None,
-            joins: query.joins().map(|joins| {
-                joins
-                    .iter()
-                    .map(|join_query| NewJoinQueryPayload::from(join_query.clone()))
-                    .collect()
-            }),
+            joins: query
+                .joins()
+                .map(|joins| joins.iter().map(NewJoinQueryPayload::from).collect()),
             hive_engine: true,
             filters: None,
         }
@@ -124,10 +117,10 @@ impl PayloadJoinConfig {
     }
 }
 
-impl From<JoinQuery> for NewJoinQueryPayload {
-    fn from(join_query: JoinQuery) -> Self {
+impl From<&JoinQuery> for NewJoinQueryPayload {
+    fn from(join_query: &JoinQuery) -> Self {
         Self {
-            query: NewQueryPayload::from(join_query.query().clone()),
+            query: NewQueryPayload::from(join_query.query()),
             on: join_query.on().map(|slice| slice.to_vec()),
             left_on: join_query.left_on().map(|slice| slice.to_vec()),
             right_on: join_query.right_on().map(|slice| slice.to_vec()),

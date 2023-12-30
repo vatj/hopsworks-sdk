@@ -33,19 +33,19 @@ pub async fn get_feature_group_by_name_and_version(
 
 pub async fn create_feature_group(
     feature_store_id: i32,
-    new_feature_group_payload: NewFeatureGroupPayload<'_>,
+    new_feature_group_payload: NewFeatureGroupPayload,
 ) -> Result<FeatureGroupDTO> {
     feature_group::service::create_feature_group(feature_store_id, &new_feature_group_payload).await
 }
 
-pub fn make_new_feature_group_payload<'a>(
-    name: &'a str,
+pub fn make_new_feature_group_payload(
+    name: &str,
     version: i32,
-    description: Option<&'a str>,
+    description: Option<&str>,
     features: Vec<NewFeaturePayload>,
-    event_time: Option<&'a str>,
+    event_time: Option<&str>,
     online_enabled: bool,
-) -> NewFeatureGroupPayload<'a> {
+) -> NewFeatureGroupPayload {
     NewFeatureGroupPayload::new(
         name,
         version,
@@ -90,15 +90,15 @@ pub async fn insert_in_registered_feature_group(
     ))
 }
 
-pub fn build_new_feature_group_payload<'a>(
-    name: &'a str,
+pub fn build_new_feature_group_payload(
+    name: &str,
     version: i32,
-    description: Option<&'a str>,
-    primary_key: Vec<&'a str>,
-    event_time: Option<&'a str>,
+    description: Option<&str>,
+    primary_key: Vec<&str>,
+    event_time: Option<&str>,
     schema: Schema,
     online_enabled: bool,
-) -> Result<NewFeatureGroupPayload<'a>> {
+) -> Result<NewFeatureGroupPayload> {
     let features =
         feature::build_feature_payloads_from_schema_and_feature_group_options(schema, primary_key)
             .unwrap();
@@ -115,7 +115,7 @@ pub fn build_new_feature_group_payload<'a>(
 
 pub async fn save_feature_group_metadata(
     feature_store_id: i32,
-    new_feature_group_payload: NewFeatureGroupPayload<'_>,
+    new_feature_group_payload: NewFeatureGroupPayload,
 ) -> Result<FeatureGroupDTO> {
     let feature_group_dto =
         feature_group::service::create_feature_group(feature_store_id, &new_feature_group_payload)

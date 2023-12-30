@@ -31,21 +31,21 @@ pub struct NewFeatureViewPayload {
 impl NewFeatureViewPayload {
     pub fn new(
         feature_store_id: i32,
-        feature_store_name: String,
-        name: String,
+        feature_store_name: &str,
+        name: &str,
         version: i32,
         query: QueryDTO,
-        query_string: Option<FeatureStoreQueryDTO>,
+        query_string: Option<&FeatureStoreQueryDTO>,
         features: Vec<TrainingDatasetFeatureDTO>,
     ) -> Self {
         Self {
             dto_type: "featureViewDTO".to_owned(),
-            name,
+            name: String::from(name),
             version,
             query,
-            query_string,
+            query_string: query_string.cloned(),
             featurestore_id: feature_store_id,
-            featurestore_name: feature_store_name,
+            featurestore_name: String::from(feature_store_name),
             description: None,
             location: "".to_owned(),
             features,

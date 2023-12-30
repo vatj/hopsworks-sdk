@@ -117,8 +117,8 @@ pub struct FeatureStore {
     num_training_datasets: i32,
     num_storage_connectors: i32,
     num_feature_views: i32,
-    pub featurestore_id: i32,
-    pub featurestore_name: String,
+    featurestore_id: i32,
+    featurestore_name: String,
     created: String,
     project_name: String,
     project_id: i32,
@@ -129,7 +129,7 @@ pub struct FeatureStore {
 }
 
 impl FeatureStore {
-    pub fn new_from_dto(feature_store_dto: FeatureStoreDTO) -> Self {
+    pub(crate) fn new_from_dto(feature_store_dto: FeatureStoreDTO) -> Self {
         Self {
             num_feature_groups: feature_store_dto.num_feature_groups,
             num_training_datasets: feature_store_dto.num_training_datasets,
@@ -145,6 +145,14 @@ impl FeatureStore {
             online_featurestore_size: feature_store_dto.online_featurestore_size,
             online_enabled: feature_store_dto.online_enabled,
         }
+    }
+
+    pub fn feature_store_name(&self) -> &str {
+        self.featurestore_name.as_str()
+    }
+
+    pub fn feature_store_id(&self) -> i32 {
+        self.featurestore_id
     }
 }
 
@@ -368,11 +376,11 @@ impl FeatureStore {
         transformation_functions: Option<HashMap<String, TransformationFunction>>,
     ) -> Result<FeatureView> {
         create_feature_view(
-            self.featurestore_id,
-            self.featurestore_name.clone(),
-            name.to_owned(),
+            self.feature_store_id(),
+            self.feature_store_name(),
+            name,
             version,
-            query,
+            &query,
             transformation_functions,
         )
         .await

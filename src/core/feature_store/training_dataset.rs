@@ -7,15 +7,12 @@ use crate::{
     feature_store::feature_view::training_dataset::TrainingDatasetBuilder,
     repositories::{
         feature_store::{
-            feature::entities::{FeatureDTO, TrainingDatasetFeatureDTO},
-            feature_group::entities::FeatureGroupDTO,
             feature_view::service as feature_view_service,
             query::entities::QueryDTO,
             training_dataset::{
                 self,
                 payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
             },
-            transformation_function::entities::TransformationFunctionDTO,
         },
         platform::job::JobDTO,
     },
@@ -50,16 +47,19 @@ pub async fn materialize_on_cluster(
 pub async fn create_training_dataset_attached_to_feature_view(
     feature_view: &FeatureView,
 ) -> Result<TrainingDataset> {
-    let features =
-        crate::core::feature_store::feature_view::features_to_transformed_features(feature_view)?;
+    let features = crate::core::feature_store::feature_view::features_to_transformed_features(
+        feature_view.query().left_features(),
+        feature_view.query().left_feature_group(),
+        feature_view.transformation_functions(),
+    )?;
 
     let new_training_dataset_payload = NewTrainingDatasetPayload::new(
         feature_view.feature_store_id(),
         feature_view.feature_store_name().to_string(),
         "trans_view_1_1".to_owned(),
         1,
-        QueryDTO::from(feature_view.query().clone()),
-        Some(construct_query(feature_view.query().clone()).await?),
+        QueryDTO::from(feature_view.query()),
+        Some(construct_query(feature_view.query()).await?),
         features,
     );
 
@@ -78,7 +78,7 @@ pub async fn create_training_dataset_attached_to_feature_view(
         feature_view.name(),
         feature_view.version(),
         training_dataset_dto.version,
-        feature_view.query().clone(),
+        feature_view.query(),
     )
     .await?;
 
@@ -95,7 +95,7 @@ pub async fn compute_training_dataset_attached_to_feature_view(
     feature_view_name: &str,
     feature_view_version: i32,
     training_dataset_version: i32,
-    query: Query,
+    query: &Query,
 ) -> Result<JobDTO> {
     let job_config = TrainingDatasetComputeJobConfigPayload::new(true, QueryDTO::from(query));
 

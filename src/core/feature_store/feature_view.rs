@@ -6,6 +6,7 @@ use polars::frame::DataFrame;
 use crate::{
     core::feature_store::query::construct_query,
     feature_store::{
+        feature_group::feature::Feature,
         feature_view::{transformation_function::TransformationFunction, FeatureView},
         query::{builder::BatchQueryOptions, read_option, Query},
     },
@@ -16,38 +17,28 @@ use crate::{
         query::entities::QueryDTO,
         transformation_function::entities::TransformationFunctionDTO,
     },
+    FeatureGroup,
 };
 
 pub async fn create_feature_view(
     feature_store_id: i32,
-    feature_store_name: String,
-    name: String,
+    feature_store_name: &str,
+    name: &str,
     version: i32,
-    query: Query,
+    query: &Query,
     transformation_functions: Option<HashMap<String, TransformationFunction>>,
 ) -> Result<FeatureView> {
     let transformation_functions = match transformation_functions {
         None => HashMap::<String, TransformationFunction>::new(),
         Some(transformation_functions) => transformation_functions,
     };
-    let features = query
-        .left_features()
-        .clone()
-        .iter()
-        .map(|feature| {
-            TrainingDatasetFeatureDTO::new_from_feature_and_transformation_function(
-                FeatureDTO::from(feature.clone()),
-                FeatureGroupDTO::from(query.left_feature_group().clone()),
-                transformation_functions
-                    .get(feature.name())
-                    .map(|transformation_function| {
-                        TransformationFunctionDTO::from(transformation_function.clone())
-                    }),
-            )
-        })
-        .collect();
+    let features = features_to_transformed_features(
+        query.left_features(),
+        query.left_feature_group(),
+        &transformation_functions,
+    )?;
 
-    let query_string = construct_query(query.clone()).await?;
+    let query_string = construct_query(query).await?;
     Ok(FeatureView::from(
         feature_view::service::create_feature_view(
             feature_store_id,
@@ -57,7 +48,7 @@ pub async fn create_feature_view(
                 name,
                 version,
                 QueryDTO::from(query),
-                Some(query_string),
+                Some(&query_string),
                 features,
             ),
         )
@@ -87,7 +78,7 @@ pub async fn get_batch_query_string(
     batch_query_options: &BatchQueryOptions,
 ) -> Result<String> {
     let batch_query = get_batch_query(feature_view, batch_query_options).await?;
-    let fs_query = construct_query(batch_query).await?;
+    let fs_query = construct_query(&batch_query).await?;
 
     Ok(fs_query.pit_query.unwrap_or(fs_query.query))
 }
@@ -122,22 +113,20 @@ pub async fn get_batch_data(
 }
 
 pub fn features_to_transformed_features(
-    feature_view: &FeatureView,
+    features: &[Feature],
+    feature_group: &FeatureGroup,
+    transformation_functions: &HashMap<String, TransformationFunction>,
 ) -> Result<Vec<TrainingDatasetFeatureDTO>> {
-    Ok(feature_view
-        .query()
-        .left_features()
-        .clone()
+    Ok(features
         .iter()
         .map(|feature| {
             TrainingDatasetFeatureDTO::new_from_feature_and_transformation_function(
-                FeatureDTO::from(feature.clone()),
-                FeatureGroupDTO::from(feature_view.query().left_feature_group().clone()),
-                feature_view
-                    .transformation_functions()
+                &FeatureDTO::from(feature),
+                &FeatureGroupDTO::from(feature_group),
+                transformation_functions
                     .get(feature.name())
                     .map(|transformation_function| {
-                        TransformationFunctionDTO::from(transformation_function.clone())
+                        TransformationFunctionDTO::from(transformation_function)
                     }),
             )
         })

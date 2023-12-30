@@ -15,28 +15,6 @@ pub struct BatchQueryOptions {
 }
 
 impl BatchQueryOptions {
-    pub fn new(
-        start_time: chrono::DateTime<chrono::Utc>,
-        end_time: chrono::DateTime<chrono::Utc>,
-        td_version: Option<i32>,
-        with_primary_keys: bool,
-        with_event_time: bool,
-        with_label: bool,
-        inference_helper_columns: Vec<String>,
-        training_helper_columns: Vec<String>,
-    ) -> Self {
-        Self {
-            start_time,
-            end_time,
-            td_version,
-            with_primary_keys,
-            with_event_time,
-            with_label,
-            inference_helper_columns,
-            training_helper_columns,
-        }
-    }
-
     pub fn with_start_time(mut self, start_time: chrono::DateTime<chrono::Utc>) -> Self {
         self.start_time = start_time;
         self
