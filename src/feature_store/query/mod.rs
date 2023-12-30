@@ -216,6 +216,30 @@ impl Query {
         }
     }
 
+    pub fn features(&self) -> Vec<&Feature> {
+        let mut features: Vec<&Feature> = self.left_features.iter().collect();
+        if let Some(joins) = &self.joins {
+            for join in joins {
+                features.extend(join.query().features());
+            }
+        }
+        features
+    }
+
+    pub(crate) fn features_and_feature_groups(&self) -> (Vec<&Feature>, Vec<&FeatureGroup>) {
+        let mut features: Vec<&Feature> = self.left_features.iter().collect();
+        let mut feature_groups: Vec<&FeatureGroup> = vec![&self.left_feature_group; features.len()];
+        if let Some(joins) = &self.joins {
+            for join in joins {
+                let (join_features, join_feature_groups) =
+                    join.query().features_and_feature_groups();
+                features.extend(join_features);
+                feature_groups.extend(join_feature_groups);
+            }
+        }
+        (features, feature_groups)
+    }
+
     pub async fn read_from_online_feature_store(
         &self,
         online_read_options: Option<OnlineReadOptions>,

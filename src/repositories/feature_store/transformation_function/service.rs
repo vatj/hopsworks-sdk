@@ -33,9 +33,9 @@ pub async fn get_transformation_function_by_name_and_version(
 
     let mut transformation_function_list= match res.status() {
         StatusCode::OK => res.json::<TransformationFunctionResponse>().await?,
-        _ => panic!("Transformation function get request failed with status {:?}, here is the response : \n{:?}.",
+        _ => Err(color_eyre::eyre::eyre!("Transformation function get request failed with status {:?}, here is the response : \n{:?}.",
             res.status(),
-            res.text_with_charset("utf-8").await)
+            res.text_with_charset("utf-8").await))?,
     };
 
     match transformation_function_list.items.pop() {

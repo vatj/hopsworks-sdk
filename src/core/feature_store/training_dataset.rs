@@ -47,11 +47,13 @@ pub async fn materialize_on_cluster(
 pub async fn create_training_dataset_attached_to_feature_view(
     feature_view: &FeatureView,
 ) -> Result<TrainingDataset> {
-    let features = crate::core::feature_store::feature_view::features_to_transformed_features(
-        feature_view.query().left_features(),
-        feature_view.query().left_feature_group(),
-        feature_view.transformation_functions(),
-    )?;
+    let (features, feature_groups) = feature_view.query().features_and_feature_groups();
+    let training_features =
+        crate::core::feature_store::feature_view::features_to_transformed_features(
+            &features,
+            &feature_groups,
+            feature_view.transformation_functions(),
+        )?;
 
     let new_training_dataset_payload = NewTrainingDatasetPayload::new(
         feature_view.feature_store_id(),
@@ -60,7 +62,7 @@ pub async fn create_training_dataset_attached_to_feature_view(
         1,
         QueryDTO::from(feature_view.query()),
         Some(construct_query(feature_view.query()).await?),
-        features,
+        training_features,
     );
 
     let training_dataset_dto =

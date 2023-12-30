@@ -32,11 +32,9 @@ pub async fn create_feature_view(
         None => HashMap::<String, TransformationFunction>::new(),
         Some(transformation_functions) => transformation_functions,
     };
-    let features = features_to_transformed_features(
-        query.left_features(),
-        query.left_feature_group(),
-        &transformation_functions,
-    )?;
+    let (features, feature_groups) = query.features_and_feature_groups();
+    let training_features =
+        features_to_transformed_features(&features, &feature_groups, &transformation_functions)?;
 
     let query_string = construct_query(query).await?;
     Ok(FeatureView::from(
@@ -49,7 +47,7 @@ pub async fn create_feature_view(
                 version,
                 QueryDTO::from(query),
                 Some(&query_string),
-                features,
+                training_features,
             ),
         )
         .await?,
@@ -113,16 +111,17 @@ pub async fn get_batch_data(
 }
 
 pub fn features_to_transformed_features(
-    features: &[Feature],
-    feature_group: &FeatureGroup,
+    features: &[&Feature],
+    feature_groups: &[&FeatureGroup],
     transformation_functions: &HashMap<String, TransformationFunction>,
 ) -> Result<Vec<TrainingDatasetFeatureDTO>> {
     Ok(features
         .iter()
-        .map(|feature| {
+        .zip(feature_groups.iter())
+        .map(|(feature, feature_group)| {
             TrainingDatasetFeatureDTO::new_from_feature_and_transformation_function(
-                &FeatureDTO::from(feature),
-                &FeatureGroupDTO::from(feature_group),
+                &FeatureDTO::from(*feature),
+                &FeatureGroupDTO::from(*feature_group),
                 transformation_functions
                     .get(feature.name())
                     .map(|transformation_function| {

@@ -30,11 +30,11 @@ pub async fn get_training_dataset_by_name_and_version(
 
     match res.status() {
         StatusCode::OK => Ok(res.json::<Vec<TrainingDatasetDTO>>().await?.first().cloned()),
-        _ => panic!(
+        _ => Err(color_eyre::eyre::eyre!(
             "get_training_dataset_by_name_and_version failed with status : {:?}, here is the response :\n{:?}",
             res.status(),
             res.text_with_charset("utf-8").await?
-        ),
+        )),
     }
 }
 
@@ -60,10 +60,10 @@ pub async fn create_training_dataset(
 
     match res.status() {
         StatusCode::CREATED => Ok(res.json::<TrainingDatasetDTO>().await?),
-        _ => panic!(
+        _ => Err(color_eyre::eyre::eyre!(
             "create_training_dataset failed with status : {:?}, here is the response :\n{:?}",
             res.status(),
             res.text_with_charset("utf-8").await?
-        ),
+        )),
     }
 }
