@@ -19,10 +19,10 @@ pub struct Project {
     id: i32,
 }
 
-impl From<ProjectDTO> for Project {
-    fn from(project_dto: ProjectDTO) -> Self {
+impl From<&ProjectDTO> for Project {
+    fn from(project_dto: &ProjectDTO) -> Self {
         Self {
-            project_name: project_dto.name,
+            project_name: project_dto.name.clone(),
             id: project_dto.id,
         }
     }
@@ -90,4 +90,8 @@ impl Project {
     pub async fn get_job(&self, job_name: &str) -> Result<Job> {
         crate::core::platform::job::get_job_by_name(job_name).await
     }
+}
+
+pub async fn create_project(project_name: &str, description: &Option<&str>) -> Result<Project> {
+    crate::core::platform::project::create_project(project_name, description).await
 }
