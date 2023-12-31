@@ -55,11 +55,11 @@ impl JobExecution {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::{hopsworks_login, platform::job_execution::JobExecutionState};
+    /// use hopsworks::platform::job_execution::JobExecutionState;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   let project = hopsworks_login(None).await?;
+    ///   let project = hopsworks::login(None).await?;
     ///   let job = project.get_job("my_backfilling_job").await?;
     ///   let job_exec = job.run(true).await?;
     ///
@@ -94,12 +94,12 @@ impl JobExecution {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     /// use polars::prelude::*;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   let feature_store = hopsworks_login(None).await?
+    ///   let feature_store = hopsworks::login(None).await?
     ///     .get_feature_store().await?;
     ///
     ///   let mut feature_group = feature_store

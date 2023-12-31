@@ -47,11 +47,10 @@ impl Project {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   let project = hopsworks_login(None).await?;
+    ///   let project = hopsworks::login(None).await?;
     ///   let fs = project.get_feature_store().await?;
     ///
     ///   // Create/Update Feature Groups and Feature Views, Insert/Read Feature Data
@@ -73,11 +72,11 @@ impl Project {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///  let project = hopsworks_login(None).await?;
+    ///  let project = hopsworks::login(None).await?;
     ///  let job = project.get_job("my_job").await?;
     ///
     ///  let mut job_config = job.get_configuration();

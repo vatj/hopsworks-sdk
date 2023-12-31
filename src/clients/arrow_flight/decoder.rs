@@ -73,7 +73,7 @@ pub type Dictionaries = AHashMap<i64, Box<dyn Array>>;
 ///   Ticket,
 ///   flight_service_client::FlightServiceClient
 /// };
-/// use hopsworks_rs::clients::arrow_flight::decoder::FlightDataFrameStream;
+/// use hopsworks::clients::arrow_flight::decoder::FlightDataFrameStream;
 ///
 /// use tonic::transport::Channel;
 /// use futures::stream::{StreamExt, TryStreamExt};

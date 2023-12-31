@@ -62,11 +62,10 @@ pub struct FeatureView {
     //
     // ```no_run
     // use color_eyre::Result;
-    // use hopsworks_rs::{HopsworksClientBuilder, hopsworks_login};
     //
     // #[tokio::main]
     // async fn main() -> Result<()> {
-    //   let fs = hopsworks_login(None).await?.get_feature_store().await?;
+    //   let fs = hopsworks::login(None).await?.get_feature_store().await?;
     //
     //   let fg_1 = fs.get_feature_group_by_name_and_version("my_fg_1", 1).await?.unwrap();
     //   let fg_2 = fs.get_feature_group_by_name_and_version("my_fg_2", 1).await?.unwrap();
@@ -90,11 +89,10 @@ pub struct FeatureView {
     //
     // ```no_run
     // use color_eyre::Result;
-    // use hopsworks_rs::{HopsworksClientBuilder, hopsworks_login};
     //
     // #[tokio::main]
     // async fn main() -> Result<()> {
-    //  let fs = hopsworks_login(None).await?.get_feature_store().await?;
+    //  let fs = hopsworks::login(None).await?.get_feature_store().await?;
     //  let feature_view = fs.get_feature_view("my_feature_view", Some(1)).await?.unwrap();
     //
     //  let training_dataset = feature_view.create_attached_training_dataset().await?;
@@ -107,11 +105,10 @@ pub struct FeatureView {
     //
     // ```no_run
     // use color_eyre::Result;
-    // use hopsworks_rs::{HopsworksClientBuilder, hopsworks_login};
     //
     // #[tokio::main]
     // async fn main() -> Result<()> {
-    //   let fs = hopsworks_login(None).await?.get_feature_store().await?;
+    //   let fs = hopsworks::login(None).await?.get_feature_store().await?;
     //   let feature_view = fs.get_feature_view("my_feature_view", Some(1)).await?.unwrap();
     //
     //   let training_dataset_dataframe = feature_view.read_from_offline_feature_store(None).await?;

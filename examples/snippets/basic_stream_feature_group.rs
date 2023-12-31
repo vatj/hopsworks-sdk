@@ -1,14 +1,13 @@
 use color_eyre::Result;
-use hopsworks_rs::HopsworksClientBuilder;
+use hopsworks::HopsworksClientBuilder;
 
-use hopsworks_rs::hopsworks_login;
 use polars::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     env_logger::init();
 
-    let project = hopsworks_login(Some(
+    let project = hopsworks::login(Some(
         HopsworksClientBuilder::default()
             .with_url(std::env::var("HOPSWORKS_URL").unwrap_or_default().as_str()),
     ))

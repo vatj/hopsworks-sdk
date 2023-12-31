@@ -44,12 +44,12 @@ pub struct FeatureStore {
     // ### Create a Feature Group and insert a Polars DataFrame
     // ```no_run
     // # use color_eyre::Result;
-    // # use hopsworks_rs::hopsworks_login;
+    // #
     // # use polars::prelude::*;
     //
     // # async fn run() -> Result<()> {
     //    // The api key will be read from the environment variable HOPSWORKS_API_KEY
-    //    let fs = hopsworks_login(None).await?.get_feature_store().await?;
+    //    let fs = hopsworks::login(None).await?.get_feature_store().await?;
     //
     //    // Create a new feature group
     //    let fg = fs.create_feature_group(
@@ -73,12 +73,12 @@ pub struct FeatureStore {
     // ### Create a Feature View to read data from Feature belonging to different Feature Groups
     // ```no_run
     // # use color_eyre::Result;
-    // # use hopsworks_rs::hopsworks_login;
+    // #
     // # use polars::prelude::*;
     //
     // # async fn run() -> Result<()> {
     //   // The api key will be read from the environment variable HOPSWORKS_API_KEY
-    //   let fs = hopsworks_login(None).await?.get_feature_store().await?;
+    //   let fs = hopsworks::login(None).await?.get_feature_store().await?;
     //
     //  // Get Feature Groups by name and version
     //  let fg1 = fs.get_feature_group("fg1", Some(1)).await?.expect("Feature Group not found");
@@ -98,11 +98,11 @@ pub struct FeatureStore {
     // ### Create a Training Dataset
     // ```no_run
     // # use color_eyre::Result;
-    // # use hopsworks_rs::hopsworks_login;
+    // #
     //
     // # async fn run() -> Result<()> {
     //  // The api key will be read from the environment variable HOPSWORKS_API_KEY
-    //  let fs = hopsworks_login(None).await?.get_feature_store().await?;
+    //  let fs = hopsworks::login(None).await?.get_feature_store().await?;
     //
     //  // Get Feature View
     //  let feature_view = fs.get_feature_view("my_feature_view", Some(1))
@@ -174,12 +174,12 @@ impl FeatureStore {
     /// # Examples
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     /// use polars::prelude::*;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
     ///   let mut feature_group = feature_store.get_feature_group("my_fg", Some(1)).await?.expect("Feature Group not found");
     ///
     ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
@@ -218,12 +218,12 @@ impl FeatureStore {
     /// # Examples
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     /// use polars::prelude::*;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
     ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
     ///
     ///   let mut feature_group = feature_store.get_or_create_feature_group(
@@ -287,12 +287,12 @@ impl FeatureStore {
     /// # Examples
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     /// use polars::prelude::*;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
     ///   let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
     ///
     ///   let mut feature_group = feature_store.create_feature_group(
@@ -347,12 +347,12 @@ impl FeatureStore {
     /// # Examples
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
     ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
-    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
     ///   let feature_group = feature_store.get_feature_group("my_fg", None).await?.expect("Feature Group not found");
     ///
     ///   let query = feature_group.select(&["feature1", "feature2"])?;
@@ -397,12 +397,12 @@ impl FeatureStore {
     /// # Examples
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
     ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
-    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
     ///   let feature_view = feature_store.get_feature_view("my_feature_view", Some(1)).await?.expect("Feature View not found");
     ///
     ///   let my_df = feature_view.read_from_offline_feature_store(None).await?;
@@ -432,13 +432,13 @@ impl FeatureStore {
     /// # Examples
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     /// use std::collections::HashMap;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
     ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
-    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
     ///   let feature_group = feature_store.get_feature_group("my_fg", None).await?.expect("Feature Group not found");
     ///
     ///   let query = feature_group.select(&["feature1", "feature2"])?;
@@ -475,12 +475,12 @@ impl FeatureStore {
     /// # Examples
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
     ///   // The api key will be read from the environment variable HOPSWORKS_API_KEY
-    ///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+    ///   let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
     ///   let td = feature_store.get_training_dataset("my_td", None).await?;
     ///
     ///   // TODO: Update when more methods are implemented on TrainingDataset

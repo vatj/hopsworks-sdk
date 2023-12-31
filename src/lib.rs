@@ -31,12 +31,11 @@
 //! ```no_run
 //! use color_eyre::Result;
 //! use polars::prelude::*;
-//! use hopsworks_rs::hopsworks_login;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
 //!  // The api key will be read from the environment variable HOPSWORKS_API_KEY
-//!  let project = hopsworks_login(None).await?;
+//!  let project = hopsworks::login(None).await?;
 //!  // Get the default feature store for the project
 //!  let fs = project.get_feature_store().await?;
 //!
@@ -72,7 +71,7 @@
 //!
 //! ```no_run
 //! # use color_eyre::Result;
-//! use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
+//! use hopsworks::HopsworksClientBuilder;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
@@ -82,7 +81,7 @@
 //!    .with_url(my_hopsworks_domain)
 //!    .with_api_key(&api_key);
 //!
-//!  let project = hopsworks_login(Some(builder)).await?;
+//!  let project = hopsworks::login(Some(builder)).await?;
 //!  let fs = project.get_feature_store().await?;
 //!  Ok(())
 //! }
@@ -114,7 +113,7 @@ async fn get_hopsworks_client() -> &'static HopsworksClient {
     match HOPSWORKS_CLIENT.get() {
         Some(client) => client,
         None => panic!(
-            "First use hopsworks_login to initialize the Hopsworks client with your credentials."
+            "First use hopsworks::login( to initialize the Hopsworks client with your credentials."
         ),
     }
 }
@@ -130,12 +129,12 @@ async fn get_hopsworks_client() -> &'static HopsworksClient {
 /// # Example
 /// ```no_run
 /// use color_eyre::Result;
-/// use hopsworks_rs::hopsworks_login;
+///
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
 ///    // The api key will be read from the environment variable HOPSWORKS_API_KEY
-///    let project = hopsworks_login(None).await?;
+///    let project = hopsworks::login(None).await?;
 ///    Ok(())
 /// }
 /// ```
@@ -143,7 +142,7 @@ async fn get_hopsworks_client() -> &'static HopsworksClient {
 /// # Example with custom client builder
 /// ```no_run
 /// use color_eyre::Result;
-/// use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
+/// use hopsworks::HopsworksClientBuilder;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
@@ -153,14 +152,14 @@ async fn get_hopsworks_client() -> &'static HopsworksClient {
 ///      .with_api_key(&api_key)
 ///      .with_url(my_hopsworks_domain);
 ///
-///   let project = hopsworks_login(Some(builder)).await?;
+///   let project = hopsworks::login(Some(builder)).await?;
 ///   Ok(())
 /// }
 /// ```
 ///
 /// # Panics
 /// If no API key is provided via the `HOPSWORKS_API_KEY` environment variable or via the `api_key` field in the client builder.
-pub async fn hopsworks_login(client_builder: Option<HopsworksClientBuilder>) -> Result<Project> {
+pub async fn login(client_builder: Option<HopsworksClientBuilder>) -> Result<Project> {
     info!("Attempting to login to Hopsworks.");
     HOPSWORKS_CLIENT
         .get_or_try_init(|| async { client_builder.unwrap_or_default().build().await })

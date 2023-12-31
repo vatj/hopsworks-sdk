@@ -41,11 +41,11 @@ use self::read_option::{OfflineReadOptions, OnlineReadOptions};
 /// ## Read some features from a feature group
 /// ```no_run
 /// # use color_eyre::Result;
-/// use hopsworks_rs::hopsworks_login;
+///
 ///
 /// #[tokio::main]
 /// pub async fn main() -> Result<()> {
-///   let feature_group = hopsworks_login(None).await?.get_feature_store().await?
+///   let feature_group = hopsworks::login(None).await?.get_feature_store().await?
 ///     .get_feature_group("my_fg", Some(1)).await?
 ///     .expect("my_fg not found");
 ///
@@ -60,14 +60,11 @@ use self::read_option::{OfflineReadOptions, OnlineReadOptions};
 /// ## Join two feature groups to create a Feature View
 /// ```no_run
 /// # use color_eyre::Result;
-/// use hopsworks_rs::{
-///   hopsworks_login,
-///   feature_store::query::join::{JoinOptions, JoinType},
-/// };
+/// use hopsworks::feature_store::query::join::{JoinOptions, JoinType};
 ///
 /// #[tokio::main]
 /// pub async fn main() -> Result<()> {
-///  let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+///  let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
 ///  let fg_1 = feature_store.get_feature_group("my_fg_1", Some(1)).await?.unwrap();
 ///  let fg_2 = feature_store.get_feature_group("my_fg_2", Some(1)).await?.unwrap();
 ///
@@ -90,11 +87,11 @@ use self::read_option::{OfflineReadOptions, OnlineReadOptions};
 /// ## Add filters and time travel to a query
 /// ```no_run
 /// # use color_eyre::Result;
-/// use hopsworks_rs::hopsworks_login;
+///
 ///
 /// #[tokio::main]
 /// pub async fn main() -> Result<()> {
-///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+///   let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
 ///   let fg_1 = feature_store.get_feature_group("my_fg_1", Some(1)).await?.unwrap();
 ///
 ///   let mut query = fg_1.select(&["feature_1", "feature_2"])?.as_of("2024-01-01", "2024-01-02")?;

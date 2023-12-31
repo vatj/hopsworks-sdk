@@ -1,7 +1,7 @@
 use color_eyre::Result;
 use polars::{lazy::dsl::col, prelude::*};
 
-use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
+use hopsworks::HopsworksClientBuilder;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -54,7 +54,7 @@ async fn main() -> Result<()> {
         ])
         .collect()?;
 
-    let project = hopsworks_login(Some(
+    let project = hopsworks::login(Some(
         HopsworksClientBuilder::default()
             .with_url(std::env::var("HOPSWORKS_URL").unwrap_or_default().as_str()),
     ))

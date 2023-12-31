@@ -1,12 +1,12 @@
 use color_eyre::Result;
 use std::collections::HashMap;
 
-use hopsworks_rs::{
+use hopsworks::{
     feature_store::{
         feature_view::transformation_function::TransformationFunction,
         query::{join::JoinType, JoinOptions},
     },
-    hopsworks_login, HopsworksClientBuilder,
+    HopsworksClientBuilder,
 };
 
 #[tokio::main]
@@ -17,7 +17,7 @@ async fn main() -> Result<()> {
     // fraud_batch_feature_pipeline, you must change it here accordingly.
     let window_len = "4h";
 
-    let project = hopsworks_login(Some(
+    let project = hopsworks::login(Some(
         HopsworksClientBuilder::default()
             .with_url(std::env::var("HOPSWORKS_URL").unwrap_or_default().as_str()),
     ))
