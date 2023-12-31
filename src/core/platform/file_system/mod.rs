@@ -28,6 +28,10 @@ pub async fn remove_file_or_dir(path: &str) -> Result<()> {
     service::remove(path).await
 }
 
+pub async fn mkdir(path: &str) -> Result<()> {
+    service::mkdir(path).await
+}
+
 pub async fn move_file_or_dir(src_path: &str, dst_path: &str, overwrite: bool) -> Result<()> {
     let dst_exists = file_or_dir_exists(dst_path).await?;
 
