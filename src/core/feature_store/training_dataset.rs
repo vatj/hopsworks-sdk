@@ -4,7 +4,7 @@ use polars::frame::DataFrame;
 
 use crate::{
     core::feature_store::query::construct_query,
-    feature_store::feature_view::training_dataset::TrainingDatasetBuilder,
+    feature_store::feature_view::training_dataset_builder::TrainingDatasetBuilder,
     repositories::{
         feature_store::{
             feature_view::service as feature_view_service,

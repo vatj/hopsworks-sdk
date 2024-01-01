@@ -1,9 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::feature_store::{
-    feature::entities::TrainingDatasetFeatureDTO,
-    feature_view::entities::{KeywordDTO, TagsDTO},
-    query::entities::{FeatureStoreQueryDTO, QueryDTO},
+use crate::{
+    feature_store::feature_view::training_dataset_builder::TrainingDatasetBuilder,
+    repositories::feature_store::{
+        feature::entities::TrainingDatasetFeatureDTO,
+        feature_view::entities::{KeywordDTO, TagsDTO},
+        query::entities::{FeatureStoreQueryDTO, QueryDTO},
+    },
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -51,6 +54,28 @@ impl NewTrainingDatasetPayload {
             description: None,
             location: "".to_owned(),
             features,
+            keywords: None,
+            tags: None,
+        }
+    }
+}
+
+impl From<TrainingDatasetBuilder> for NewTrainingDatasetPayload {
+    fn from(training_dataset_builder: TrainingDatasetBuilder) -> Self {
+        Self {
+            dto_type: "trainingDatasetDTO".to_owned(),
+            name: training_dataset_builder.feature_view_name,
+            version: training_dataset_builder.version,
+            query: training_dataset_builder.query,
+            query_string: training_dataset_builder.query_string,
+            training_dataset_type: "HOPSFS_TRAINING_DATASET".to_owned(),
+            data_format: "csv".to_owned(),
+            coalesce: true,
+            featurestore_id: training_dataset_builder.feature_store_id,
+            featurestore_name: training_dataset_builder.feature_store_name,
+            description: None,
+            location: "".to_owned(),
+            features: training_dataset_builder.features,
             keywords: None,
             tags: None,
         }

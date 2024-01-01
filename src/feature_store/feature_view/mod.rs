@@ -6,6 +6,7 @@
 //! Ideally each model should have its own Feature View that matches the schema for its input.
 
 pub mod training_dataset;
+pub mod training_dataset_builder;
 pub mod transformation_function;
 
 use color_eyre::Result;
@@ -206,8 +207,14 @@ impl FeatureView {
         .await
     }
 
-    pub fn training_dataset_builder(&self) -> self::training_dataset::TrainingDatasetBuilder {
-        self::training_dataset::TrainingDatasetBuilder::new_default_from_feature_view(self)
+    pub fn training_dataset_builder(
+        &self,
+    ) -> self::training_dataset_builder::TrainingDatasetBuilder {
+        self::training_dataset_builder::TrainingDatasetBuilder::new_default_from_feature_view(
+            self.feature_store_id(),
+            self.name(),
+            self.version(),
+        )
     }
 
     pub async fn create_train_test_split(
