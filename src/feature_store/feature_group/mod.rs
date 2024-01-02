@@ -103,6 +103,7 @@ impl FeatureGroup {
             location: Some(feature_group_dto.location),
             statistics_config: feature_group_dto
                 .statistics_config
+                .as_ref()
                 .map(StatisticsConfig::new_from_dto),
             features: feature_group_dto
                 .features
@@ -329,6 +330,7 @@ impl FeatureGroup {
             self.location = Some(feature_group_dto.location);
             self.statistics_config = feature_group_dto
                 .statistics_config
+                .as_ref()
                 .map(StatisticsConfig::from);
             self.features_mut()
                 .extend(feature_group_dto.features.into_iter().map(Feature::from));

@@ -1,11 +1,19 @@
+use std::sync::Arc;
+
 use chrono::{DateTime, Utc};
 use color_eyre::Result;
 use polars::frame::DataFrame;
 use serde::{Deserialize, Serialize};
 
-use crate::feature_store::{
-    feature_group::statistics_config::StatisticsConfig,
-    query::{builder::BatchQueryOptions, QueryFilterOrLogic},
+use crate::{
+    feature_store::{
+        feature_group::statistics_config::StatisticsConfig,
+        query::{builder::BatchQueryOptions, QueryFilterOrLogic},
+    },
+    repositories::feature_store::{
+        storage_connector::entities::StorageConnectorDTO,
+        training_dataset::payloads::TrainingDatasetSplitSizes,
+    },
 };
 
 use super::training_dataset::TrainingDataset;
@@ -53,18 +61,19 @@ pub struct TrainingDatasetBuilder<State = NoSplit> {
     pub(crate) feature_store_id: i32,
     pub(crate) feature_view_name: String,
     pub(crate) feature_view_version: i32,
-    batch_query_options: BatchQueryOptions,
-    location: Option<String>,
-    seed: Option<i32>,
-    extra_filters: Option<Vec<QueryFilterOrLogic>>,
-    statistics_config: Option<StatisticsConfig>,
-    write_options: Option<serde_json::Value>,
-    data_format: Option<TrainingDatasetDataFormat>,
-    description: Option<String>,
-    coalesce: bool,
-    state: std::marker::PhantomData<State>,
-    test_split_options: Option<SplitOptions>,
-    validation_split_options: Option<SplitOptions>,
+    pub(crate) batch_query_options: BatchQueryOptions,
+    pub(crate) location: Option<Arc<str>>,
+    pub(crate) seed: Option<i32>,
+    pub(crate) extra_filters: Option<Vec<QueryFilterOrLogic>>,
+    pub(crate) statistics_config: Option<StatisticsConfig>,
+    pub(crate) write_options: Option<serde_json::Value>,
+    pub(crate) data_format: Option<TrainingDatasetDataFormat>,
+    pub(crate) description: Option<Arc<str>>,
+    pub(crate) coalesce: bool,
+    pub(crate) state: std::marker::PhantomData<State>,
+    pub(crate) test_split_options: Option<SplitOptions>,
+    pub(crate) validation_split_options: Option<SplitOptions>,
+    pub(crate) storage_connector: Option<StorageConnectorDTO>,
 }
 
 impl TrainingDatasetBuilder<NoSplit> {
@@ -88,6 +97,7 @@ impl TrainingDatasetBuilder<NoSplit> {
             data_format: None,
             description: None,
             coalesce: false,
+            storage_connector: None,
             state: std::marker::PhantomData::<NoSplit>,
         }
     }
@@ -108,6 +118,7 @@ impl TrainingDatasetBuilder<NoSplit> {
             description: self.description,
             coalesce: self.coalesce,
             extra_filters: self.extra_filters,
+            storage_connector: self.storage_connector,
             state: std::marker::PhantomData::<TestSplit>,
         }
     }
@@ -128,6 +139,7 @@ impl TrainingDatasetBuilder<NoSplit> {
             description: self.description,
             coalesce: self.coalesce,
             extra_filters: self.extra_filters,
+            storage_connector: self.storage_connector,
             state: std::marker::PhantomData::<TestValidationSplit>,
         }
     }
@@ -203,7 +215,7 @@ impl<State> TrainingDatasetBuilder<State> {
     }
 
     pub fn with_description(mut self, description: &str) -> Self {
-        self.description = Some(description.to_string());
+        self.description = Some(description.into());
         self
     }
 
@@ -235,6 +247,24 @@ impl<State> TrainingDatasetBuilder<State> {
     pub fn with_train_end_time(mut self, end_time: DateTime<Utc>) -> Self {
         self.batch_query_options = self.batch_query_options.with_end_time(end_time);
         self
+    }
+
+    pub(crate) fn get_split_sizes(&self) -> TrainingDatasetSplitSizes {
+        let test_split_size = self
+            .test_split_options
+            .as_ref()
+            .map(|o| o.split_size)
+            .flatten()
+            .unwrap_or(0.0);
+        let validation_split_size = self
+            .validation_split_options
+            .as_ref()
+            .map(|o| o.split_size)
+            .flatten()
+            .unwrap_or(0.0);
+        let train_split_size = 1.0 - test_split_size - validation_split_size;
+
+        TrainingDatasetSplitSizes::new(train_split_size, test_split_size, validation_split_size)
     }
 
     async fn register(&self) -> Result<TrainingDataset> {

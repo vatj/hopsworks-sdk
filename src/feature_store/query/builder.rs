@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BatchQueryOptions {
-    pub start_time: chrono::DateTime<chrono::Utc>,
-    pub end_time: chrono::DateTime<chrono::Utc>,
+    pub start_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub end_time: Option<chrono::DateTime<chrono::Utc>>,
     pub td_version: Option<i32>,
     pub with_primary_keys: bool,
     pub with_event_time: bool,
@@ -16,12 +16,12 @@ pub struct BatchQueryOptions {
 
 impl BatchQueryOptions {
     pub fn with_start_time(mut self, start_time: chrono::DateTime<chrono::Utc>) -> Self {
-        self.start_time = start_time;
+        self.start_time = Some(start_time);
         self
     }
 
     pub fn with_end_time(mut self, end_time: chrono::DateTime<chrono::Utc>) -> Self {
-        self.end_time = end_time;
+        self.end_time = Some(end_time);
         self
     }
 
@@ -65,10 +65,8 @@ impl BatchQueryOptions {
 impl default::Default for BatchQueryOptions {
     fn default() -> Self {
         Self {
-            start_time: chrono::Utc::now()
-                .checked_sub_signed(chrono::Duration::days(1))
-                .unwrap(),
-            end_time: chrono::Utc::now(),
+            start_time: None,
+            end_time: None,
             td_version: None,
             with_primary_keys: false,
             with_event_time: false,

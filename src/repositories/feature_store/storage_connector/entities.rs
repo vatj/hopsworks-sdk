@@ -107,3 +107,16 @@ impl<'de> Deserialize<'de> for StorageConnectorDTO {
         }
     }
 }
+
+impl Clone for StorageConnectorDTO {
+    fn clone(&self) -> Self {
+        match self {
+            StorageConnectorDTO::JdbcConnectorDTO(jdbc_connector_dto) => {
+                StorageConnectorDTO::JdbcConnectorDTO(jdbc_connector_dto.clone())
+            }
+            StorageConnectorDTO::HopsfsConnectorDTO(hopsfs_connector_dto) => {
+                StorageConnectorDTO::HopsfsConnectorDTO(hopsfs_connector_dto.clone())
+            }
+        }
+    }
+}

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 use crate::feature_store::feature_group::statistics_config::StatisticsConfig;
@@ -9,7 +11,7 @@ pub struct StatisticsConfigDTO {
     pub histograms: bool,
     pub correlations: bool,
     pub exact_uniqueness: bool,
-    pub columns: Vec<String>,
+    pub columns: Arc<[String]>,
 }
 
 impl From<&StatisticsConfig> for StatisticsConfigDTO {

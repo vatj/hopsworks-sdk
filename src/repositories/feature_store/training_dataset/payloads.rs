@@ -1,13 +1,100 @@
+use std::sync::Arc;
+
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    feature_store::feature_view::training_dataset_builder::TrainingDatasetBuilder,
+    feature_store::feature_view::training_dataset_builder::{
+        TrainingDatasetBuilder, TrainingDatasetDataFormat,
+    },
     repositories::feature_store::{
         feature::entities::TrainingDatasetFeatureDTO,
         feature_view::entities::{KeywordDTO, TagsDTO},
         query::entities::{FeatureStoreQueryDTO, QueryDTO},
+        statistics_config::entities::StatisticsConfigDTO,
+        storage_connector::entities::StorageConnectorDTO,
     },
 };
+
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub enum TrainingDatasetType {
+    #[serde(rename = "HOPSFS_TRAINING_DATASET")]
+    HopsFS,
+    #[serde(rename = "EXTERNAL_TRAINING_DATASET")]
+    External,
+    #[serde(rename = "IN_MEMORY_TRAINING_DATASET")]
+    InMemory,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct TrainingDatasetSplitSizes {
+    train: f64,
+    test: f64,
+    validation: f64,
+}
+
+impl TrainingDatasetSplitSizes {
+    pub fn new(train: f64, test: f64, validation: f64) -> Self {
+        Self {
+            train,
+            test,
+            validation,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct NewTrainingDatasetPayloadV2 {
+    #[serde(rename = "type")]
+    pub dto_type: Arc<str>,
+    pub featurestore_id: i32,
+    pub event_start_time: Option<DateTime<Utc>>,
+    pub event_end_time: Option<DateTime<Utc>>,
+    pub description: Option<Arc<str>>,
+    pub version: Option<i32>,
+    pub name: Arc<str>,
+    pub training_dataset_type: Option<TrainingDatasetType>,
+    pub data_format: Option<TrainingDatasetDataFormat>,
+    pub coalesce: bool,
+    pub statistics_config: Option<StatisticsConfigDTO>,
+    pub train_split: Option<Arc<str>>,
+    pub location: Option<Arc<str>>,
+    pub splits: Option<TrainingDatasetSplitSizes>,
+    pub storage_connector: Option<StorageConnectorDTO>,
+}
+
+impl From<&TrainingDatasetBuilder> for NewTrainingDatasetPayloadV2 {
+    fn from(builder: &TrainingDatasetBuilder) -> Self {
+        let (train_split, split_sizes) =
+            if builder.validation_split_options.is_some() || builder.test_split_options.is_some() {
+                (Some("train".into()), Some(builder.get_split_sizes()))
+            } else {
+                (None, None)
+            };
+
+        Self {
+            dto_type: "trainingDatasetDTO".into(),
+            name: builder.feature_view_name.into(),
+            version: None,
+            training_dataset_type: None,
+            data_format: builder.data_format,
+            coalesce: builder.coalesce,
+            featurestore_id: builder.feature_store_id,
+            description: builder.description,
+            location: builder.location.into(),
+            event_end_time: builder.batch_query_options.end_time,
+            event_start_time: builder.batch_query_options.start_time,
+            train_split,
+            splits: split_sizes,
+            storage_connector: builder.storage_connector,
+            statistics_config: builder
+                .statistics_config
+                .as_ref()
+                .map(StatisticsConfigDTO::from),
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -54,28 +141,6 @@ impl NewTrainingDatasetPayload {
             description: None,
             location: "".to_owned(),
             features,
-            keywords: None,
-            tags: None,
-        }
-    }
-}
-
-impl From<TrainingDatasetBuilder> for NewTrainingDatasetPayload {
-    fn from(training_dataset_builder: TrainingDatasetBuilder) -> Self {
-        Self {
-            dto_type: "trainingDatasetDTO".to_owned(),
-            name: training_dataset_builder.feature_view_name,
-            version: training_dataset_builder.version,
-            query: training_dataset_builder.query,
-            query_string: training_dataset_builder.query_string,
-            training_dataset_type: "HOPSFS_TRAINING_DATASET".to_owned(),
-            data_format: "csv".to_owned(),
-            coalesce: true,
-            featurestore_id: training_dataset_builder.feature_store_id,
-            featurestore_name: training_dataset_builder.feature_store_name,
-            description: None,
-            location: "".to_owned(),
-            features: training_dataset_builder.features,
             keywords: None,
             tags: None,
         }

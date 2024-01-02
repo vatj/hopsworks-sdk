@@ -58,8 +58,8 @@ impl NewFeatureViewPayload {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FeatureViewBatchQueryPayload {
-    start_time: i64,
-    end_time: i64,
+    start_time: Option<i64>,
+    end_time: Option<i64>,
     td_version: Option<i32>,
     with_label: bool,
     with_primary_keys: bool,
@@ -72,8 +72,8 @@ pub struct FeatureViewBatchQueryPayload {
 impl From<&BatchQueryOptions> for FeatureViewBatchQueryPayload {
     fn from(options: &BatchQueryOptions) -> Self {
         Self {
-            start_time: options.start_time.timestamp_millis(),
-            end_time: options.end_time.timestamp_millis(),
+            start_time: options.start_time.map(|t| t.timestamp_millis()),
+            end_time: options.end_time.map(|t| t.timestamp_millis()),
             td_version: options.td_version,
             with_label: options.with_label,
             with_primary_keys: options.with_primary_keys,
