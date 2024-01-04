@@ -20,7 +20,7 @@ impl StatisticsConfig {
             histograms: statistics_config_dto.histograms,
             correlations: statistics_config_dto.correlations,
             exact_uniqueness: statistics_config_dto.exact_uniqueness,
-            columns: statistics_config_dto.columns,
+            columns: statistics_config_dto.columns.clone(),
         }
     }
 }

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     feature_store::feature_view::training_dataset_builder::{
-        TrainingDatasetBuilder, TrainingDatasetDataFormat,
+        TrainingDatasetBuilder, TrainingDatasetBuilderState, TrainingDatasetDataFormat,
     },
     repositories::feature_store::{
         feature::entities::TrainingDatasetFeatureDTO,
@@ -64,8 +64,14 @@ pub struct NewTrainingDatasetPayloadV2 {
     pub storage_connector: Option<StorageConnectorDTO>,
 }
 
-impl From<&TrainingDatasetBuilder> for NewTrainingDatasetPayloadV2 {
-    fn from(builder: &TrainingDatasetBuilder) -> Self {
+impl<S> From<&TrainingDatasetBuilder<S>> for NewTrainingDatasetPayloadV2
+where
+    S: TrainingDatasetBuilderState,
+{
+    fn from(builder: &TrainingDatasetBuilder<S>) -> Self
+    where
+        S: TrainingDatasetBuilderState,
+    {
         let (train_split, split_sizes) =
             if builder.validation_split_options.is_some() || builder.test_split_options.is_some() {
                 (Some("train".into()), Some(builder.get_split_sizes()))
@@ -75,16 +81,16 @@ impl From<&TrainingDatasetBuilder> for NewTrainingDatasetPayloadV2 {
 
         Self {
             dto_type: "trainingDatasetDTO".into(),
-            name: builder.feature_view_name.into(),
+            name: builder.feature_view_name.clone(),
             version: None,
             training_dataset_type: None,
-            data_format: builder.data_format,
+            data_format: builder.data_format.clone(),
             coalesce: builder.coalesce,
             featurestore_id: builder.feature_store_id,
-            description: builder.description,
+            description: builder.description.clone(),
             location: builder.location.into(),
-            event_end_time: builder.batch_query_options.end_time,
-            event_start_time: builder.batch_query_options.start_time,
+            event_end_time: builder.train_split_options.split_end_time,
+            event_start_time: builder.train_split_options.split_start_time,
             train_split,
             splits: split_sizes,
             storage_connector: builder.storage_connector,

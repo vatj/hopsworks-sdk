@@ -4,7 +4,9 @@ use polars::frame::DataFrame;
 
 use crate::{
     core::feature_store::query::construct_query,
-    feature_store::feature_view::training_dataset_builder::TrainingDatasetBuilder,
+    feature_store::feature_view::training_dataset_builder::{
+        TrainingDatasetBuilder, TrainingDatasetBuilderState,
+    },
     repositories::{
         feature_store::{
             feature_view::service as feature_view_service,
@@ -26,9 +28,12 @@ pub async fn create_train_test_split() -> Result<()> {
     todo!("create_train_test_split is not implemented");
 }
 
-pub async fn register_training_dataset(
-    _training_dataset_builder: &TrainingDatasetBuilder,
-) -> Result<TrainingDataset> {
+pub async fn register_training_dataset<S>(
+    _training_dataset_builder: &TrainingDatasetBuilder<S>,
+) -> Result<TrainingDataset>
+where
+    S: TrainingDatasetBuilderState,
+{
     todo!("register_training_dataset is not implemented");
 }
 
@@ -38,9 +43,12 @@ pub async fn read_from_offline_feature_store(
     todo!("read_from_offline_feature_store is not implemented");
 }
 
-pub async fn materialize_on_cluster(
-    _training_dataset_builder: &TrainingDatasetBuilder,
-) -> Result<TrainingDataset> {
+pub async fn materialize_on_cluster<S>(
+    _training_dataset_builder: &TrainingDatasetBuilder<S>,
+) -> Result<TrainingDataset>
+where
+    S: TrainingDatasetBuilderState,
+{
     todo!("materialize_on_cluster is not implemented");
 }
 

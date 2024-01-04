@@ -7,8 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     feature_store::{
-        feature_group::statistics_config::StatisticsConfig,
-        query::{builder::BatchQueryOptions, QueryFilterOrLogic},
+        feature_group::statistics_config::StatisticsConfig, query::QueryFilterOrLogic,
     },
     repositories::feature_store::{
         storage_connector::entities::StorageConnectorDTO,
@@ -18,28 +17,50 @@ use crate::{
 
 use super::training_dataset::TrainingDataset;
 
-struct NoSplit;
-struct TestSplit;
-struct TestValidationSplit;
+mod seal {
+    pub trait Sealed {}
+    impl Sealed for super::NoSplit {}
+    impl Sealed for super::TestSplit {}
+    impl Sealed for super::TestValidationSplit {}
+}
+
+pub trait TrainingDatasetBuilderState: seal::Sealed {}
+impl TrainingDatasetBuilderState for NoSplit {}
+impl TrainingDatasetBuilderState for TestSplit {}
+impl TrainingDatasetBuilderState for TestValidationSplit {}
+
+pub struct NoSplit;
+pub struct TestSplit;
+pub struct TestValidationSplit;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct SplitOptions {
-    batch_query_options: BatchQueryOptions,
-    split_start_time: Option<DateTime<Utc>>,
-    split_end_time: Option<DateTime<Utc>>,
-    split_size: Option<f64>,
+    pub(crate) split_start_time: Option<DateTime<Utc>>,
+    pub(crate) split_end_time: Option<DateTime<Utc>>,
+    pub(crate) split_size: Option<f64>,
 }
 
-impl SplitOptions {
-    fn new(batch_query_options: BatchQueryOptions) -> Self {
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum TrainingDatasetDataFormat {
+    CSV,
+    TSV,
+    Parquet,
+    Avro,
+    ORC,
+    TFRecord,
+}
+
+impl Default for SplitOptions {
+    fn default() -> Self {
         Self {
-            batch_query_options,
             split_start_time: None,
             split_end_time: None,
             split_size: None,
         }
     }
+}
 
+impl SplitOptions {
     fn with_start_time(mut self, split_start_time: DateTime<Utc>) -> Self {
         self.split_start_time = Some(split_start_time);
         self
@@ -57,11 +78,13 @@ impl SplitOptions {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TrainingDatasetBuilder<State = NoSplit> {
+pub struct TrainingDatasetBuilder<State>
+where
+    State: TrainingDatasetBuilderState,
+{
     pub(crate) feature_store_id: i32,
     pub(crate) feature_view_name: String,
     pub(crate) feature_view_version: i32,
-    pub(crate) batch_query_options: BatchQueryOptions,
     pub(crate) location: Option<Arc<str>>,
     pub(crate) seed: Option<i32>,
     pub(crate) extra_filters: Option<Vec<QueryFilterOrLogic>>,
@@ -70,10 +93,11 @@ pub struct TrainingDatasetBuilder<State = NoSplit> {
     pub(crate) data_format: Option<TrainingDatasetDataFormat>,
     pub(crate) description: Option<Arc<str>>,
     pub(crate) coalesce: bool,
-    pub(crate) state: std::marker::PhantomData<State>,
+    pub(crate) train_split_options: SplitOptions,
     pub(crate) test_split_options: Option<SplitOptions>,
     pub(crate) validation_split_options: Option<SplitOptions>,
     pub(crate) storage_connector: Option<StorageConnectorDTO>,
+    state: std::marker::PhantomData<State>,
 }
 
 impl TrainingDatasetBuilder<NoSplit> {
@@ -86,7 +110,7 @@ impl TrainingDatasetBuilder<NoSplit> {
             feature_store_id,
             feature_view_name: feature_view_name.to_string(),
             feature_view_version,
-            batch_query_options: BatchQueryOptions::default(),
+            train_split_options: SplitOptions::default(),
             test_split_options: None,
             validation_split_options: None,
             extra_filters: None,
@@ -107,9 +131,9 @@ impl TrainingDatasetBuilder<NoSplit> {
             feature_store_id: self.feature_store_id,
             feature_view_name: self.feature_view_name,
             feature_view_version: self.feature_view_version,
-            test_split_options: Some(SplitOptions::new(self.batch_query_options.clone())),
+            test_split_options: Some(SplitOptions::default()),
             validation_split_options: None,
-            batch_query_options: self.batch_query_options,
+            train_split_options: self.train_split_options,
             location: self.location,
             seed: self.seed,
             statistics_config: self.statistics_config,
@@ -128,9 +152,9 @@ impl TrainingDatasetBuilder<NoSplit> {
             feature_store_id: self.feature_store_id,
             feature_view_name: self.feature_view_name,
             feature_view_version: self.feature_view_version,
-            test_split_options: Some(SplitOptions::new(self.batch_query_options.clone())),
-            validation_split_options: Some(SplitOptions::new(self.batch_query_options.clone())),
-            batch_query_options: self.batch_query_options,
+            test_split_options: Some(SplitOptions::default()),
+            validation_split_options: Some(SplitOptions::default()),
+            train_split_options: self.train_split_options,
             location: self.location,
             seed: self.seed,
             statistics_config: self.statistics_config,
@@ -208,7 +232,10 @@ impl TrainingDatasetBuilder<TestValidationSplit> {
     }
 }
 
-impl<State> TrainingDatasetBuilder<State> {
+impl<State> TrainingDatasetBuilder<State>
+where
+    State: TrainingDatasetBuilderState,
+{
     pub fn with_single_file_per_split(mut self) -> Self {
         self.coalesce = true;
         self
@@ -240,12 +267,12 @@ impl<State> TrainingDatasetBuilder<State> {
     }
 
     pub fn with_train_start_time(mut self, start_time: DateTime<Utc>) -> Self {
-        self.batch_query_options = self.batch_query_options.with_start_time(start_time);
+        self.train_split_options = self.train_split_options.with_start_time(start_time);
         self
     }
 
     pub fn with_train_end_time(mut self, end_time: DateTime<Utc>) -> Self {
-        self.batch_query_options = self.batch_query_options.with_end_time(end_time);
+        self.train_split_options = self.train_split_options.with_end_time(end_time);
         self
     }
 
@@ -284,14 +311,4 @@ impl<State> TrainingDatasetBuilder<State> {
 
         Ok((training_dataset, df))
     }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub enum TrainingDatasetDataFormat {
-    CSV,
-    TSV,
-    Parquet,
-    Avro,
-    ORC,
-    TFRecord,
 }

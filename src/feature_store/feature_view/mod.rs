@@ -25,7 +25,7 @@ use crate::{
 };
 use std::collections::HashMap;
 
-use self::transformation_function::TransformationFunction;
+use self::{training_dataset_builder::NoSplit, transformation_function::TransformationFunction};
 
 use super::query::{
     builder::BatchQueryOptions,
@@ -209,7 +209,7 @@ impl FeatureView {
 
     pub fn training_dataset_builder(
         &self,
-    ) -> self::training_dataset_builder::TrainingDatasetBuilder {
+    ) -> self::training_dataset_builder::TrainingDatasetBuilder<NoSplit> {
         self::training_dataset_builder::TrainingDatasetBuilder::new_default_from_feature_view(
             self.feature_store_id(),
             self.name(),
