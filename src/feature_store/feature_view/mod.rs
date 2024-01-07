@@ -151,7 +151,7 @@ impl FeatureView {
     }
 
     pub(crate) fn feature_store_name(&self) -> &str {
-        self.feature_store_name.as_str()
+        self.feature_store_name.as_ref()
     }
 
     pub fn id(&self) -> i32 {
@@ -159,7 +159,7 @@ impl FeatureView {
     }
 
     pub fn name(&self) -> &str {
-        self.name.as_str()
+        self.name.as_ref()
     }
 
     pub fn version(&self) -> i32 {

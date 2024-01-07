@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -47,19 +45,19 @@ impl TrainingDatasetSplitSizes {
 #[serde(rename_all = "camelCase")]
 pub struct NewTrainingDatasetPayloadV2 {
     #[serde(rename = "type")]
-    pub dto_type: Arc<str>,
+    pub dto_type: String,
     pub featurestore_id: i32,
     pub event_start_time: Option<DateTime<Utc>>,
     pub event_end_time: Option<DateTime<Utc>>,
-    pub description: Option<Arc<str>>,
+    pub description: Option<String>,
     pub version: Option<i32>,
-    pub name: Arc<str>,
+    pub name: String,
     pub training_dataset_type: Option<TrainingDatasetType>,
     pub data_format: Option<TrainingDatasetDataFormat>,
     pub coalesce: bool,
     pub statistics_config: Option<StatisticsConfigDTO>,
-    pub train_split: Option<Arc<str>>,
-    pub location: Option<Arc<str>>,
+    pub train_split: Option<String>,
+    pub location: Option<String>,
     pub splits: Option<TrainingDatasetSplitSizes>,
     pub storage_connector: Option<StorageConnectorDTO>,
 }
@@ -88,12 +86,12 @@ where
             coalesce: builder.coalesce,
             featurestore_id: builder.feature_store_id,
             description: builder.description.clone(),
-            location: builder.location.into(),
+            location: builder.location.clone(),
             event_end_time: builder.train_split_options.split_end_time,
             event_start_time: builder.train_split_options.split_start_time,
             train_split,
             splits: split_sizes,
-            storage_connector: builder.storage_connector,
+            storage_connector: builder.storage_connector.clone(),
             statistics_config: builder
                 .statistics_config
                 .as_ref()

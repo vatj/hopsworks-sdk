@@ -1,8 +1,6 @@
-use std::default;
-
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct BatchQueryOptions {
     pub start_time: Option<chrono::DateTime<chrono::Utc>>,
     pub end_time: Option<chrono::DateTime<chrono::Utc>>,
@@ -59,20 +57,5 @@ impl BatchQueryOptions {
             .map(|s| s.to_string())
             .collect();
         self
-    }
-}
-
-impl default::Default for BatchQueryOptions {
-    fn default() -> Self {
-        Self {
-            start_time: None,
-            end_time: None,
-            td_version: None,
-            with_primary_keys: false,
-            with_event_time: false,
-            with_label: false,
-            inference_helper_columns: vec![],
-            training_helper_columns: vec![],
-        }
     }
 }

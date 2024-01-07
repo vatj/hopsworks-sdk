@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use chrono::{DateTime, Utc};
 use color_eyre::Result;
 use polars::frame::DataFrame;
@@ -33,8 +31,8 @@ pub struct NoSplit;
 pub struct TestSplit;
 pub struct TestValidationSplit;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-struct SplitOptions {
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub(crate) struct SplitOptions {
     pub(crate) split_start_time: Option<DateTime<Utc>>,
     pub(crate) split_end_time: Option<DateTime<Utc>>,
     pub(crate) split_size: Option<f64>,
@@ -48,16 +46,6 @@ pub enum TrainingDatasetDataFormat {
     Avro,
     ORC,
     TFRecord,
-}
-
-impl Default for SplitOptions {
-    fn default() -> Self {
-        Self {
-            split_start_time: None,
-            split_end_time: None,
-            split_size: None,
-        }
-    }
 }
 
 impl SplitOptions {
@@ -85,13 +73,13 @@ where
     pub(crate) feature_store_id: i32,
     pub(crate) feature_view_name: String,
     pub(crate) feature_view_version: i32,
-    pub(crate) location: Option<Arc<str>>,
+    pub(crate) location: Option<String>,
     pub(crate) seed: Option<i32>,
     pub(crate) extra_filters: Option<Vec<QueryFilterOrLogic>>,
     pub(crate) statistics_config: Option<StatisticsConfig>,
     pub(crate) write_options: Option<serde_json::Value>,
     pub(crate) data_format: Option<TrainingDatasetDataFormat>,
-    pub(crate) description: Option<Arc<str>>,
+    pub(crate) description: Option<String>,
     pub(crate) coalesce: bool,
     pub(crate) train_split_options: SplitOptions,
     pub(crate) test_split_options: Option<SplitOptions>,
@@ -280,14 +268,12 @@ where
         let test_split_size = self
             .test_split_options
             .as_ref()
-            .map(|o| o.split_size)
-            .flatten()
+            .and_then(|o| o.split_size)
             .unwrap_or(0.0);
         let validation_split_size = self
             .validation_split_options
             .as_ref()
-            .map(|o| o.split_size)
-            .flatten()
+            .and_then(|o| o.split_size)
             .unwrap_or(0.0);
         let train_split_size = 1.0 - test_split_size - validation_split_size;
 
