@@ -13,7 +13,10 @@ use crate::{
             query::entities::QueryDTO,
             training_dataset::{
                 self,
-                payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
+                payloads::{
+                    NewTrainingDatasetPayload, NewTrainingDatasetPayloadV2,
+                    TrainingDatasetComputeJobConfigPayload,
+                },
             },
         },
         platform::job::JobDTO,
@@ -29,12 +32,22 @@ pub async fn create_train_test_split() -> Result<()> {
 }
 
 pub async fn register_training_dataset<S>(
-    _training_dataset_builder: &TrainingDatasetBuilder<S>,
+    builder: &TrainingDatasetBuilder<S>,
 ) -> Result<TrainingDataset>
 where
     S: TrainingDatasetBuilderState,
 {
-    todo!("register_training_dataset is not implemented");
+    let payload = NewTrainingDatasetPayloadV2::from(builder);
+
+    Ok(TrainingDataset::from(
+        &training_dataset::service::create_feature_view_training_dataset(
+            builder.feature_store_id,
+            builder.feature_view_name.as_str(),
+            builder.feature_view_version,
+            payload,
+        )
+        .await?,
+    ))
 }
 
 pub async fn read_from_offline_feature_store(

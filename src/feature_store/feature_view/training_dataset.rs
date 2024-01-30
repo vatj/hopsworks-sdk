@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::repositories::feature_store::training_dataset::entities::TrainingDatasetDTO;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TrainingDataset {
     feature_store_name: String,
@@ -20,5 +22,14 @@ impl TrainingDataset {
 
     pub fn version(&self) -> i32 {
         self.version
+    }
+}
+
+impl From<&TrainingDatasetDTO> for TrainingDataset {
+    fn from(training_dataset_dto: &TrainingDatasetDTO) -> Self {
+        Self::new(
+            &training_dataset_dto.featurestore_name,
+            training_dataset_dto.version,
+        )
     }
 }

@@ -41,11 +41,11 @@ pub async fn get_feature_view_by_name_and_version(
 
     match res.status() {
         StatusCode::OK => Ok(Some(res.json::<FeatureViewDTO>().await?)),
-        _ => panic!(
+        _ => Err(color_eyre::eyre::eyre!(
             "get_feature_view failed with status : {:?}, here is the response :\n{:?}",
             res.status(),
             res.text_with_charset("utf-8").await?
-        ),
+        )),
     }
 }
 
@@ -68,11 +68,11 @@ pub async fn create_feature_view(
 
     match res.status() {
         StatusCode::CREATED => Ok(res.json::<FeatureViewDTO>().await?),
-        _ => panic!(
+        _ => Err(color_eyre::eyre::eyre!(
             "create_feature_view failed with status : {:?}, here is the response :\n{:?}",
             res.status(),
             res.text_with_charset("utf-8").await?
-        ),
+        )),
     }
 }
 
@@ -101,11 +101,11 @@ pub async fn create_training_dataset_attached_to_feature_view(
 
     match res.status() {
         StatusCode::CREATED => Ok(res.json::<TrainingDatasetDTO>().await?),
-        _ => panic!(
+        _ => Err(color_eyre::eyre::eyre!(
             "create_training_dataset failed with status : {:?}, here is the response :\n{:?}",
             res.status(),
             res.text_with_charset("utf-8").await?
-        ),
+        )),
     }
 }
 
@@ -134,11 +134,11 @@ pub async fn compute_training_dataset_attached_to_feature_view(
 
     match res.status() {
         StatusCode::CREATED => Ok(res.json::<JobDTO>().await?),
-        _ => panic!(
+        _ => Err(color_eyre::eyre::eyre!(
             "create_training_dataset failed with status : {:?}, here is the response :\n{:?}",
             res.status(),
             res.text_with_charset("utf-8").await?
-        ),
+        )),
     }
 }
 
