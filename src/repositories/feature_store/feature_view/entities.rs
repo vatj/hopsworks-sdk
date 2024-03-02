@@ -28,7 +28,7 @@ pub struct FeatureViewDTO {
     pub featurestore_id: i32,
     pub featurestore_name: String,
     pub query: QueryDTO,
-    description: Option<String>,
+    description: String,
     created: String,
     creator: UserDTO,
     statistics_config: StatisticsConfigDTO,

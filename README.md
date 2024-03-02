@@ -1,4 +1,4 @@
-# hopsworks_rs
+# hopsworks
 
 Hopsworks-rs is a Rust SDK to interact with the Hopsworks Platform and Feature Store. It is intended to be used in conjunction with the [Hopsworks Feature Store](https://www.hopsworks.ai/the-ml-platform-for-batch-and-real-time-data) to build end-to-end machine learning pipelines. Using Rust and Hopsworks-rs you can put real-time data pipelines, feature engineering, model training and serving in the same system and leverage the power of the Feature Store to build and deploy AI/ML systems faster.
 
@@ -17,12 +17,12 @@ To get started with minimal setup you can use [Hopsworks Serverless Platform](ht
 ```rust
 use color_eyre::Result;
 use polars::prelude::*;
-use hopsworks_rs::hopsworks_login;
+
 
 #[tokio::main]
 async fn main() -> Result<()> {
  // The api key will be read from the environment variable HOPSWORKS_API_KEY
- let project = hopsworks_login(None).await?;
+ let project = hopsworks::login(None).await?;
  // Get the default feature store for the project
  let fs = project.get_feature_store().await?;
 
@@ -49,12 +49,12 @@ And that's it! You have now created a Feature Group (FG) and ingested data into 
 
 ```rust
 use color_eyre::Result;
-use hopsworks_rs::hopsworks_login;
+
 
 #[tokio::main]
 async fn main() -> Result<()> {
   // The api key will be read from the environment variable HOPSWORKS_API_KEY
-  let project = hopsworks_login(None).await?;
+  let project = hopsworks::login(None).await?;
   // Get the default feature store for the project
   let fs = project.get_feature_store().await?;
 
@@ -89,14 +89,14 @@ If you have your own Hopsworks cluster you can use the SDK to connect to it. You
 
 ```rust
 use color_eyre::Result;
-use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
+use hopsworks::HopsworksClientBuilder;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // The api key will be read from the environment variable HOPSWORKS_API_KEY
   let client_builder = HopsworksClientBuilder::default()
                         .with_domain("www.my.hopsworks.domain.com");
-  let project = hopsworks_login(Some(client_builder)).await?;
+  let project = hopsworks::login(Some(client_builder)).await?;
   // Get the default feature store for the project
   let fs = project.get_feature_store().await?;
 

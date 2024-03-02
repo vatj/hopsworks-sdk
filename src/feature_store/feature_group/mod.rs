@@ -45,12 +45,12 @@ use super::query::read_option::OfflineReadOptions;
 /// # Examples
 /// ```no_run
 /// use color_eyre::Result;
-/// use hopsworks_rs::hopsworks_login;
+///
 /// use polars::prelude::*;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
-///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+///   let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
 ///
 ///   let mut feature_group = feature_store
 ///      .get_feature_group("my_feature_group", Some(1))
@@ -103,6 +103,7 @@ impl FeatureGroup {
             location: Some(feature_group_dto.location),
             statistics_config: feature_group_dto
                 .statistics_config
+                .as_ref()
                 .map(StatisticsConfig::new_from_dto),
             features: feature_group_dto
                 .features
@@ -278,12 +279,12 @@ impl FeatureGroup {
     /// # Example
     /// ```no_run
     /// use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     /// use polars::prelude::*;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   let project = hopsworks_login(None).await?;
+    ///   let project = hopsworks::login(None).await?;
     ///   let feature_store = project.get_feature_store().await?;
     ///
     ///   let mut feature_group = feature_store
@@ -329,6 +330,7 @@ impl FeatureGroup {
             self.location = Some(feature_group_dto.location);
             self.statistics_config = feature_group_dto
                 .statistics_config
+                .as_ref()
                 .map(StatisticsConfig::from);
             self.features_mut()
                 .extend(feature_group_dto.features.into_iter().map(Feature::from));
@@ -367,12 +369,12 @@ impl FeatureGroup {
     /// # Example
     /// ```no_run
     /// use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     /// use polars::prelude::*;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///  let project = hopsworks_login(None).await?;
+    ///  let project = hopsworks::login(None).await?;
     ///  let feature_store = project.get_feature_store().await?;
     ///
     ///  let feature_group = feature_store
@@ -412,12 +414,12 @@ impl FeatureGroup {
     /// # Example
     /// ```no_run
     /// use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     /// use polars::prelude::*;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///  let project = hopsworks_login(None).await?;
+    ///  let project = hopsworks::login(None).await?;
     ///  let feature_store = project.get_feature_store().await?;
     ///  
     ///  let feature_group = feature_store

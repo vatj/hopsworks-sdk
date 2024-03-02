@@ -253,8 +253,6 @@ pub async fn produce_df(
 
 #[cfg(test)]
 mod tests {
-    use crate::{clients::rest_client::HopsworksClientBuilder, hopsworks_login};
-
     use super::*;
     use apache_avro::Schema;
     use rdkafka::message::Headers;
@@ -388,9 +386,7 @@ mod tests {
     #[tokio::test]
     async fn test_setup_future_producer() {
         // Arrange
-        let _ = hopsworks_login(Some(HopsworksClientBuilder::default()))
-            .await
-            .unwrap();
+        let _ = crate::login(None).await.unwrap();
         let kafka_connector = FeatureStoreKafkaConnectorDTO {
             bootstrap_servers: "localhost:9092".to_string(),
             _type: "kafka".to_string(),

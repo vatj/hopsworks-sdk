@@ -66,6 +66,10 @@ pub async fn remove_from_hopsworks(path: &str) -> Result<()> {
     crate::core::platform::file_system::remove_file_or_dir(path).await
 }
 
+pub async fn mkdir_in_hopsworks(path: &str) -> Result<()> {
+    crate::core::platform::file_system::mkdir(path).await
+}
+
 pub async fn move_file_or_dir_in_hopsworks(
     src_path: &str,
     dst_path: &str,

@@ -6,6 +6,7 @@
 //! Ideally each model should have its own Feature View that matches the schema for its input.
 
 pub mod training_dataset;
+pub mod training_dataset_builder;
 pub mod transformation_function;
 
 use color_eyre::Result;
@@ -24,9 +25,12 @@ use crate::{
 };
 use std::collections::HashMap;
 
-use self::transformation_function::TransformationFunction;
+use self::{training_dataset_builder::NoSplit, transformation_function::TransformationFunction};
 
-use super::query::read_option::{OfflineReadOptions, OnlineReadOptions};
+use super::query::{
+    builder::BatchQueryOptions,
+    read_option::{self, OfflineReadOptions, OnlineReadOptions},
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureView {
@@ -59,11 +63,10 @@ pub struct FeatureView {
     //
     // ```no_run
     // use color_eyre::Result;
-    // use hopsworks_rs::{HopsworksClientBuilder, hopsworks_login};
     //
     // #[tokio::main]
     // async fn main() -> Result<()> {
-    //   let fs = hopsworks_login(None).await?.get_feature_store().await?;
+    //   let fs = hopsworks::login(None).await?.get_feature_store().await?;
     //
     //   let fg_1 = fs.get_feature_group_by_name_and_version("my_fg_1", 1).await?.unwrap();
     //   let fg_2 = fs.get_feature_group_by_name_and_version("my_fg_2", 1).await?.unwrap();
@@ -87,11 +90,10 @@ pub struct FeatureView {
     //
     // ```no_run
     // use color_eyre::Result;
-    // use hopsworks_rs::{HopsworksClientBuilder, hopsworks_login};
     //
     // #[tokio::main]
     // async fn main() -> Result<()> {
-    //  let fs = hopsworks_login(None).await?.get_feature_store().await?;
+    //  let fs = hopsworks::login(None).await?.get_feature_store().await?;
     //  let feature_view = fs.get_feature_view("my_feature_view", Some(1)).await?.unwrap();
     //
     //  let training_dataset = feature_view.create_attached_training_dataset().await?;
@@ -104,11 +106,10 @@ pub struct FeatureView {
     //
     // ```no_run
     // use color_eyre::Result;
-    // use hopsworks_rs::{HopsworksClientBuilder, hopsworks_login};
     //
     // #[tokio::main]
     // async fn main() -> Result<()> {
-    //   let fs = hopsworks_login(None).await?.get_feature_store().await?;
+    //   let fs = hopsworks::login(None).await?.get_feature_store().await?;
     //   let feature_view = fs.get_feature_view("my_feature_view", Some(1)).await?.unwrap();
     //
     //   let training_dataset_dataframe = feature_view.read_from_offline_feature_store(None).await?;
@@ -149,8 +150,8 @@ impl FeatureView {
         self.feature_store_id
     }
 
-    pub fn feature_store_name(&self) -> &str {
-        self.feature_store_name.as_str()
+    pub(crate) fn feature_store_name(&self) -> &str {
+        self.feature_store_name.as_ref()
     }
 
     pub fn id(&self) -> i32 {
@@ -158,7 +159,7 @@ impl FeatureView {
     }
 
     pub fn name(&self) -> &str {
-        self.name.as_str()
+        self.name.as_ref()
     }
 
     pub fn version(&self) -> i32 {
@@ -179,6 +180,41 @@ impl FeatureView {
 
     pub fn transformation_functions_mut(&mut self) -> &mut HashMap<String, TransformationFunction> {
         &mut self.transformation_functions
+    }
+
+    pub async fn get_batch_query_string(
+        &self,
+        batch_query_options: &BatchQueryOptions,
+    ) -> Result<String> {
+        crate::core::feature_store::feature_view::get_batch_query_string(self, batch_query_options)
+            .await
+    }
+
+    pub async fn get_batch_query(&self, batch_query_options: &BatchQueryOptions) -> Result<Query> {
+        crate::core::feature_store::feature_view::get_batch_query(self, batch_query_options).await
+    }
+
+    pub async fn get_batch_data(
+        &self,
+        batch_query_options: &BatchQueryOptions,
+        offline_read_options: Option<read_option::OfflineReadOptions>,
+    ) -> Result<DataFrame> {
+        crate::core::feature_store::feature_view::get_batch_data(
+            self,
+            batch_query_options,
+            offline_read_options,
+        )
+        .await
+    }
+
+    pub fn training_dataset_builder(
+        &self,
+    ) -> self::training_dataset_builder::TrainingDatasetBuilder<NoSplit> {
+        self::training_dataset_builder::TrainingDatasetBuilder::new_default_from_feature_view(
+            self.feature_store_id(),
+            self.name(),
+            self.version(),
+        )
     }
 
     pub async fn create_train_test_split(

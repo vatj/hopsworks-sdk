@@ -12,20 +12,20 @@ pub struct StatisticsConfigDTO {
     pub columns: Vec<String>,
 }
 
-impl From<StatisticsConfig> for StatisticsConfigDTO {
-    fn from(statistics_config: StatisticsConfig) -> Self {
+impl From<&StatisticsConfig> for StatisticsConfigDTO {
+    fn from(statistics_config: &StatisticsConfig) -> Self {
         StatisticsConfigDTO::new_from_statistics_config(statistics_config)
     }
 }
 
 impl StatisticsConfigDTO {
-    pub fn new_from_statistics_config(statistics_config: StatisticsConfig) -> Self {
+    pub fn new_from_statistics_config(statistics_config: &StatisticsConfig) -> Self {
         Self {
             enabled: statistics_config.enabled,
             histograms: statistics_config.histograms,
             correlations: statistics_config.correlations,
             exact_uniqueness: statistics_config.exact_uniqueness,
-            columns: statistics_config.columns,
+            columns: statistics_config.columns.clone(),
         }
     }
 }

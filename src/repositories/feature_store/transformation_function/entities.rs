@@ -21,14 +21,14 @@ pub struct TransformationFunctionDTO {
     pub featurestore_id: i32,
 }
 
-impl From<TransformationFunction> for TransformationFunctionDTO {
-    fn from(transformation_function: TransformationFunction) -> Self {
+impl From<&TransformationFunction> for TransformationFunctionDTO {
+    fn from(transformation_function: &TransformationFunction) -> Self {
         Self {
             id: transformation_function.id,
-            name: transformation_function.name,
+            name: transformation_function.name.clone(),
             version: transformation_function.version,
-            source_code_content: transformation_function.source_code_content,
-            output_type: transformation_function.output_type,
+            source_code_content: transformation_function.source_code_content.clone(),
+            output_type: transformation_function.output_type.clone(),
             featurestore_id: transformation_function.featurestore_id,
         }
     }

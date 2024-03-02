@@ -1,4 +1,5 @@
 //! Query API
+pub mod builder;
 pub mod filter;
 pub mod join;
 
@@ -40,11 +41,11 @@ use self::read_option::{OfflineReadOptions, OnlineReadOptions};
 /// ## Read some features from a feature group
 /// ```no_run
 /// # use color_eyre::Result;
-/// use hopsworks_rs::hopsworks_login;
+///
 ///
 /// #[tokio::main]
 /// pub async fn main() -> Result<()> {
-///   let feature_group = hopsworks_login(None).await?.get_feature_store().await?
+///   let feature_group = hopsworks::login(None).await?.get_feature_store().await?
 ///     .get_feature_group("my_fg", Some(1)).await?
 ///     .expect("my_fg not found");
 ///
@@ -59,14 +60,11 @@ use self::read_option::{OfflineReadOptions, OnlineReadOptions};
 /// ## Join two feature groups to create a Feature View
 /// ```no_run
 /// # use color_eyre::Result;
-/// use hopsworks_rs::{
-///   hopsworks_login,
-///   feature_store::query::join::{JoinOptions, JoinType},
-/// };
+/// use hopsworks::feature_store::query::join::{JoinOptions, JoinType};
 ///
 /// #[tokio::main]
 /// pub async fn main() -> Result<()> {
-///  let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+///  let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
 ///  let fg_1 = feature_store.get_feature_group("my_fg_1", Some(1)).await?.unwrap();
 ///  let fg_2 = feature_store.get_feature_group("my_fg_2", Some(1)).await?.unwrap();
 ///
@@ -89,11 +87,11 @@ use self::read_option::{OfflineReadOptions, OnlineReadOptions};
 /// ## Add filters and time travel to a query
 /// ```no_run
 /// # use color_eyre::Result;
-/// use hopsworks_rs::hopsworks_login;
+///
 ///
 /// #[tokio::main]
 /// pub async fn main() -> Result<()> {
-///   let feature_store = hopsworks_login(None).await?.get_feature_store().await?;
+///   let feature_store = hopsworks::login(None).await?.get_feature_store().await?;
 ///   let fg_1 = feature_store.get_feature_group("my_fg_1", Some(1)).await?.unwrap();
 ///
 ///   let mut query = fg_1.select(&["feature_1", "feature_2"])?.as_of("2024-01-01", "2024-01-02")?;
@@ -138,11 +136,11 @@ impl Query {
         }
     }
 
-    pub fn feature_store_name(&self) -> &str {
+    pub(crate) fn feature_store_name(&self) -> &str {
         self.feature_store_name.as_ref()
     }
 
-    pub fn feature_store_id(&self) -> i32 {
+    pub(crate) fn feature_store_id(&self) -> i32 {
         self.feature_store_id
     }
 
@@ -213,6 +211,30 @@ impl Query {
         } else {
             vec![&self.left_feature_group]
         }
+    }
+
+    pub fn features(&self) -> Vec<&Feature> {
+        let mut features: Vec<&Feature> = self.left_features.iter().collect();
+        if let Some(joins) = &self.joins {
+            for join in joins {
+                features.extend(join.query().features());
+            }
+        }
+        features
+    }
+
+    pub(crate) fn features_and_feature_groups(&self) -> (Vec<&Feature>, Vec<&FeatureGroup>) {
+        let mut features: Vec<&Feature> = self.left_features.iter().collect();
+        let mut feature_groups: Vec<&FeatureGroup> = vec![&self.left_feature_group; features.len()];
+        if let Some(joins) = &self.joins {
+            for join in joins {
+                let (join_features, join_feature_groups) =
+                    join.query().features_and_feature_groups();
+                features.extend(join_features);
+                feature_groups.extend(join_feature_groups);
+            }
+        }
+        (features, feature_groups)
     }
 
     pub async fn read_from_online_feature_store(

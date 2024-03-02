@@ -1,19 +1,23 @@
 use color_eyre::Result;
 use log::debug;
+use polars::frame::DataFrame;
 
 use crate::{
     core::feature_store::query::construct_query,
+    feature_store::feature_view::training_dataset_builder::{
+        TrainingDatasetBuilder, TrainingDatasetBuilderState,
+    },
     repositories::{
         feature_store::{
-            feature::entities::{FeatureDTO, TrainingDatasetFeatureDTO},
-            feature_group::entities::FeatureGroupDTO,
             feature_view::service as feature_view_service,
             query::entities::QueryDTO,
             training_dataset::{
                 self,
-                payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
+                payloads::{
+                    NewTrainingDatasetPayload, NewTrainingDatasetPayloadV2,
+                    TrainingDatasetComputeJobConfigPayload,
+                },
             },
-            transformation_function::entities::TransformationFunctionDTO,
         },
         platform::job::JobDTO,
     },
@@ -27,36 +31,59 @@ pub async fn create_train_test_split() -> Result<()> {
     todo!("create_train_test_split is not implemented");
 }
 
+pub async fn register_training_dataset<S>(
+    builder: &TrainingDatasetBuilder<S>,
+) -> Result<TrainingDataset>
+where
+    S: TrainingDatasetBuilderState,
+{
+    let payload = NewTrainingDatasetPayloadV2::from(builder);
+
+    Ok(TrainingDataset::from(
+        &training_dataset::service::create_feature_view_training_dataset(
+            builder.feature_store_id,
+            builder.feature_view_name.as_str(),
+            builder.feature_view_version,
+            payload,
+        )
+        .await?,
+    ))
+}
+
+pub async fn read_from_offline_feature_store(
+    _training_dataset: &TrainingDataset,
+) -> Result<DataFrame> {
+    todo!("read_from_offline_feature_store is not implemented");
+}
+
+pub async fn materialize_on_cluster<S>(
+    _training_dataset_builder: &TrainingDatasetBuilder<S>,
+) -> Result<TrainingDataset>
+where
+    S: TrainingDatasetBuilderState,
+{
+    todo!("materialize_on_cluster is not implemented");
+}
+
 pub async fn create_training_dataset_attached_to_feature_view(
     feature_view: &FeatureView,
 ) -> Result<TrainingDataset> {
-    let features = feature_view
-        .query()
-        .left_features()
-        .clone()
-        .iter()
-        .map(|feature| {
-            TrainingDatasetFeatureDTO::new_from_feature_and_transformation_function(
-                FeatureDTO::from(feature.clone()),
-                FeatureGroupDTO::from(feature_view.query().left_feature_group().clone()),
-                feature_view
-                    .transformation_functions()
-                    .get(feature.name())
-                    .map(|transformation_function| {
-                        TransformationFunctionDTO::from(transformation_function.clone())
-                    }),
-            )
-        })
-        .collect();
+    let (features, feature_groups) = feature_view.query().features_and_feature_groups();
+    let training_features =
+        crate::core::feature_store::feature_view::features_to_transformed_features(
+            &features,
+            &feature_groups,
+            feature_view.transformation_functions(),
+        )?;
 
     let new_training_dataset_payload = NewTrainingDatasetPayload::new(
         feature_view.feature_store_id(),
         feature_view.feature_store_name().to_string(),
         "trans_view_1_1".to_owned(),
         1,
-        QueryDTO::from(feature_view.query().clone()),
-        Some(construct_query(feature_view.query().clone()).await?),
-        features,
+        QueryDTO::from(feature_view.query()),
+        Some(construct_query(feature_view.query()).await?),
+        training_features,
     );
 
     let training_dataset_dto =
@@ -74,16 +101,16 @@ pub async fn create_training_dataset_attached_to_feature_view(
         feature_view.name(),
         feature_view.version(),
         training_dataset_dto.version,
-        feature_view.query().clone(),
+        feature_view.query(),
     )
     .await?;
 
     debug!("The job :\n{:?}", job_dto);
 
-    Ok(TrainingDataset {
-        feature_store_name: training_dataset_dto.featurestore_name,
-        version: training_dataset_dto.version,
-    })
+    Ok(TrainingDataset::new(
+        &training_dataset_dto.featurestore_name,
+        training_dataset_dto.version,
+    ))
 }
 
 pub async fn compute_training_dataset_attached_to_feature_view(
@@ -91,7 +118,7 @@ pub async fn compute_training_dataset_attached_to_feature_view(
     feature_view_name: &str,
     feature_view_version: i32,
     training_dataset_version: i32,
-    query: Query,
+    query: &Query,
 ) -> Result<JobDTO> {
     let job_config = TrainingDatasetComputeJobConfigPayload::new(true, QueryDTO::from(query));
 
@@ -119,10 +146,10 @@ pub async fn get_training_dataset_by_name_and_version(
         .await?;
 
     match opt_training_dataset_dto {
-        Some(training_dataset_dto) => Ok(Some(TrainingDataset {
-            feature_store_name: training_dataset_dto.featurestore_name,
-            version: training_dataset_dto.version,
-        })),
+        Some(training_dataset_dto) => Ok(Some(TrainingDataset::new(
+            &training_dataset_dto.featurestore_name,
+            training_dataset_dto.version,
+        ))),
         None => Ok(None),
     }
 }

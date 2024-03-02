@@ -79,11 +79,11 @@ impl Feature {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// # use hopsworks_rs::hopsworks_login;
+    /// #
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let feature_group = hopsworks_login(None).await?
+    /// let feature_group = hopsworks::login(None).await?
     ///   .get_feature_store().await?
     ///   .get_feature_group("demo_feature_group", Some(1)).await?
     ///   .expect("Feature group not found");
@@ -112,11 +112,11 @@ impl Feature {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// # use hopsworks_rs::hopsworks_login;
+    /// #
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let feature_group = hopsworks_login(None).await?
+    /// let feature_group = hopsworks::login(None).await?
     ///   .get_feature_store().await?
     ///   .get_feature_group("demo_feature_group", Some(1)).await?
     ///   .expect("Feature group not found");
@@ -148,11 +148,11 @@ impl Feature {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// # use hopsworks_rs::hopsworks_login;
+    /// #
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let feature_group = hopsworks_login(None).await?
+    /// let feature_group = hopsworks::login(None).await?
     ///   .get_feature_store().await?
     ///   .get_feature_group("demo_feature_group", Some(1)).await?
     ///   .expect("Feature group not found");
@@ -186,11 +186,11 @@ impl Feature {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// # use hopsworks_rs::hopsworks_login;
+    /// #
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let feature_group = hopsworks_login(None).await?
+    /// let feature_group = hopsworks::login(None).await?
     ///   .get_feature_store().await?
     ///   .get_feature_group("demo_feature_group", Some(1)).await?
     ///   .expect("Feature group not found");
@@ -222,11 +222,11 @@ impl Feature {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// # use hopsworks_rs::hopsworks_login;
+    /// #
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let feature_group = hopsworks_login(None).await?
+    /// let feature_group = hopsworks::login(None).await?
     ///   .get_feature_store().await?
     ///   .get_feature_group("demo_feature_group", Some(1)).await?
     ///   .expect("Feature group not found");
@@ -258,11 +258,11 @@ impl Feature {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// # use hopsworks_rs::hopsworks_login;
+    /// #
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let feature_group = hopsworks_login(None).await?
+    /// let feature_group = hopsworks::login(None).await?
     ///   .get_feature_store().await?
     ///   .get_feature_group("demo_feature_group", Some(1)).await?
     ///   .expect("Feature group not found");
@@ -292,11 +292,11 @@ impl Feature {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// # use hopsworks_rs::hopsworks_login;
+    /// #
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let feature_group = hopsworks_login(None).await?
+    /// let feature_group = hopsworks::login(None).await?
     ///   .get_feature_store().await?
     ///   .get_feature_group("demo_feature_group", Some(1)).await?
     ///   .expect("Feature group not found");
@@ -326,11 +326,11 @@ impl Feature {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// # use hopsworks_rs::hopsworks_login;
+    /// #
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let feature_group = hopsworks_login(None).await?
+    /// let feature_group = hopsworks::login(None).await?
     ///   .get_feature_store().await?
     ///   .get_feature_group("demo_feature_group", Some(1)).await?
     ///   .expect("Feature group not found");

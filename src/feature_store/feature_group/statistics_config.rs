@@ -12,19 +12,19 @@ pub struct StatisticsConfig {
 }
 
 impl StatisticsConfig {
-    pub fn new_from_dto(statistics_config_dto: StatisticsConfigDTO) -> Self {
+    pub fn new_from_dto(statistics_config_dto: &StatisticsConfigDTO) -> Self {
         Self {
             enabled: statistics_config_dto.enabled,
             histograms: statistics_config_dto.histograms,
             correlations: statistics_config_dto.correlations,
             exact_uniqueness: statistics_config_dto.exact_uniqueness,
-            columns: statistics_config_dto.columns,
+            columns: statistics_config_dto.columns.clone(),
         }
     }
 }
 
-impl From<StatisticsConfigDTO> for StatisticsConfig {
-    fn from(statistics_config_dto: StatisticsConfigDTO) -> Self {
+impl From<&StatisticsConfigDTO> for StatisticsConfig {
+    fn from(statistics_config_dto: &StatisticsConfigDTO) -> Self {
         StatisticsConfig::new_from_dto(statistics_config_dto)
     }
 }

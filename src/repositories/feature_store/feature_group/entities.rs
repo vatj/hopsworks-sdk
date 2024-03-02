@@ -31,14 +31,14 @@ pub struct FeatureGroupDTO {
     pub online_topic_name: Option<String>,
 }
 
-impl From<FeatureGroup> for FeatureGroupDTO {
-    fn from(feature_group: FeatureGroup) -> Self {
+impl From<&FeatureGroup> for FeatureGroupDTO {
+    fn from(feature_group: &FeatureGroup) -> Self {
         FeatureGroupDTO::new_from_feature_group(feature_group)
     }
 }
 
 impl FeatureGroupDTO {
-    pub fn new_from_feature_group(feature_group: FeatureGroup) -> Self {
+    pub fn new_from_feature_group(feature_group: &FeatureGroup) -> Self {
         Self {
             id: feature_group.id().unwrap_or(0),
             online_topic_name: feature_group
@@ -50,7 +50,7 @@ impl FeatureGroupDTO {
             },
             location: feature_group.location().unwrap_or("").to_string(),
             statistics_config: Some(match feature_group.statistics_config() {
-                Some(statistics_config) => StatisticsConfigDTO::from(statistics_config.clone()),
+                Some(statistics_config) => StatisticsConfigDTO::from(statistics_config),
                 None => panic!(
                     "statistics_config field should not be None for an initialized FeatureGroup"
                 ),
@@ -58,7 +58,7 @@ impl FeatureGroupDTO {
             features: feature_group
                 .features()
                 .iter()
-                .map(|feature| FeatureDTO::from(feature.clone()))
+                .map(FeatureDTO::from)
                 .collect(),
             feature_group_type: match feature_group.feature_group_type() {
                 "STREAM_FEATURE_GROUP" => "streamFeatureGroupDTO".to_owned(),

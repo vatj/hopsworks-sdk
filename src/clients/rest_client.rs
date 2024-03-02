@@ -274,7 +274,7 @@ impl HopsworksClient {
         let project_name: String = std::env::var("HOPSWORKS_PROJECT_NAME").unwrap_or_default();
 
         if project_name.is_empty() {
-            Ok(Project::from(projects[0].clone()))
+            Ok(Project::from(&projects[0]))
         } else {
             let project_match: Vec<&ProjectDTO> = projects
                 .iter()
@@ -285,7 +285,7 @@ impl HopsworksClient {
                 panic!("No project with name {project_name} found for this user.");
             }
 
-            Ok(Project::from(project_match[0].to_owned()))
+            Ok(Project::from(project_match[0]))
         }
     }
 }

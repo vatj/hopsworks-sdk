@@ -35,14 +35,14 @@ impl FeatureDTO {
     }
 }
 
-impl From<Feature> for FeatureDTO {
-    fn from(feature: Feature) -> Self {
+impl From<&Feature> for FeatureDTO {
+    fn from(feature: &Feature) -> Self {
         FeatureDTO::new_from_feature(feature)
     }
 }
 
 impl FeatureDTO {
-    pub fn new_from_feature(feature: Feature) -> Self {
+    pub fn new_from_feature(feature: &Feature) -> Self {
         Self {
             feature_group_id: feature.feature_group_id(),
             primary: feature.is_primary(),
@@ -70,18 +70,18 @@ pub struct TrainingDatasetFeatureDTO {
 
 impl TrainingDatasetFeatureDTO {
     pub fn new_from_feature_and_transformation_function(
-        feature: FeatureDTO,
-        feature_group: FeatureGroupDTO,
+        feature: &FeatureDTO,
+        feature_group: &FeatureGroupDTO,
         transformation_function: Option<TransformationFunctionDTO>,
     ) -> Self {
         Self {
             name: feature.name.clone(),
-            data_type: feature.data_type,
+            data_type: feature.data_type.clone(),
             label: false,
-            feature_group_feature_name: feature.name,
+            feature_group_feature_name: feature.name.clone(),
             transformation_function,
             index: 0,
-            featuregroup: feature_group,
+            featuregroup: feature_group.clone(),
         }
     }
 }

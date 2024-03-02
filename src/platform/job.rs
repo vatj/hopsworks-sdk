@@ -56,11 +56,11 @@ impl Job {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   let project = hopsworks_login(None).await?;
+    ///   let project = hopsworks::login(None).await?;
     ///   let job = project.get_job("my_backfilling_job").await?;
     ///   let job_exec = job.run(true).await?;
     ///
@@ -85,11 +85,11 @@ impl Job {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::{hopsworks_login, platform::job_execution::JobExecutionState};
+    /// use hopsworks::platform::job_execution::JobExecutionState;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///  let project = hopsworks_login(None).await?;
+    ///  let project = hopsworks::login(None).await?;
     ///  let job = project.get_job("my_backfilling_job").await?;
     ///  let executions = job.get_executions().await?;
     ///  println!("Most recent failed executions {:?}",
@@ -113,11 +113,11 @@ impl Job {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   let project = hopsworks_login(None).await?;
+    ///   let project = hopsworks::login(None).await?;
     ///   let job = project.get_job("my_backfilling_job").await?;
     ///
     ///   let mut job_config = job.get_configuration();
@@ -139,11 +139,11 @@ impl Job {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   let project = hopsworks_login(None).await?;
+    ///   let project = hopsworks::login(None).await?;
     ///   let job = project.get_job("my_backfilling_job").await?;
     ///   job.delete().await?;
     ///
@@ -178,11 +178,11 @@ impl Job {
 /// ```no_run
 /// use color_eyre::Result;
 /// use serde_json::json;
-/// use hopsworks_rs::{hopsworks_login, platform::job::get_job_configuration};
+/// use hopsworks::platform::job::get_job_configuration;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
-///    hopsworks_login(None).await?;
+///    hopsworks::login(None).await?;
 ///
 ///    let default_pyspark_job_config = get_job_configuration("PYSPARK").await?;
 ///    println!("{}", default_pyspark_job_config);
@@ -207,11 +207,11 @@ pub async fn get_job_configuration(job_type: &str) -> Result<serde_json::Value> 
 /// ```no_run
 /// use color_eyre::Result;
 /// use serde_json::json;
-/// use hopsworks_rs::{hopsworks_login, platform::job::{create_job, get_job_configuration}};
+/// use hopsworks::platform::job::{create_job, get_job_configuration};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
-///   hopsworks_login(None).await?;
+///   hopsworks::login(None).await?;
 ///
 ///   let mut default_pyspark_job_config = get_job_configuration("PYSPARK").await?;
 ///   default_pyspark_job_config["appPath"] = "my-pyspark-job".into();

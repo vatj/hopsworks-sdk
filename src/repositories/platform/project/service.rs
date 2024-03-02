@@ -19,7 +19,7 @@ pub async fn get_project_and_user_list() -> Result<Vec<ProjectAndUserDTO>> {
 }
 
 pub async fn create_project(
-    new_project_payload: &NewProjectPayload<'_>,
+    new_project_payload: &NewProjectPayload,
 ) -> Result<Vec<ProjectAndUserDTO>> {
     Ok(get_hopsworks_client()
         .await
@@ -42,6 +42,10 @@ pub async fn get_client_project() -> Result<SingleProjectDTO> {
 
     match resp.status() {
         StatusCode::OK => Ok(resp.json::<SingleProjectDTO>().await?),
-        _ => panic!("Not able to retrieve client's project."),
+        _ => Err(color_eyre::eyre::eyre!(
+            "get_client_project failed with status : {:?}, here is the response :\n{:?}",
+            resp.status(),
+            resp.text_with_charset("utf-8").await?
+        )),
     }
 }

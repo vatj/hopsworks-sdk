@@ -2,8 +2,8 @@ use color_eyre::Result;
 use polars::{lazy::dsl::col, prelude::*};
 use std::collections::HashMap;
 
-use hopsworks_rs::{
-    feature_store::feature_view::transformation_function::TransformationFunction, hopsworks_login,
+use hopsworks::{
+    feature_store::feature_view::transformation_function::TransformationFunction,
     HopsworksClientBuilder,
 };
 
@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
         ])
         .collect()?;
 
-    let project = hopsworks_login(Some(
+    let project = hopsworks::login(Some(
         HopsworksClientBuilder::default()
             .with_url(std::env::var("HOPSWORKS_URL").unwrap_or_default().as_str()),
     ))

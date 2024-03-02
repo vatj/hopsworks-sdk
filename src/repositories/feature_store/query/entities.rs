@@ -26,30 +26,20 @@ pub struct QueryDTO {
     pub left_feature_group_end_time: Option<String>,
 }
 
-impl From<Query> for QueryDTO {
-    fn from(query: Query) -> Self {
+impl From<&Query> for QueryDTO {
+    fn from(query: &Query) -> Self {
         Self {
             href: None,
             feature_store_name: String::from(query.feature_store_name()),
             feature_store_id: query.feature_store_id(),
-            left_feature_group: FeatureGroupDTO::from(query.left_feature_group().clone()),
-            left_features: query
-                .left_features()
-                .iter()
-                .map(|feature| FeatureDTO::from(feature.clone()))
-                .collect(),
-            joins: query.joins().map(|joins| {
-                joins
-                    .iter()
-                    .map(|join| JoinQueryDTO::from(join.clone()))
-                    .collect()
-            }),
-            filters: query.filters().map(|filters| {
-                filters
-                    .iter()
-                    .map(|filter| QueryFilterOrLogicDTO::from(filter.clone()))
-                    .collect()
-            }),
+            left_feature_group: FeatureGroupDTO::from(query.left_feature_group()),
+            left_features: query.left_features().iter().map(FeatureDTO::from).collect(),
+            joins: query
+                .joins()
+                .map(|joins| joins.iter().map(JoinQueryDTO::from).collect()),
+            filters: query
+                .filters()
+                .map(|filters| filters.iter().map(QueryFilterOrLogicDTO::from).collect()),
             left_feature_group_start_time: query
                 .left_feature_group_start_time()
                 .map(str::to_string),
@@ -82,10 +72,10 @@ pub struct JoinQueryDTO {
     pub(crate) prefix: Option<String>,
 }
 
-impl From<JoinQuery> for JoinQueryDTO {
-    fn from(join_query: JoinQuery) -> Self {
+impl From<&JoinQuery> for JoinQueryDTO {
+    fn from(join_query: &JoinQuery) -> Self {
         Self {
-            query: QueryDTO::from(join_query.query().clone()),
+            query: QueryDTO::from(join_query.query()),
             on: join_query.on().map(|slice| slice.to_vec()),
             left_on: join_query.left_on().map(|slice| slice.to_vec()),
             right_on: join_query.right_on().map(|slice| slice.to_vec()),
@@ -118,8 +108,8 @@ pub enum QueryFilterOrLogicDTO {
     Filter(QueryFilterDTO),
 }
 
-impl From<QueryFilterOrLogic> for QueryFilterOrLogicDTO {
-    fn from(query_filter_or_logic: QueryFilterOrLogic) -> Self {
+impl From<&QueryFilterOrLogic> for QueryFilterOrLogicDTO {
+    fn from(query_filter_or_logic: &QueryFilterOrLogic) -> Self {
         match query_filter_or_logic {
             QueryFilterOrLogic::Logic(logic) => QueryFilterOrLogicDTO::Logic(logic.into()),
             QueryFilterOrLogic::Filter(filter) => QueryFilterOrLogicDTO::Filter(filter.into()),
@@ -127,28 +117,30 @@ impl From<QueryFilterOrLogic> for QueryFilterOrLogicDTO {
     }
 }
 
-impl From<QueryFilter> for QueryFilterDTO {
-    fn from(query_filter: QueryFilter) -> Self {
+impl From<&QueryFilter> for QueryFilterDTO {
+    fn from(query_filter: &QueryFilter) -> Self {
         Self {
-            feature: FeatureDTO::from(query_filter.feature),
-            condition: query_filter.condition,
-            value: query_filter.value,
+            feature: FeatureDTO::from(&query_filter.feature),
+            condition: query_filter.condition.clone(),
+            value: query_filter.value.clone(),
         }
     }
 }
 
-impl From<QueryLogic> for QueryLogicDTO {
-    fn from(value: QueryLogic) -> Self {
+impl From<&QueryLogic> for QueryLogicDTO {
+    fn from(value: &QueryLogic) -> Self {
         Self {
-            logic_type: value.logic_type,
+            logic_type: value.logic_type.clone(),
             left_logic: value
                 .left_logic
-                .map(|left_logic| Box::new(QueryLogicDTO::from(*left_logic.clone()))),
+                .as_deref()
+                .map(|left_logic| Box::new(QueryLogicDTO::from(left_logic))),
             right_logic: value
                 .right_logic
-                .map(|right_logic| Box::new(QueryLogicDTO::from(*right_logic.clone()))),
-            left_filter: value.left_filter.map(|left_filter| left_filter.into()),
-            right_filter: value.right_filter.map(|right_filter| right_filter.into()),
+                .as_deref()
+                .map(|right_logic| Box::new(QueryLogicDTO::from(right_logic))),
+            left_filter: value.left_filter.as_ref().map(QueryFilterDTO::from),
+            right_filter: value.right_filter.as_ref().map(QueryFilterDTO::from),
         }
     }
 }

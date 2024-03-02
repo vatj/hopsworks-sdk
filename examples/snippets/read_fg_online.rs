@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
+use hopsworks::HopsworksClientBuilder;
 use std::time::Instant;
 
 #[tokio::main]
@@ -7,7 +7,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     color_eyre::install()?;
     env_logger::init();
 
-    let project = hopsworks_login(Some(
+    let project = hopsworks::login(Some(
         HopsworksClientBuilder::default()
             .with_url(std::env::var("HOPSWORKS_URL").unwrap_or_default().as_str()),
     ))

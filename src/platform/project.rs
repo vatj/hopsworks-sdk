@@ -19,10 +19,10 @@ pub struct Project {
     id: i32,
 }
 
-impl From<ProjectDTO> for Project {
-    fn from(project_dto: ProjectDTO) -> Self {
+impl From<&ProjectDTO> for Project {
+    fn from(project_dto: &ProjectDTO) -> Self {
         Self {
-            project_name: project_dto.name,
+            project_name: project_dto.name.clone(),
             id: project_dto.id,
         }
     }
@@ -47,11 +47,10 @@ impl Project {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::{hopsworks_login, HopsworksClientBuilder};
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///   let project = hopsworks_login(None).await?;
+    ///   let project = hopsworks::login(None).await?;
     ///   let fs = project.get_feature_store().await?;
     ///
     ///   // Create/Update Feature Groups and Feature Views, Insert/Read Feature Data
@@ -73,11 +72,11 @@ impl Project {
     /// # Example
     /// ```no_run
     /// # use color_eyre::Result;
-    /// use hopsworks_rs::hopsworks_login;
+    ///
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
-    ///  let project = hopsworks_login(None).await?;
+    ///  let project = hopsworks::login(None).await?;
     ///  let job = project.get_job("my_job").await?;
     ///
     ///  let mut job_config = job.get_configuration();
@@ -91,4 +90,8 @@ impl Project {
     pub async fn get_job(&self, job_name: &str) -> Result<Job> {
         crate::core::platform::job::get_job_by_name(job_name).await
     }
+}
+
+pub async fn create_project(project_name: &str, description: &Option<&str>) -> Result<Project> {
+    crate::core::platform::project::create_project(project_name, description).await
 }
