@@ -35,8 +35,16 @@ pub async fn download_job_execution_logs(
     Ok(())
 }
 
-pub async fn start_new_execution_for_named_job(job_name: &str) -> Result<JobExecutionDTO> {
-    job_execution::service::start_new_execution_for_named_job(job_name).await
+pub async fn start_new_execution_for_named_job(
+    job_name: &str,
+    job_args: Option<&str>,
+) -> Result<JobExecutionDTO> {
+    job_execution::service::start_new_execution_for_named_job(job_name, job_args.unwrap_or(""))
+        .await
+}
+
+pub async fn stop_job_execution(job_name: &str, job_execution_id: i32) -> Result<JobExecutionDTO> {
+    job_execution::service::stop_job_execution(job_name, job_execution_id).await
 }
 
 pub async fn get_job_execution_by_id(

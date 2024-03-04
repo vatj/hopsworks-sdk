@@ -19,7 +19,7 @@ pub struct ProjectDTO {
     pub id: i32,
     pub name: String,
     owner: ProjectUserDTO,
-    python_environment: PythonEnvironmentDTO,
+    python_environment: Option<PythonEnvironmentDTO>,
     created: String,
     retention_period: Option<String>,
     payment_type: String,

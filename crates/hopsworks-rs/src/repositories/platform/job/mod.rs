@@ -21,6 +21,10 @@ pub struct JobDTO {
 #[serde(rename_all = "camelCase")]
 pub struct JobCreatorDTO {
     href: String,
+    firstname: Option<String>,
+    lastname: Option<String>,
+    email: Option<String>,
+    username: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -56,4 +60,11 @@ struct JobConfigDTO {
     spark_blacklist_enabled: bool,
     #[serde(rename = "spark.tensorflow.num.ps")]
     spark_tensorflow_num_ps: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct JobListDTO {
+    href: String,
+    items: Vec<JobDTO>,
 }

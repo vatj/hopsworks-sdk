@@ -55,3 +55,11 @@ pub async fn delete_job(job_name: &str) -> Result<()> {
 pub async fn get_job_configuration(job_type: &str) -> Result<serde_json::Value> {
     job::service::get_job_configuration(job_type).await
 }
+
+pub async fn get_job_list() -> Result<Vec<Job>> {
+    Ok(job::service::get_job_list()
+        .await?
+        .into_iter()
+        .map(Job::from)
+        .collect())
+}

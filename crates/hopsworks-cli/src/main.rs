@@ -4,6 +4,9 @@ use color_eyre::Result;
 use hopsworks::HopsworksClientBuilder;
 use hopsworks_utils::get_hopsworks_profile;
 
+mod job;
+mod project;
+
 /// A CLI to interact with the Hopsworks Platform without leaving the terminal.
 /// Requires a valid API key to be set in the environment variable `HOPSWORKS_API_KEY`.
 #[derive(Debug, Parser)]
@@ -16,75 +19,30 @@ struct HopsworksCli {
     /// Optional hopsworks profile from your local config files to use
     /// If not specified, defaults first to environment variables `HOPSWORKS-*`
     /// and then to the default_profile in the config file
+    #[arg(long)]
     profile: Option<String>,
+    /// Overrides the default project of the profile
+    /// If specified, it will superseed the environment variable `HOPSWORKS_PROJECT_NAME`
+    /// and the default project in the profile
+    #[arg(long)]
+    project: Option<String>,
 }
 
+/// Subcommands of the Hopsworks CLI, e.g. `project` or `job`
+/// These subcommands are associated to top level functionalities of
+/// the Hopsworks platform and can be further expanded with more subcommands
+/// and parameters.
 #[derive(Debug, Subcommand)]
 enum HopsworksCliSubCommands {
     #[command(arg_required_else_help = true)]
     Project {
         #[command(subcommand)]
-        command: ProjectSubCommand,
+        command: project::ProjectSubCommand,
     },
     Job {
         #[command(subcommand)]
-        command: JobSubCommand,
+        command: job::JobSubCommand,
     },
-}
-
-#[derive(Debug, Subcommand)]
-enum ProjectSubCommand {
-    /// Get metadata information about a project, defaults to current project
-    Info {
-        /// Optional id
-        id: Option<u64>,
-    },
-    /// List all projects associated to the set API key
-    List {},
-}
-
-#[derive(Debug, Subcommand)]
-#[command(flatten_help = true)]
-enum JobSubCommand {
-    /// Get metadata information about a job
-    #[command(arg_required_else_help = true)]
-    Info {
-        /// Job name in the current project or the project must
-        /// be specified with the `--project` flag
-        #[arg(short, long, required = true)]
-        name: String,
-        /// Optional project name
-        /// If not specified, the current project is used
-        #[arg(long)]
-        project: Option<String>,
-    },
-    /// List all jobs in the current project or the project must
-    /// be specified with the `--project` flag
-    List {
-        /// Optional project name
-        /// If not specified, the current project is used
-        #[arg(long)]
-        project: Option<String>,
-    },
-}
-
-fn mock_get_project_info(id: Option<u64>) {
-    println!("Getting project info with id: {:?}", id);
-}
-
-fn mock_list_projects() {
-    println!("Listing all projects");
-}
-
-fn mock_get_job_info(name: String, project: Option<String>) {
-    println!(
-        "Getting job info with name: {:?} and project: {:?}",
-        name, project
-    );
-}
-
-fn mock_list_jobs(project: Option<String>) {
-    println!("Listing all jobs with project: {:?}", project);
 }
 
 #[tokio::main]
@@ -98,16 +56,34 @@ async fn main() -> Result<()> {
         .with_api_key(&profile.user.api_key)
         .with_url(&profile.cluster.get_api_url());
 
-    hopsworks::login(Some(hopsworks_client_builder)).await?;
+    let current_project = hopsworks::login(Some(hopsworks_client_builder)).await?;
 
     match args.command {
         HopsworksCliSubCommands::Project { command } => match command {
-            ProjectSubCommand::Info { id } => mock_get_project_info(id),
-            ProjectSubCommand::List {} => mock_list_projects(),
+            project::ProjectSubCommand::Info {} => project::show_project_info(current_project),
+            project::ProjectSubCommand::List {} => project::show_list_projects().await,
         },
         HopsworksCliSubCommands::Job { command } => match command {
-            JobSubCommand::Info { name, project } => mock_get_job_info(name, project),
-            JobSubCommand::List { project } => mock_list_jobs(project),
+            job::JobSubCommand::Info { name } => job::show_job_info(&name, current_project).await,
+            job::JobSubCommand::List {} => job::show_list_jobs(current_project).await,
+            job::JobSubCommand::ListExecutions { name, active } => {
+                job::show_list_executions(current_project, &name, active).await
+            }
+            job::JobSubCommand::Run {
+                name,
+                args,
+                await_termination,
+                download_logs,
+            } => {
+                job::show_run_job(
+                    current_project,
+                    &name,
+                    &args,
+                    await_termination,
+                    download_logs,
+                )
+                .await
+            }
         },
     }
 

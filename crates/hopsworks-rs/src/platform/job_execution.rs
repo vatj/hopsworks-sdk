@@ -61,7 +61,7 @@ impl JobExecution {
     /// async fn main() -> Result<()> {
     ///   let project = hopsworks::login(None).await?;
     ///   let job = project.get_job("my_backfilling_job").await?;
-    ///   let job_exec = job.run(true).await?;
+    ///   let job_exec = job.run(None, true).await?;
     ///
     ///   if job_exec.get_state() == JobExecutionState::Failed {
     ///     job_exec.download_logs(Some("./logs/")).await?;
@@ -128,18 +128,103 @@ impl JobExecution {
             .await
     }
 
+    /// Stop the execution of the job on the hopsworks cluster. Note that this does not delete the job execution.
+    /// The job execution will transition to the state "STOPPED" and its final status will be set to "KILLED".
+    /// The logs of the job execution will be available on the cluster, however this may take some time.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use std::time::SystemTime;
+    /// use hopsworks::platform::job_execution::JobExecutionState;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///  let project = hopsworks::login(None).await?;
+    ///
+    ///  let job = project.get_job("job_with_an_execution_to_be_killed").await?;
+    ///  let job_exec = job.run(None, false);
+    ///
+    ///  // complicated logic monitoring the job execution
+    ///  job_exec_has_turned_rogue = (42 > 1);
+    ///  
+    ///  if job_exec_has_turned_rogue { stopped_exec = job_exec.stop() }
+    ///
+    ///  println("Job execution took a turn for the worst, it got {:?}.", stopped_exec.state())
+    ///  
+    ///  Ok(())
+    /// ```
+    pub async fn stop(&self) -> Result<JobExecution> {
+        Ok(crate::core::platform::job_execution::stop_job_execution(
+            self.job_name.as_str(),
+            self.id,
+        )
+        .await?
+        .into())
+    }
+
+    /// Get the current state of the job execution from the hopsworks cluster.
+    /// The state of a job execution is one of [`JobExecutionState`].
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use color_eyre::Result;
+    /// use hopsworks::platform::job_execution::JobExecutionState;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///  let project = hopsworks::login(None).await?;
+    ///  let job = project.get_job("my_backfilling_job").await?;
+    ///  let job_exec = job.run(None, false).await?;
+    ///  # On triggering execution, the new object will have the state "Initializing"
+    ///  println!("Job execution state: {:?}", job_exec.state());
+    ///  
+    ///  while let Ok(current_state) = job_exec.get_current_state().await? {
+    ///    match current_state {
+    ///      JobExecutionState::Initializing => {
+    ///        println!("Job execution still initializing");
+    ///        tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
+    ///      },
+    ///      JobExecutionState::Running => {
+    ///        println!("Job execution is now running");
+    ///        break;
+    ///      },
+    ///      _ => {
+    ///       println!("Job execution is not running, transitioned to state: {:?}", current_state);
+    ///       break;
+    ///      }
+    ///    },
+    ///  }
+    ///
+    ///  Ok(())
+    /// }
+    /// ```
+    pub async fn get_current_state(&self) -> Result<JobExecutionState> {
+        Ok(
+            crate::core::platform::job_execution::get_job_execution_by_id(
+                self.job_name.as_str(),
+                self.id,
+            )
+            .await?
+            .state
+            .into(),
+        )
+    }
+
     /// Get the state of the [`JobExecution`], one of [`JobExecutionState`].
-    pub fn get_state(&self) -> JobExecutionState {
+    /// Note that this is the state at the time where the execution object was fetched.
+    /// Use [`get_current_state`] to get the current state of the job execution from the hopsworks cluster.
+    pub fn state(&self) -> JobExecutionState {
         self.state.clone()
     }
 
     /// Get the job name of the [`JobExecution`].
-    pub fn get_job_name(&self) -> String {
+    pub fn job_name(&self) -> String {
         self.job_name.clone()
     }
 
     /// Get the submission time of the [`JobExecution`].
-    pub fn get_submission_time(&self) -> String {
+    pub fn submission_time(&self) -> String {
         self.submission_time.clone()
     }
 }

@@ -62,15 +62,16 @@ impl Job {
     /// async fn main() -> Result<()> {
     ///   let project = hopsworks::login(None).await?;
     ///   let job = project.get_job("my_backfilling_job").await?;
-    ///   let job_exec = job.run(true).await?;
+    ///   let job_exec = job.run(None, true).await?;
     ///
     ///   // Check execution state
     ///   println!("{:?}", job_exec.get_state());
     ///   Ok(())
     /// }
     /// ```
-    pub async fn run(&self, await_termination: bool) -> Result<JobExecution> {
-        let exec = JobExecution::from(start_new_execution_for_named_job(self.name.as_str()).await?);
+    pub async fn run(&self, args: Option<&str>, await_termination: bool) -> Result<JobExecution> {
+        let exec =
+            JobExecution::from(start_new_execution_for_named_job(self.name.as_str(), args).await?);
         if await_termination {
             exec.await_termination().await?;
         }
@@ -217,7 +218,7 @@ pub async fn get_job_configuration(job_type: &str) -> Result<serde_json::Value> 
 ///   default_pyspark_job_config["appPath"] = "my-pyspark-job".into();
 ///   
 ///   let job = create_job("my-pyspark-job", default_pyspark_job_config).await?;
-///   job.run(false).await?;
+///   job.run(None, false).await?;
 ///
 ///   Ok(())
 /// }

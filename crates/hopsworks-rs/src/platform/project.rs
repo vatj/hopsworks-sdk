@@ -82,7 +82,7 @@ impl Project {
     ///  let mut job_config = job.get_configuration();
     ///  job_config["driverCores"] = serde_json::Value::from(2);
     ///  job.save(job_config).await?;
-    ///  job.run(false).await?;
+    ///  job.run(None, false).await?;
     ///  
     ///  Ok(())
     /// }
@@ -90,8 +90,44 @@ impl Project {
     pub async fn get_job(&self, job_name: &str) -> Result<Job> {
         crate::core::platform::job::get_job_by_name(job_name).await
     }
+
+    /// Get a list of all [`Job`]s in the project.
+    /// Use it to list all jobs in the project and manage them, e.g. get a job by name, run it, or update the configuration.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use color_eyre::Result;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()> {
+    ///   let project = hopsworks::login(None).await?;
+    ///   let jobs = project.get_job_list().await?;
+    ///
+    ///   for job in jobs {
+    ///     println!("Job: {:#?}", job);
+    ///
+    ///     # Update configuration and trigger job execution on cluster
+    ///     let mut job_config = job.get_configuration();
+    ///     job_config["driverCores"] = serde_json::Value::from(2);
+    ///     job.save(job_config).await?;
+    ///     job.run(None, false).await?; # do not wait for job to finish to continue execution in client
+    ///   }
+    ///  Ok(())
+    /// }
+    /// ```
+    pub async fn get_job_list(&self) -> Result<Vec<Job>> {
+        crate::core::platform::job::get_job_list().await
+    }
 }
 
 pub async fn create_project(project_name: &str, description: &Option<&str>) -> Result<Project> {
     crate::core::platform::project::create_project(project_name, description).await
+}
+
+pub async fn get_project_list() -> Result<Vec<Project>> {
+    Ok(crate::core::platform::project::get_project_list()
+        .await?
+        .iter()
+        .map(Project::from)
+        .collect())
 }

@@ -4,7 +4,10 @@ use reqwest::Method;
 use super::JobExecutionDTO;
 use crate::get_hopsworks_client;
 
-pub async fn start_new_execution_for_named_job(job_name: &str) -> Result<JobExecutionDTO> {
+pub async fn start_new_execution_for_named_job(
+    job_name: &str,
+    args: &str,
+) -> Result<JobExecutionDTO> {
     let response = get_hopsworks_client()
         .await
         .request(
@@ -14,6 +17,8 @@ pub async fn start_new_execution_for_named_job(job_name: &str) -> Result<JobExec
             true,
         )
         .await?
+        .header("Content-Type", "text/plain")
+        .body(args.to_string())
         .send()
         .await?;
 
@@ -71,6 +76,29 @@ pub async fn get_job_executions(job_name: &str) -> Result<Vec<JobExecutionDTO>> 
         job_execution_dto.job_name = Some(job_name.to_string());
     }
     Ok(job_execution_dtos)
+}
+
+pub async fn stop_job_execution(job_name: &str, job_execution_id: i32) -> Result<JobExecutionDTO> {
+    let response = get_hopsworks_client()
+        .await
+        .request(
+            Method::PUT,
+            format!("jobs/{job_name}/executions/{job_execution_id}").as_str(),
+            true,
+            true,
+        )
+        .await?
+        .json(&serde_json::json!({"state": "stopped"}))
+        .send()
+        .await?;
+
+    if response.status().is_success() {
+        let mut job_execution_dto = response.json::<JobExecutionDTO>().await?;
+        job_execution_dto.job_name = Some(job_name.to_string());
+        Ok(job_execution_dto)
+    } else {
+        Err(response.error_for_status().unwrap_err().into())
+    }
 }
 
 pub async fn delete_job_execution(job_name: &str, job_execution_id: i32) -> Result<()> {

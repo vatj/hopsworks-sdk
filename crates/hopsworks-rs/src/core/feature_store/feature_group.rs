@@ -86,7 +86,7 @@ pub async fn insert_in_registered_feature_group(
     );
 
     Ok(JobExecution::from(
-        job_execution::start_new_execution_for_named_job(job_name.as_str()).await?,
+        job_execution::start_new_execution_for_named_job(job_name.as_str(), None).await?,
     ))
 }
 

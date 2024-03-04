@@ -3,30 +3,38 @@ use reqwest::Method;
 
 use crate::get_hopsworks_client;
 
-use super::JobDTO;
+use super::{JobDTO, JobListDTO};
 
 pub async fn get_job_by_name(job_name: &str) -> Result<JobDTO> {
-    Ok(get_hopsworks_client()
+    let response = get_hopsworks_client()
         .await
         .request(Method::GET, format!("jobs/{job_name}").as_str(), true, true)
         .await?
-        .query(&[("expand", ["creator"])])
+        .query(&[("expand", "creator")])
         .send()
-        .await?
-        .json::<JobDTO>()
-        .await?)
+        .await?;
+
+    if response.status().is_success() {
+        Ok(response.json::<JobDTO>().await?)
+    } else {
+        Err(response.error_for_status().unwrap_err().into())
+    }
 }
 
-pub async fn get_jobs() -> Result<Vec<JobDTO>> {
-    Ok(get_hopsworks_client()
+pub async fn get_job_list() -> Result<Vec<JobDTO>> {
+    let response = get_hopsworks_client()
         .await
         .request(Method::GET, "jobs", true, true)
         .await?
-        .query(&[("expand", ["creator"])])
+        .query(&[("expand", "creator"), ("sort_by", "submissiontime:desc")])
         .send()
-        .await?
-        .json::<Vec<JobDTO>>()
-        .await?)
+        .await?;
+
+    if response.status().is_success() {
+        Ok(response.json::<JobListDTO>().await?.items)
+    } else {
+        Err(response.error_for_status().unwrap_err().into())
+    }
 }
 
 pub async fn exists(job_name: &str) -> Result<bool> {
@@ -55,6 +63,7 @@ pub async fn delete_job(job_name: &str) -> Result<()> {
         .await?
         .send()
         .await?;
+
     if response.status().is_success() {
         Ok(())
     } else {
@@ -63,7 +72,7 @@ pub async fn delete_job(job_name: &str) -> Result<()> {
 }
 
 pub async fn get_job_configuration(job_type: &str) -> Result<serde_json::Value> {
-    Ok(get_hopsworks_client()
+    let response = get_hopsworks_client()
         .await
         .request(
             Method::GET,
@@ -73,13 +82,17 @@ pub async fn get_job_configuration(job_type: &str) -> Result<serde_json::Value> 
         )
         .await?
         .send()
-        .await?
-        .json::<serde_json::Value>()
-        .await?)
+        .await?;
+
+    if response.status().is_success() {
+        Ok(response.json::<serde_json::Value>().await?)
+    } else {
+        Err(response.error_for_status().unwrap_err().into())
+    }
 }
 
 pub async fn create_job(job_name: &str, job_config: serde_json::Value) -> Result<JobDTO> {
-    Ok(get_hopsworks_client()
+    let response = get_hopsworks_client()
         .await
         .request(
             Method::POST,
@@ -90,19 +103,27 @@ pub async fn create_job(job_name: &str, job_config: serde_json::Value) -> Result
         .await?
         .json(&job_config)
         .send()
-        .await?
-        .json::<JobDTO>()
-        .await?)
+        .await?;
+
+    if response.status().is_success() {
+        Ok(response.json::<JobDTO>().await?)
+    } else {
+        Err(response.error_for_status().unwrap_err().into())
+    }
 }
 
 pub async fn update_job(job_name: &str, job_config: serde_json::Value) -> Result<JobDTO> {
-    Ok(get_hopsworks_client()
+    let response = get_hopsworks_client()
         .await
         .request(Method::PUT, format!("jobs/{job_name}").as_str(), true, true)
         .await?
         .json(&job_config)
         .send()
-        .await?
-        .json::<JobDTO>()
-        .await?)
+        .await?;
+
+    if response.status().is_success() {
+        Ok(response.json::<JobDTO>().await?)
+    } else {
+        Err(response.error_for_status().unwrap_err().into())
+    }
 }
