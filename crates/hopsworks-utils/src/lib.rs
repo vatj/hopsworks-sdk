@@ -34,9 +34,33 @@ pub fn get_hopsworks_profiles() -> Result<hopsworks_configs::HopsworksTomlConfig
     let config_file = get_hopsworks_profiles_config_file()?;
     let config_str = std::fs::read_to_string(config_file)?;
     debug!("Config file content: {:?}", config_str);
-
     let profiles: hopsworks_configs::HopsworksTomlConfig = toml::from_str(&config_str)?;
-    debug!("All profiles: {:?}", profiles);
+    debug!("Available profiles: {:?}", profiles);
 
     Ok(profiles)
+}
+
+pub fn get_hopsworks_profile(
+    profile_name: Option<&str>,
+) -> Result<hopsworks_configs::HopsworksProfileConfig> {
+    let mut profiles = get_hopsworks_profiles()?;
+    let profile_name = match profile_name {
+        Some(name) => name,
+        None => match profiles.default_profile {
+            Some(ref name) => name,
+            None => {
+                return Err(color_eyre::eyre::eyre!(
+                    "No profile specified and no default profile found."
+                ))
+            }
+        },
+    };
+
+    match profiles.profiles.remove(profile_name) {
+        Some(profile) => Ok(profile),
+        None => Err(color_eyre::eyre::eyre!(
+            "No profile found with name: {:?}",
+            profile_name
+        )),
+    }
 }

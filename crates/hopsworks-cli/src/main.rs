@@ -1,6 +1,5 @@
 use clap::{Parser, Subcommand};
-use hopsworks_utils::get_hopsworks_profiles;
-use log::debug;
+use hopsworks_utils::get_hopsworks_profile;
 
 /// A CLI to interact with the Hopsworks Platform without leaving the terminal.
 /// Requires a valid API key to be set in the environment variable `HOPSWORKS_API_KEY`.
@@ -8,8 +7,13 @@ use log::debug;
 #[command(name = "hopsworks")]
 #[command(about = "A CLI to interact with the Hopsworks Platform without leaving the terminal.", long_about = None)]
 struct HopsworksCli {
+    /// Subcommands of the Hopsworks CLI, e.g. `project` or `job`
     #[command(subcommand)]
     command: HopsworksCliSubCommands,
+    /// Optional hopsworks profile from your local config files to use
+    /// If not specified, defaults first to environment variables `HOPSWORKS-*`
+    /// and then to the default_profile in the config file
+    profile: Option<String>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -85,8 +89,7 @@ fn main() {
 
     let args = HopsworksCli::parse();
 
-    let config_file = get_hopsworks_profiles().unwrap();
-    debug!("Using config file: {:?}", config_file);
+    let profile = get_hopsworks_profile(args.profile.as_deref());
 
     match args.command {
         HopsworksCliSubCommands::Project { command } => match command {
