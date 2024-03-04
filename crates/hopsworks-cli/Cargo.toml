@@ -10,3 +10,8 @@ repository = { workspace = true }
 
 [dependencies]
 clap = { workspace = true }
+color-eyre = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+
+hopsworks-utils = { path = "../hopsworks-utils" }

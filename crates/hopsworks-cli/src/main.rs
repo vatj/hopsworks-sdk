@@ -1,4 +1,6 @@
 use clap::{Parser, Subcommand};
+use hopsworks_utils::get_hopsworks_profiles_config_file;
+use log::debug;
 
 /// A CLI to interact with the Hopsworks Platform without leaving the terminal.
 /// Requires a valid API key to be set in the environment variable `HOPSWORKS_API_KEY`.
@@ -79,7 +81,12 @@ fn mock_list_jobs(project: Option<String>) {
 }
 
 fn main() {
+    env_logger::init();
+
     let args = HopsworksCli::parse();
+
+    let config_file = get_hopsworks_profiles_config_file().unwrap();
+    debug!("Using config file: {:?}", config_file);
 
     match args.command {
         HopsworksCliSubCommands::Project { command } => match command {
