@@ -21,8 +21,17 @@ pub struct HopsworksProjectConfig {
 pub struct HopsworksClusterConfig {
     /// IP address or domain name of the Hopsworks cluster
     pub host: String,
-    /// Port to use the hopsworks API
-    pub port: u16,
+    /// Port used by hopsworks client
+    pub port: Option<u16>,
+}
+
+impl HopsworksClusterConfig {
+    pub fn get_api_url(&self) -> String {
+        if let Some(port) = self.port {
+            return format!("https://{}:{}/hopsworks-api/api", self.host, port);
+        }
+        format!("https://{}/hopsworks-api/api", self.host)
+    }
 }
 
 /// Hopsworks Profile Configuration (e.g. `prod-user1` or `sandbox-service_account_1`)

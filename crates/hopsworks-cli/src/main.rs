@@ -1,4 +1,7 @@
 use clap::{Parser, Subcommand};
+use color_eyre::Result;
+
+use hopsworks::HopsworksClientBuilder;
 use hopsworks_utils::get_hopsworks_profile;
 
 /// A CLI to interact with the Hopsworks Platform without leaving the terminal.
@@ -84,12 +87,18 @@ fn mock_list_jobs(project: Option<String>) {
     println!("Listing all jobs with project: {:?}", project);
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<()> {
     env_logger::init();
 
     let args = HopsworksCli::parse();
 
-    let profile = get_hopsworks_profile(args.profile.as_deref());
+    let profile = get_hopsworks_profile(args.profile.as_deref())?;
+    let hopsworks_client_builder = HopsworksClientBuilder::new()
+        .with_api_key(&profile.user.api_key)
+        .with_url(&profile.cluster.get_api_url());
+
+    hopsworks::login(Some(hopsworks_client_builder)).await?;
 
     match args.command {
         HopsworksCliSubCommands::Project { command } => match command {
@@ -101,4 +110,6 @@ fn main() {
             JobSubCommand::List { project } => mock_list_jobs(project),
         },
     }
+
+    Ok(())
 }
