@@ -29,3 +29,14 @@ pub fn get_hopsworks_profiles_config_file() -> Result<std::path::PathBuf> {
         Err(color_eyre::eyre::eyre!("Failed to get config directory exists, check that directories::BaseDirs::new() is supported on this platform."))
     }
 }
+
+pub fn get_hopsworks_profiles() -> Result<hopsworks_configs::HopsworksTomlConfig> {
+    let config_file = get_hopsworks_profiles_config_file()?;
+    let config_str = std::fs::read_to_string(config_file)?;
+    debug!("Config file content: {:?}", config_str);
+
+    let profiles: hopsworks_configs::HopsworksTomlConfig = toml::from_str(&config_str)?;
+    debug!("All profiles: {:?}", profiles);
+
+    Ok(profiles)
+}

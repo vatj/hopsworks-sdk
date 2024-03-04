@@ -10,6 +10,7 @@ repository.workspace = true
 
 [dependencies]
 directories = { version = "5.0" }
+toml = { version = "0.8" }
 
 log = { workspace = true }
 serde = { workspace = true }

@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use hopsworks_utils::get_hopsworks_profiles_config_file;
+use hopsworks_utils::get_hopsworks_profiles;
 use log::debug;
 
 /// A CLI to interact with the Hopsworks Platform without leaving the terminal.
@@ -85,7 +85,7 @@ fn main() {
 
     let args = HopsworksCli::parse();
 
-    let config_file = get_hopsworks_profiles_config_file().unwrap();
+    let config_file = get_hopsworks_profiles().unwrap();
     debug!("Using config file: {:?}", config_file);
 
     match args.command {

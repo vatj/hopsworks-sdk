@@ -14,7 +14,6 @@ repository = "https://github.com/vatj/hopsworks-rs"
 clap = { version = "4.5", features = ["derive"] }
 hopsworks = { version = "0.0.1", path = "hopsworks-rs", default-features = false }
 serde = { version = "1", features = ["derive", "rc"] }
-toml = { version = "0.8" }
 color-eyre = { version = "0.6" }
 log = { version = "0.4" }
 env_logger = { version = "0.11" }
