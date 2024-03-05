@@ -56,11 +56,20 @@ pub async fn show_job_info(job_name: &str, project: hopsworks::platform::project
 }
 
 pub async fn show_list_jobs(project: hopsworks::platform::project::Project) {
-    println!(
-        "Listing all jobs within project {}: {:#?}",
-        project.name(),
-        project.get_job_list().await,
-    );
+    println!("Fetching all jobs within project {}:", project.name(),);
+    let jobs: Vec<hopsworks::platform::job::Job> = project
+        .get_jobs()
+        .await
+        .unwrap_or_else(|_| panic!("Failed to fetch jobs for project {}.\n", project.name()));
+    jobs.iter().for_each(|job| {
+        println!(
+            "id: {}, name: {}, type: {}, created at: {}",
+            job.id(),
+            job.name(),
+            job.job_type(),
+            job.creation_time()
+        );
+    });
 }
 
 pub async fn show_list_executions(

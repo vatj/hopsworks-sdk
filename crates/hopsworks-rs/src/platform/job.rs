@@ -36,6 +36,26 @@ impl Job {
             configuration: job_dto.config,
         }
     }
+
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    pub fn id(&self) -> i32 {
+        self.id
+    }
+
+    pub fn job_type(&self) -> &str {
+        self.job_type.as_str()
+    }
+
+    pub fn creation_time(&self) -> &str {
+        self.creation_time.as_str()
+    }
+
+    pub fn href(&self) -> &str {
+        self.href.as_str()
+    }
 }
 
 impl From<JobDTO> for Job {

@@ -101,21 +101,13 @@ impl Project {
     /// #[tokio::main]
     /// async fn main() -> Result<()> {
     ///   let project = hopsworks::login(None).await?;
-    ///   let jobs = project.get_job_list().await?;
+    ///   let jobs = project.get_jobs().await?;
     ///
-    ///   for job in jobs {
-    ///     println!("Job: {:#?}", job);
-    ///
-    ///     # Update configuration and trigger job execution on cluster
-    ///     let mut job_config = job.get_configuration();
-    ///     job_config["driverCores"] = serde_json::Value::from(2);
-    ///     job.save(job_config).await?;
-    ///     job.run(None, false).await?; # do not wait for job to finish to continue execution in client
-    ///   }
+    ///   jobs.iter().foreach(|job| println!("Job: {:#?}", job))
     ///  Ok(())
     /// }
     /// ```
-    pub async fn get_job_list(&self) -> Result<Vec<Job>> {
+    pub async fn get_jobs(&self) -> Result<Vec<Job>> {
         crate::core::platform::job::get_job_list().await
     }
 }
