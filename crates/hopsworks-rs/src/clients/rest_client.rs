@@ -15,12 +15,15 @@ use crate::{
 pub const DEFAULT_CLIENT_URL: &str = "https://c.app.hopsworks.ai/hopsworks-api/api";
 pub const DEFAULT_CLIENT_CERT_DIR: &str = "/tmp/";
 pub const DEFAULT_ENV_HOPSWORKS_API_KEY: &str = "HOPSWORKS_API_KEY";
+pub const DEFAULT_ENV_HOPSWORKS_PROJECT_NAME: &str = "HOPSWORKS_PROJECT_NAME";
+pub const DEFAULT_ENV_HOPSWORKS_URL: &str = "HOPSWORKS_URL";
 
 #[derive(Debug, Clone)]
 pub struct HopsworksClientBuilder {
     url: String,
     api_key: Option<String>,
     cert_dir: String,
+    project_name: Option<String>,
 }
 
 impl Default for HopsworksClientBuilder {
@@ -29,6 +32,7 @@ impl Default for HopsworksClientBuilder {
             url: DEFAULT_CLIENT_URL.to_string(),
             api_key: None,
             cert_dir: DEFAULT_CLIENT_CERT_DIR.to_string(),
+            project_name: None,
         }
     }
 }
@@ -36,6 +40,35 @@ impl Default for HopsworksClientBuilder {
 impl HopsworksClientBuilder {
     pub fn new() -> Self {
         HopsworksClientBuilder::default()
+    }
+
+    /// Create a new HopsworksClientBuilder using environment variables if available
+    /// or the provided backup values.
+    /// Note:
+    ///   - The backup values are only used if the environment variables are not set.
+    ///   - The project_name is optional and can be set to None,
+    ///     it will default to the last used project for this user.
+    pub fn new_from_env_or_provided(
+        backup_api_key: &str,
+        backup_url: &str,
+        backup_project_name: Option<&str>,
+    ) -> Self {
+        let api_key = std::env::var(DEFAULT_ENV_HOPSWORKS_API_KEY)
+            .ok()
+            .or_else(|| Some(backup_api_key.to_string()));
+        let url = std::env::var(DEFAULT_ENV_HOPSWORKS_URL).unwrap_or(backup_url.to_string());
+        let project_name = std::env::var(DEFAULT_ENV_HOPSWORKS_PROJECT_NAME)
+            .ok()
+            .or_else(|| backup_project_name.map(|s| s.to_string()));
+
+        debug!("HopsworksClientBuilder: New client from environment variables.\n url: {}\n  api_key: {:?}\n  project_name: {:?}", url, api_key, project_name);
+
+        HopsworksClientBuilder {
+            url,
+            api_key,
+            cert_dir: DEFAULT_CLIENT_CERT_DIR.to_string(),
+            project_name,
+        }
     }
 
     pub fn with_url(mut self, url: &str) -> Self {
@@ -53,11 +86,19 @@ impl HopsworksClientBuilder {
         self
     }
 
+    pub fn with_project_name(mut self, project_name: &str) -> Self {
+        self.project_name = Some(project_name.to_string());
+        self
+    }
+
     pub async fn build(self) -> Result<HopsworksClient> {
-        let api_key = std::env::var(DEFAULT_ENV_HOPSWORKS_API_KEY).unwrap_or_default();
-        if self.api_key.is_none() && std::env::var(DEFAULT_ENV_HOPSWORKS_API_KEY).is_err() {
+        let api_key = std::env::var(DEFAULT_ENV_HOPSWORKS_API_KEY)
+            .ok()
+            .or(self.api_key);
+        if api_key.is_none() {
             return Err(color_eyre::eyre::eyre!(
-                "No API key provided. Provide an API key using the HOPSWORKS_API_KEY environment variable or the with_api_key() method."
+                "No API key provided. Provide an API key using the {} environment variable or the with_api_key() method of the HopsworksClientBuilder.",
+                DEFAULT_ENV_HOPSWORKS_API_KEY
             ));
         }
 
@@ -67,9 +108,7 @@ impl HopsworksClientBuilder {
         );
         let client = HopsworksClient::new(self.url, self.cert_dir);
 
-        client
-            .set_api_key(Some(self.api_key.unwrap_or(api_key).as_str()))
-            .await;
+        client.set_api_key(api_key.as_deref()).await;
         Ok(client)
     }
 }
@@ -82,6 +121,7 @@ pub struct HopsworksClient {
     api_key: Arc<Mutex<Option<HeaderValue>>>,
     project_id: Arc<Mutex<Option<i32>>>,
     cert_key: Arc<Mutex<Option<String>>>,
+    project_name: Arc<Mutex<Option<String>>>,
 }
 
 impl Default for HopsworksClient {
@@ -97,6 +137,7 @@ impl Default for HopsworksClient {
             api_key: Arc::new(Mutex::new(None)),
             project_id: Arc::new(Mutex::new(None)),
             cert_key: Arc::new(Mutex::new(None)),
+            project_name: Arc::new(Mutex::new(None)),
         }
     }
 }
@@ -129,10 +170,12 @@ impl HopsworksClient {
         info!("Connecting to Hopsworks...");
 
         if self.get_api_key().lock().await.is_none() {
-            panic!("Use an API key to authenticate.")
+            panic!("Use an API key to authenticate. You can provide it via the {} environment variable or via HopsworksClientBuilder.", DEFAULT_ENV_HOPSWORKS_API_KEY)
         }
 
-        let project = self.get_the_project_or_default().await?;
+        let project = self
+            .get_the_project_or_default(self.get_project_name().lock().await.as_deref())
+            .await?;
         self.set_project_id(Some(project.id())).await;
         info!(
             "Connected to Hopsworks project : {} at url {} !",
@@ -168,6 +211,10 @@ impl HopsworksClient {
 
     pub(crate) fn get_project_id(&self) -> Arc<Mutex<Option<i32>>> {
         Arc::clone(&self.project_id)
+    }
+
+    pub fn get_project_name(&self) -> Arc<Mutex<Option<String>>> {
+        Arc::clone(&self.project_name)
     }
 
     pub(crate) fn get_cert_dir(&self) -> Arc<Mutex<String>> {
@@ -264,28 +311,27 @@ impl HopsworksClient {
         Ok(full_url)
     }
 
-    async fn get_the_project_or_default(&self) -> Result<Project> {
+    async fn get_the_project_or_default(&self, project_name: Option<&str>) -> Result<Project> {
         let projects: Vec<ProjectDTO> = get_project_list().await?;
 
         if projects.is_empty() {
             panic!("No project found for this user, please create a project in the UI first.");
         }
 
-        let project_name: String = std::env::var("HOPSWORKS_PROJECT_NAME").unwrap_or_default();
-
-        if project_name.is_empty() {
-            Ok(Project::from(&projects[0]))
-        } else {
-            let project_match: Vec<&ProjectDTO> = projects
+        if let Some(name) = project_name {
+            let mut project_match: Vec<Project> = projects
                 .iter()
-                .filter(|project| project.name == project_name)
+                .filter(|project| project.name == name)
+                .map(Project::from)
                 .collect();
 
-            if project_match.is_empty() {
-                panic!("No project with name {project_name} found for this user.");
+            if let Some(the_project) = project_match.pop() {
+                Ok(the_project)
+            } else {
+                panic!("No project with name {} found for this user.", name);
             }
-
-            Ok(Project::from(project_match[0]))
+        } else {
+            Ok(Project::from(&projects[0]))
         }
     }
 }

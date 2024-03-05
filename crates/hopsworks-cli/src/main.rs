@@ -52,9 +52,16 @@ async fn main() -> Result<()> {
     let args = HopsworksCli::parse();
 
     let profile = get_hopsworks_profile(args.profile.as_deref())?;
-    let hopsworks_client_builder = HopsworksClientBuilder::new()
-        .with_api_key(&profile.user.api_key)
-        .with_url(&profile.cluster.get_api_url());
+
+    let mut hopsworks_client_builder = HopsworksClientBuilder::new_from_env_or_provided(
+        &profile.user.api_key,
+        &profile.cluster.get_api_url(),
+        Some(profile.project.name).as_deref(),
+    );
+    if args.project.is_some() {
+        hopsworks_client_builder =
+            hopsworks_client_builder.with_project_name(args.project.unwrap().as_str());
+    }
 
     let current_project = hopsworks::login(Some(hopsworks_client_builder)).await?;
 
