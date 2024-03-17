@@ -1,14 +1,18 @@
 # hopsworks
 
-Hopsworks-rs is a Rust SDK to interact with the Hopsworks Platform and Feature Store. It is intended to be used in conjunction with the [Hopsworks Feature Store](https://www.hopsworks.ai/the-ml-platform-for-batch-and-real-time-data) to build end-to-end machine learning pipelines. Using Rust and Hopsworks-rs you can put real-time data pipelines, feature engineering, model training and serving in the same system and leverage the power of the Feature Store to build and deploy AI/ML systems faster.
+Hopsworks-rs is a Rust SDK to interact with the Hopsworks Platform and Feature Store. It is intended to be used in conjunction with the [Hopsworks Feature Store](https://www.hopsworks.ai/the-ml-platform-for-batch-and-real-time-data) to build end-to-end machine learning pipelines. Using Rust and Hopsworks-rs you can put real-time data pipelines, feature engineering, model training and serving in the same system and leverage the power of its Feature Store to build and deploy AI/ML systems faster.
 
-As of now the SDK is in early development and only supports a subset of Hopsworks capabilities. The public api should not be considered stable, as it is still unclear whether it will evolve to be more idiomatic Rust or stay closer to the Python SDK for simplicity. The aim is to kickstart a community project. As such contributions are welcome. For production use-case you can checkout the [python or java SDK](https://pypi.org/project/hopsworks/). Much of the implementation is based on the python SDK and can therefore sometimes feel a bit unidiomatic for Rust developers.
+As of now the SDK is in early development and only supports a subset of Hopsworks capabilities. The public api should not be considered stable, as it is still unclear whether it will evolve to be more idiomatic Rust or stay closer to the Python SDK for simplicity. Much of this client implementation is based on the python SDK and can therefore sometimes feel a bit unidiomatic for Rust developers. For production use-case you can checkout the [python or java SDK](https://pypi.org/project/hopsworks/).
+
+Currently, this project is driven by a single person. However there is a lot more to do than what I have time for. As such contributions are welcome. Please reach out or open an issue. This repository also contains some CLI tools to interact with the Hopsworks platform. Again these are hobby projects and receive a corresponding amount of attention and energy.
+
+Disclaimer: This project is not an official client for the Hopsworks Platform and its Feature Store, and is not maintained by the Hopsworks team. It is rather a proof of concept and a personal project to explore the capabilities of Rust in supporting end-to-end machine learning pipelines.
 
 ## Quickstart
 
 ### Step 1: Register for Hopsworks Serverless Platform
 
-If you have your own Hopsworks cluster check out this section.
+If you have your own Hopsworks cluster check out [this section](#connect-to-your-own-hopsworks-cluster).
 
 To get started with minimal setup you can use [Hopsworks Serverless Platform](https://app.hopsworks.ai/) to register for a free account. Once you have registered you can create your project and follow the instructions to create an api key. Save it for later! From there you can head to the examples directory which has a few tutorials or follow the quickstart below to get a feel for hopsworks SDK.
 

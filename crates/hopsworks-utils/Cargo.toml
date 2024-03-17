@@ -1,0 +1,17 @@
+[package]
+name = "hopsworks-utils"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+directories = { version = "5.0" }
+toml = { version = "0.8" }
+
+log = { workspace = true }
+serde = { workspace = true }
+color-eyre = { workspace = true }
