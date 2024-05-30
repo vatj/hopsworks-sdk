@@ -97,7 +97,7 @@ pub use rest_client::HopsworksClientBuilder;
 use rest_client::HopsworksClient;
 use color_eyre::Result;
 use log::{debug, info};
-use project::Project;
+use project::entities::ProjectDTO;
 use tokio::sync::OnceCell;
 
 static HOPSWORKS_CLIENT: OnceCell<HopsworksClient> = OnceCell::const_new();
@@ -107,7 +107,7 @@ async fn get_hopsworks_client() -> &'static HopsworksClient {
     match HOPSWORKS_CLIENT.get() {
         Some(client) => client,
         None => panic!(
-            "First use hopsworks::login( to initialize the Hopsworks client with your credentials."
+            "First use hopsworks::login() to initialize the Hopsworks client with your credentials."
         ),
     }
 }
@@ -153,7 +153,7 @@ async fn get_hopsworks_client() -> &'static HopsworksClient {
 ///
 /// # Panics
 /// If no API key is provided via the `HOPSWORKS_API_KEY` environment variable or via the `api_key` field in the client builder.
-pub async fn login(client_builder: Option<HopsworksClientBuilder>) -> Result<Project> {
+pub async fn login(client_builder: Option<HopsworksClientBuilder>) -> Result<ProjectDTO> {
     info!("Attempting to login to Hopsworks.");
     HOPSWORKS_CLIENT
         .get_or_try_init(|| async { client_builder.unwrap_or_default().build().await })

@@ -2,7 +2,7 @@ use color_eyre::eyre::Result;
 use directories::BaseDirs;
 use log::debug;
 
-pub mod hopsworks_configs;
+use super::entities::{HopsworksProfileConfig, HopsworksTomlConfig};
 
 pub fn get_hopsworks_profiles_config_file() -> Result<std::path::PathBuf> {
     if let Some(base_dirs) = BaseDirs::new() {
@@ -30,11 +30,11 @@ pub fn get_hopsworks_profiles_config_file() -> Result<std::path::PathBuf> {
     }
 }
 
-pub fn get_hopsworks_profiles() -> Result<hopsworks_configs::HopsworksTomlConfig> {
+pub fn get_hopsworks_profiles() -> Result<HopsworksTomlConfig> {
     let config_file = get_hopsworks_profiles_config_file()?;
     let config_str = std::fs::read_to_string(config_file)?;
     debug!("Config file content: {:?}", config_str);
-    let profiles: hopsworks_configs::HopsworksTomlConfig = toml::from_str(&config_str)?;
+    let profiles: HopsworksTomlConfig = toml::from_str(&config_str)?;
     debug!("Available profiles: {:?}", profiles);
 
     Ok(profiles)
@@ -42,7 +42,7 @@ pub fn get_hopsworks_profiles() -> Result<hopsworks_configs::HopsworksTomlConfig
 
 pub fn get_hopsworks_profile(
     profile_name: Option<&str>,
-) -> Result<hopsworks_configs::HopsworksProfileConfig> {
+) -> Result<HopsworksProfileConfig> {
     let mut profiles = get_hopsworks_profiles()?;
     let profile_name = match profile_name {
         Some(name) => name,

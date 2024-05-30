@@ -5,11 +5,9 @@ use std::{path::Path, sync::Arc};
 use tokio::sync::Mutex;
 
 use crate::{
-    core::platform::{
-        credentials::write_locally_project_credentials_on_login, project::get_project_list,
-    },
-    platform::project::Project,
-    repositories::platform::project::entities::ProjectDTO,
+    credentials::controller::write_locally_project_credentials_on_login,
+    project::controller::get_project_list,
+    project::entities::ProjectDTO,
 };
 
 pub const DEFAULT_CLIENT_URL: &str = "https://c.app.hopsworks.ai/hopsworks-api/api";
@@ -166,7 +164,7 @@ impl HopsworksClient {
         HopsworksClientBuilder::new()
     }
 
-    pub async fn login(&self) -> Result<Project> {
+    pub async fn login(&self) -> Result<ProjectDTO> {
         info!("Connecting to Hopsworks...");
 
         if self.get_api_key().lock().await.is_none() {
@@ -176,17 +174,17 @@ impl HopsworksClient {
         let project = self
             .get_the_project_or_default(self.get_project_name().lock().await.as_deref())
             .await?;
-        self.set_project_id(Some(project.id())).await;
+        self.set_project_id(Some(project.id)).await;
         info!(
             "Connected to Hopsworks project : {} at url {} !",
-            project.name(),
+            project.name,
             self.url
         );
 
         let cert_dir = self.get_cert_dir().lock().await.clone();
         self.set_cert_dir(
             Path::new(cert_dir.as_str())
-                .join(project.name())
+                .join(project.name.as_str())
                 .to_str()
                 .unwrap()
                 .to_string(),
@@ -311,27 +309,25 @@ impl HopsworksClient {
         Ok(full_url)
     }
 
-    async fn get_the_project_or_default(&self, project_name: Option<&str>) -> Result<Project> {
+    async fn get_the_project_or_default(&self, project_name: Option<&str>) -> Result<ProjectDTO> {
         let projects: Vec<ProjectDTO> = get_project_list().await?;
 
         if projects.is_empty() {
             panic!("No project found for this user, please create a project in the UI first.");
-        }
+        } else if project_name.is_none() {
+             Ok(projects[0].to_owned())
+        } else {
+            let name = project_name.unwrap();
 
-        if let Some(name) = project_name {
-            let mut project_match: Vec<Project> = projects
+            let opt_match = projects
                 .iter()
-                .filter(|project| project.name == name)
-                .map(Project::from)
-                .collect();
+                .find(|project| project.name == name);
 
-            if let Some(the_project) = project_match.pop() {
-                Ok(the_project)
+            if let Some(the_project) = opt_match {
+                Ok(the_project.to_owned())
             } else {
                 panic!("No project with name {} found for this user.", name);
             }
-        } else {
-            Ok(Project::from(&projects[0]))
         }
     }
 }
