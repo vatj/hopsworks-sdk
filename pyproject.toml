@@ -1,0 +1,24 @@
+[build-system]
+build-backend = "maturin"
+requires = ["maturin>=1.2.0,<2.0.0"]
+
+[project]
+authors = [
+    {name = "Hopsworks AB", email = "info@hopsworks.ai"}, 
+    {name = "Victor Jouffrey", email = "vicatjou@gmail.com"}
+]
+dependencies = []
+name = "hopsworks-sdk"
+maintainers = [
+    {name = "Victor Jouffrey", email = "vicatjou@gmail.com"}
+]
+description = "Python SDK to interact with Hopsworks Platform, Feature Store and Model Registry"
+license = { file = "LICENSE" }
+dynamic = ["version"]
+readme = "README.md"
+requires-python = ">=3.8"
+
+[project.urls]
+documentation = "https://docs.hopsworks.ai"
+repository = "https://github.com/vatj/hopsworks-rs"
+homepage = "https://www.hopsworks.ai/"
