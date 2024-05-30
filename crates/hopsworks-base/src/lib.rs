@@ -91,6 +91,7 @@ pub mod credentials;
 pub mod project;
 pub mod util;
 mod rest_client;
+pub mod profiles;
 
 pub use rest_client::HopsworksClientBuilder;
 use rest_client::HopsworksClient;

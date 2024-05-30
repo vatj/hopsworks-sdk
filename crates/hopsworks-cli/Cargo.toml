@@ -15,7 +15,6 @@ log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
 
-hopsworks-utils = { path = "../hopsworks-utils" }
 hopsworks-base = { path = "../hopsworks-base" }
 hopsworks-platform = { path = "../hopsworks-platform" }
 hopsworks-fs = { path = "../hopsworks-fs" }

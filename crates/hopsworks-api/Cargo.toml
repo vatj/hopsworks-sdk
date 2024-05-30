@@ -22,7 +22,6 @@ tracing-subscriber = { version = "0.3", default-features = false, features = [
     "env-filter",
     "fmt",
 ] }
-hopsworks-utils = { path = "../hopsworks-utils" }
 hopsworks-base = { path = "../hopsworks-base" }
 hopsworks-platform = { path = "../hopsworks-platform" }
 hopsworks-fs = { path = "../hopsworks-fs"}
