@@ -1,13 +1,31 @@
-[workspace]
-resolver = "2"
-members = ["crates/*"]
+[dependencies]
+hopsworks-rs = {path = "src/hopsworks-rs", default-features = false}
+hopsworks-cli = {path = "src/hopsworks-cli", default-features = false}
+hopsworks-utils = {path = "src/hopsworks-utils", default-features = false}
+lazy_static = { version = "1.4" }
+pyo3 = {workspace = true, optional = true}
+pyo3-log = {workspace = true, optional = true}
 
-[workspace.package]
+[features]
+default = ["python"]
+python = ["hopsworks-rs/python"]
+
+[lib]
+crate-type = ["cdylib"]
+name = "hopsworks_rs"
+
+[package]
+name = "hopsworks-sdk"
+publish = false
 version = "0.0.1"
 authors = ["Victor Jouffrey <vicatjou@gmail.com>"]
 edition = "2021"
 license = "AGPL-3.0"
 repository = "https://github.com/vatj/hopsworks-rs"
+
+[workspace]
+resolver = "2"
+members = ["src/*"]
 
 
 [workspace.dependencies]
