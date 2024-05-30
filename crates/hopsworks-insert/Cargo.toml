@@ -1,0 +1,18 @@
+[package]
+name = "hopsworks-insert"
+edition = { workspace = true }
+version = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+color-eyre = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+tokio = { workspace = true }
+polars = { workspace = true }
+
+rdkafka = { version = "0.36.0", features = ["tokio", "libz", "ssl"] }
+apache-avro = { version = "0.16", features = ["derive"] }
+indicatif = { version = "0.17" }

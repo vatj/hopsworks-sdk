@@ -1,2 +1,2 @@
-pub mod core
-mod cluster_api
+pub mod core;
+mod cluster_api;

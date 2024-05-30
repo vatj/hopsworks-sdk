@@ -9,14 +9,44 @@ repository = { workspace = true }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { workspace = true }
 color-eyre = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
 
+# Debug and Error handling related dependencies
+anyhow = { version = "1.0" }
+tracing-log = { version = "0.2" }
+tracing-subscriber = { version = "0.3", default-features = false, features = [
+    "ansi",
+    "env-filter",
+    "fmt",
+] }
 hopsworks-utils = { path = "../hopsworks-utils" }
 hopsworks-base = { path = "../hopsworks-base" }
 hopsworks-platform = { path = "../hopsworks-platform" }
-hopsworks-fs = { path = "../hopsworks-fs", features=["entities"]}
+hopsworks-fs = { path = "../hopsworks-fs"}
 
+[[example]]
+name = "fraud_batch_feature_pipeline"
+path = "examples/fraud_batch/fraud_batch_feature_pipeline.rs"
+
+[[example]]
+name = "fraud_batch_training_pipeline"
+path = "examples/fraud_batch/fraud_batch_training_pipeline.rs"
+
+[[example]]
+name = "fraud_batch_dev"
+path = "examples/fraud_batch/fraud_batch_dev.rs"
+
+[[example]]
+name = "basic_stream_feature_group"
+path = "examples/snippets/basic_stream_feature_group.rs"
+
+[[example]]
+name = "read_fg_arrow_flight"
+path = "examples/snippets/read_fg_arrow_flight.rs"
+
+[[example]]
+name = "read_fg_online"
+path = "examples/snippets/read_fg_online.rs"

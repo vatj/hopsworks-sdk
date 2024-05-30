@@ -1,4 +1,3 @@
-#[cfg(feature = "python")]
 pub mod pylib {
     use lazy_static::lazy_static;
     use pyo3::prelude::*;

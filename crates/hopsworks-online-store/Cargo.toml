@@ -1,0 +1,19 @@
+[package]
+name = "hopsworks-online-store"
+edition = { workspace = true }
+version = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+color-eyre = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+tokio = { workspace = true }
+
+# connectorx = { version = "0.3.3", features = [
+#     "src_mysql",
+#     "dst_arrow2",
+#     "dst_arrow",
+# ] }
