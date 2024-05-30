@@ -4,8 +4,7 @@ use color_eyre::Result;
 use hopsworks::HopsworksClientBuilder;
 use hopsworks_utils::get_hopsworks_profile;
 
-mod job;
-mod project;
+mod platform;
 
 /// A CLI to interact with the Hopsworks Platform without leaving the terminal.
 /// Requires a valid API key to be set in the environment variable `HOPSWORKS_API_KEY`.

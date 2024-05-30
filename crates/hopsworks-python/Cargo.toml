@@ -1,0 +1,15 @@
+[dependencies]
+hopsworks-base = { path = "../hopsworks-base", default-features = false}
+hopsworks-platform = { path = "../hopsworks-core", default-features = false}
+hopsworks-fs = { path = "../hopsworks-fs", default-features = false}
+hopsworks-offline-store = { path = "../hopsworks-offline-store", default-features = false}
+hopsworks-online-store = { path = "../hopsworks-online-store", default-features = false}
+hopsworks-api = { path = "../hopsworks-api", default-features = false}
+
+lazy_static = { version = "1.4" }
+pyo3 = {workspace = true, optional = true}
+pyo3-log = {workspace = true, optional = true}
+
+[lib]
+crate-type = ["cdylib"]
+name = "hopsworks_rs"
