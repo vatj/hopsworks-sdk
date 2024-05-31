@@ -2,7 +2,7 @@ use color_eyre::Result;
 use reqwest::Method;
 
 use super::JobExecutionDTO;
-use crate::get_hopsworks_client;
+use hopsworks_base::get_hopsworks_client;
 
 pub async fn start_new_execution_for_named_job(
     job_name: &str,

@@ -1,7 +1,7 @@
 use color_eyre::Result;
-use polars::prelude::{DataType, Schema, TimeUnit};
+use polars::{datatypes::CategoricalOrdering, prelude::{DataType, Schema, TimeUnit}};
 
-use crate::repositories::feature_store::feature::payloads::NewFeaturePayload;
+use crate::cluster_api::feature_store::feature::payloads::NewFeaturePayload;
 
 pub fn extract_features_from_polars_schema(schema: Schema) -> Result<Vec<NewFeaturePayload>> {
     Ok(schema
@@ -49,7 +49,7 @@ pub fn convert_polars_data_type(data_type: &DataType) -> &str {
         DataType::Duration(TimeUnit::Microseconds) => "bigint",
         DataType::Date => "date",
         DataType::Utf8 => "string",
-        DataType::Categorical(None) => "string",
+        DataType::Categorical(None, _) => "string",
         _ => panic!("DataType {:?} not supported.", data_type),
     }
 }

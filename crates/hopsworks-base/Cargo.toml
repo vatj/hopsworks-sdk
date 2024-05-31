@@ -14,7 +14,8 @@ log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
 serde ={ workspace = true , features = ["derive"] }
+reqwest = { workspace = true }
+
 directories = { version = "5.0" }
 toml = { version = "0.8" }
 
-reqwest = { version = "0.12", features = ["json", "native-tls", "stream"] }

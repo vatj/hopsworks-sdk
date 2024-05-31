@@ -10,4 +10,8 @@ repository = { workspace = true }
 
 [dependencies]
 polars = { workspace = true }
-serde = { version = "1.0", features = ["derive", "rc"] }
+color-eyre ={ workspace = true }
+serde = { workspace = true }
+
+hopsworks-base = { path = "../hopsworks-base" }
+hopsworks-platform ={ path = "../hopsworks-platform" }

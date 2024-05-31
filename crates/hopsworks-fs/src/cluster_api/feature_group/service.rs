@@ -2,7 +2,7 @@ use color_eyre::Result;
 use reqwest::{Method, StatusCode};
 
 use super::{entities::FeatureGroupDTO, payloads::NewFeatureGroupPayload};
-use crate::get_hopsworks_client;
+use hopsworks_base::get_hopsworks_client;
 
 pub async fn get_feature_group_by_name_and_version(
     feature_store_id: i32,

@@ -7,7 +7,7 @@ use crate::{
         join::JoinType,
         JoinQuery, Query, QueryFilter, QueryFilterOrLogic, QueryLogic,
     },
-    repositories::feature_store::{
+    cluster_api::feature_store::{
         feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO,
     },
 };

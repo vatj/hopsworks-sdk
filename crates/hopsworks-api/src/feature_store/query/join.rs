@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::feature_store::query::entities::JoinQueryDTO;
+use crate::cluster_api::feature_store::query::entities::JoinQueryDTO;
 
 use super::Query;
 

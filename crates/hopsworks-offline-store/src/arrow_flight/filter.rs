@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::{
     feature_store::query::filter::{QueryFilterCondition, QueryLogicType},
-    repositories::feature_store::storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
+    cluster_api::feature_store::storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -1,8 +1,7 @@
 use color_eyre::Result;
 use reqwest::Method;
 
-use crate::get_hopsworks_client;
-
+use hopsworks_base::get_hopsworks_client;
 use super::entities::StringMessageResponse;
 
 pub async fn get_flyingduck_enabled() -> Result<bool> {

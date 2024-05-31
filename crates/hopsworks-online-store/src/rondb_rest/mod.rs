@@ -1,3 +1,3 @@
 pub mod controller;
 mod client;
-mod feature_store_api;
+mod rondb_feature_store_api;

@@ -10,7 +10,7 @@ use crate::{
         feature_view::{transformation_function::TransformationFunction, FeatureView},
         query::{builder::BatchQueryOptions, read_option, Query},
     },
-    repositories::feature_store::{
+    cluster_api::feature_store::{
         feature::entities::{FeatureDTO, TrainingDatasetFeatureDTO},
         feature_group::entities::FeatureGroupDTO,
         feature_view::{self, payloads::NewFeatureViewPayload},

@@ -1,6 +1,6 @@
 use color_eyre::Result;
 
-use crate::{platform::job::Job, repositories::platform::job};
+use crate::{platform::job::Job, cluster_api::platform::job};
 
 pub async fn get_job_by_name(job_name: &str) -> Result<Job> {
     Ok(Job::from(job::service::get_job_by_name(job_name).await?))

@@ -1,4 +1,4 @@
-use crate::repositories::feature_store::storage_connector::{
+use crate::cluster_api::feature_store::storage_connector::{
     entities::{FeatureStoreJdbcConnectorDTO, FeatureStoreKafkaConnectorDTO},
     service,
 };

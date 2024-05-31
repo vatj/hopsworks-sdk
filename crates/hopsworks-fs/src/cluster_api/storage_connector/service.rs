@@ -2,7 +2,7 @@ use color_eyre::Result;
 use log::debug;
 use reqwest::Method;
 
-use crate::get_hopsworks_client;
+use hopsworks_base::get_hopsworks_client;
 
 use super::entities::{
     FeatureStoreJdbcConnectorDTO, FeatureStoreKafkaConnectorDTO, StorageConnectorDTO,

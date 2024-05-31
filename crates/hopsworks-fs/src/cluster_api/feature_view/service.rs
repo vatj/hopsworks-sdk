@@ -5,9 +5,8 @@ use super::{
     entities::FeatureViewDTO,
     payloads::{FeatureViewBatchQueryPayload, NewFeatureViewPayload},
 };
-use crate::{
-    get_hopsworks_client,
-    repositories::{
+use hopsworks_base::get_hopsworks_client;
+use crate::cluster_api::{
         feature_store::{
             query::entities::QueryDTO,
             training_dataset::{
@@ -16,8 +15,7 @@ use crate::{
             },
         },
         platform::job::JobDTO,
-    },
-};
+    };
 
 pub async fn get_feature_view_by_name_and_version(
     feature_store_id: i32,

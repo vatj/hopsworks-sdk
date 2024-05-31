@@ -9,10 +9,10 @@ use polars::prelude::DataFrame;
 use crate::clients::arrow_flight::client::HopsworksArrowFlightClientBuilder;
 use crate::core::feature_store::storage_connector;
 use crate::feature_store::query::read_option::{OfflineReadOptions, OnlineReadOptions};
-use crate::repositories::platform::variables::service::get_loadbalancer_external_domain;
+use crate::cluster_api::platform::variables::service::get_loadbalancer_external_domain;
 use crate::{
     feature_store::query::Query,
-    repositories::feature_store::{
+    cluster_api::feature_store::{
         query,
         query::{entities::FeatureStoreQueryDTO, payloads::NewQueryPayload},
     },

@@ -1,7 +1,7 @@
 use color_eyre::Result;
 
-use crate::repositories::platform::kafka;
-use crate::repositories::platform::kafka::entities::KafkaSubjectDTO;
+use crate::cluster_api::platform::kafka;
+use crate::cluster_api::platform::kafka::entities::KafkaSubjectDTO;
 
 pub async fn get_project_broker_endpoints(external: bool) -> Result<Vec<String>> {
     let brokers_dto = kafka::service::get_project_broker_endpoints(external).await?;

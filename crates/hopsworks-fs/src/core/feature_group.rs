@@ -8,7 +8,7 @@ use crate::{
     },
     kafka_producer::produce_df,
     platform::job_execution::JobExecution,
-    repositories::feature_store::{
+    cluster_api::feature_store::{
         feature::payloads::NewFeaturePayload,
         feature_group::{self, entities::FeatureGroupDTO, payloads::NewFeatureGroupPayload},
     },

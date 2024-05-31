@@ -1,14 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    feature_store::feature_group::FeatureGroup,
-    repositories::{
-        feature_store::{
-            feature::entities::FeatureDTO, statistics_config::entities::StatisticsConfigDTO,
-        },
-        platform::users::UserDTO,
-    },
-};
+use crate::cluster_api::{feature::entities::FeatureDTO, statistics_config::entities::StatisticsConfigDTO};
+use hopsworks_platform::cluster_api::users::UserDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

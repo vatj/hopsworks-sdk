@@ -7,7 +7,7 @@ use crate::{
     feature_store::{
         feature_group::statistics_config::StatisticsConfig, query::QueryFilterOrLogic,
     },
-    repositories::feature_store::{
+    cluster_api::feature_store::{
         storage_connector::entities::StorageConnectorDTO,
         training_dataset::payloads::TrainingDatasetSplitSizes,
     },

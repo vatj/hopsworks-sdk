@@ -4,7 +4,7 @@
 //! but it can be used to get information about the user that is logged in to the SDK.
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::platform::users::UserDTO;
+use crate::cluster_api::platform::users::UserDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {

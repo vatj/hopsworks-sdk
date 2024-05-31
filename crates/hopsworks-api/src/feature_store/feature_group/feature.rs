@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     feature_store::query::{filter::QueryFilterCondition, QueryFilter, QueryFilterOrLogic},
-    repositories::feature_store::feature::entities::FeatureDTO,
+    hopsworks_fs::cluster_api::feature_store::feature::entities::FeatureDTO,
 };
 
 /// Feature entity gathering metadata about a feature in a [`FeatureGroup`][super::FeatureGroup].

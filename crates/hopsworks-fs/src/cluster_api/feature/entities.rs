@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     feature_store::feature_group::feature::Feature,
-    repositories::feature_store::{
+    cluster_api::feature_store::{
         feature_group::entities::FeatureGroupDTO,
         transformation_function::entities::TransformationFunctionDTO,
     },

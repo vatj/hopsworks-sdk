@@ -2,7 +2,7 @@ use color_eyre::Result;
 
 use crate::{
     feature_store::feature_view::transformation_function::TransformationFunction,
-    repositories::feature_store::transformation_function,
+    cluster_api::feature_store::transformation_function,
 };
 
 pub async fn get_transformation_function_by_name_and_version(

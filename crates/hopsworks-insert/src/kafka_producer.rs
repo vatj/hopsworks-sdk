@@ -10,10 +10,10 @@ use rdkafka::ClientConfig;
 use std::time::Duration;
 use tokio::task::JoinHandle;
 
-use crate::core::platform::kafka::get_kafka_topic_subject;
-use crate::get_hopsworks_client;
-use crate::repositories::feature_store::storage_connector::entities::FeatureStoreKafkaConnectorDTO;
-use crate::repositories::platform::kafka::entities::KafkaSubjectDTO;
+use hopsworks_base::get_hopsworks_client;
+use hopsworks_platform::core::kafka::get_kafka_topic_subject;
+use hopsworks_fs::cluster_api::feature_store::storage_connector::entities::FeatureStoreKafkaConnectorDTO;
+use hopsworks_platform::cluster_api::kafka::entities::KafkaSubjectDTO;
 
 async fn setup_future_producer(
     kafka_connector: FeatureStoreKafkaConnectorDTO,
@@ -119,7 +119,7 @@ fn convert_df_row_to_avro_record<'a>(
             DataType::Binary => todo!(),
             DataType::Array(_, _) => todo!(),
             DataType::List(_) => todo!(),
-            DataType::Categorical(_) => todo!(),
+            DataType::Categorical(_, _) => todo!(),
             DataType::Struct(_) => todo!(),
             DataType::Unknown => todo!(),
         }

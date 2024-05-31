@@ -3,7 +3,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-use crate::{platform::file_system::UploadOptions, repositories::platform::file_system::service};
+use crate::{core::file_system::UploadOptions, cluster_api::file_system::service};
 
 const FLOW_PERMANENT_ERRORS_STATUS: [reqwest::StatusCode; 5] = [
     reqwest::StatusCode::NOT_FOUND,

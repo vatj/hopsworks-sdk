@@ -7,7 +7,7 @@ use crate::{
     feature_store::feature_view::training_dataset_builder::{
         TrainingDatasetBuilder, TrainingDatasetBuilderState,
     },
-    repositories::{
+    cluster_api::{
         feature_store::{
             feature_view::service as feature_view_service,
             query::entities::QueryDTO,

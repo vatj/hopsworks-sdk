@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     core::platform::job_execution::start_new_execution_for_named_job,
-    repositories::platform::job::JobDTO,
+    cluster_api::platform::job::JobDTO,
 };
 
 use super::job_execution::JobExecution;

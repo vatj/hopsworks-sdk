@@ -1,7 +1,7 @@
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::platform::job_execution::JobExecutionDTO;
+use crate::cluster_api::platform::job_execution::JobExecutionDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JobExecutionUserDTO {

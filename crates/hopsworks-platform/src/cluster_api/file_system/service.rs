@@ -1,7 +1,8 @@
 use color_eyre::Result;
 use reqwest::Method;
 
-use crate::{core::platform::file_system::util::FlowBaseParams, get_hopsworks_client};
+use crate::core::platform::file_system::util::FlowBaseParams;
+use hopsworks_base::get_hopsworks_client;
 
 pub async fn remove(path: &str) -> Result<()> {
     let resp = get_hopsworks_client()

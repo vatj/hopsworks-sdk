@@ -21,7 +21,7 @@ use crate::{
         },
     },
     feature_store::query::Query,
-    repositories::feature_store::feature_view::entities::FeatureViewDTO,
+    cluster_api::feature_store::feature_view::entities::FeatureViewDTO,
 };
 use std::collections::HashMap;
 

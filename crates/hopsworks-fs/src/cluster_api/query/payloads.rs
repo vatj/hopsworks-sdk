@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     feature_store::query::{join::JoinType, JoinQuery, Query},
-    repositories::feature_store::{
+    cluster_api::feature_store::{
         feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO,
     },
 };

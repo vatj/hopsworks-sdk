@@ -102,7 +102,7 @@ use tokio::sync::OnceCell;
 
 static HOPSWORKS_CLIENT: OnceCell<HopsworksClient> = OnceCell::const_new();
 
-async fn get_hopsworks_client() -> &'static HopsworksClient {
+pub async fn get_hopsworks_client() -> &'static HopsworksClient {
     debug!("Access global Hopsworks Client");
     match HOPSWORKS_CLIENT.get() {
         Some(client) => client,

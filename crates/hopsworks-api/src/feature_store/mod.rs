@@ -17,7 +17,7 @@ use crate::{
         training_dataset::get_training_dataset_by_name_and_version,
         transformation_function::get_transformation_function_by_name_and_version,
     },
-    repositories::feature_store::entities::FeatureStoreDTO,
+    cluster_api::feature_store::entities::FeatureStoreDTO,
 };
 
 use self::{

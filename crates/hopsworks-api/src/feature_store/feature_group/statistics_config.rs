@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::feature_store::statistics_config::entities::StatisticsConfigDTO;
+use hopsworks_fs::cluster_api::feature_store::statistics_config::entities::StatisticsConfigDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct StatisticsConfig {

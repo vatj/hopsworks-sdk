@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     feature_store::query::builder::BatchQueryOptions,
-    repositories::feature_store::{
+    cluster_api::feature_store::{
         feature::entities::TrainingDatasetFeatureDTO,
         query::entities::{FeatureStoreQueryDTO, QueryDTO},
     },

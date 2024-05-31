@@ -15,7 +15,7 @@ use crate::{
         read_query_from_online_feature_store, read_with_arrow_flight_client,
     },
     feature_store::feature_group::{feature::Feature, FeatureGroup},
-    repositories::feature_store::query::entities::QueryDTO,
+    cluster_api::feature_store::query::entities::QueryDTO,
 };
 
 use self::read_option::{OfflineReadOptions, OnlineReadOptions};

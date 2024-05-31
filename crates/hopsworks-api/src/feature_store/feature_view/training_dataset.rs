@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::repositories::feature_store::training_dataset::entities::TrainingDatasetDTO;
+use crate::cluster_api::feature_store::training_dataset::entities::TrainingDatasetDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TrainingDataset {
