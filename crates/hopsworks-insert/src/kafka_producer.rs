@@ -10,10 +10,10 @@ use rdkafka::ClientConfig;
 use std::time::Duration;
 use tokio::task::JoinHandle;
 
-use hopsworks_base::get_hopsworks_client;
-use hopsworks_platform::core::kafka::get_kafka_topic_subject;
-use hopsworks_fs::cluster_api::feature_store::storage_connector::entities::FeatureStoreKafkaConnectorDTO;
-use hopsworks_platform::cluster_api::kafka::entities::KafkaSubjectDTO;
+use hopsworks_internal::get_hopsworks_client;
+use hopsworks_core::core::platform::kafka::get_kafka_topic_subject;
+use hopsworks_core::hopsworks_internal::feature_store::storage_connector::entities::FeatureStoreKafkaConnectorDTO;
+use hopsworks_core::hopsworks_internal::platform::kafka::entities::KafkaSubjectDTO;
 
 async fn setup_future_producer(
     kafka_connector: FeatureStoreKafkaConnectorDTO,

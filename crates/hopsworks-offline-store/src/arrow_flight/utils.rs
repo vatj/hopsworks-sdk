@@ -6,7 +6,7 @@ use crate::{
         feature_group::{feature::Feature, FeatureGroup},
         query::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
     },
-    cluster_api::feature_store::storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
+    hopsworks_internal::feature_store::storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
 };
 
 use super::filter::{

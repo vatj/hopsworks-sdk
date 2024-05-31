@@ -1,0 +1,23 @@
+[package]
+name = "hopsworks-core"
+edition = { workspace = true }
+version = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+color-eyre = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+reqwest = { workspace = true }
+serde_json = { workspace = true }
+hopsworks-internal = { workspace = true}
+
+indicatif = { version = "0.17" }
+chrono ={ version = "0.4" }
+

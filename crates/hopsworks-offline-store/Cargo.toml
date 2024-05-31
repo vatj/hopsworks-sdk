@@ -11,10 +11,7 @@ color-eyre = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
-
-hopsworks-base ={ path = "../hopsworks-base" }
-hopsworks-fs = { path = "../hopsworks-fs" }
-hopsworks-platform = { path = "../hopsworks-platform" }
+hopsworks-internal = { workspace = true }
 
 arrow-format = { version = "0.8.1", features = [
     "flight-data",
