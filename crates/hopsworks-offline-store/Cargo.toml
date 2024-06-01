@@ -11,6 +11,7 @@ color-eyre = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
+polars ={ workspace = true, optional = true}
 hopsworks-internal = { workspace = true }
 
 arrow-format = { version = "0.8.1", features = [
@@ -20,8 +21,13 @@ arrow-format = { version = "0.8.1", features = [
 arrow2 = { version = "0.18", features = ["io_flight", "default", "arrow"] }
 arrow-schema = { version = "51.0.0" }
 arrow-ipc = { version = "51.0.0" }
-arrow-flight = { version = "51.0.0" }
+arrow-flight = { version = "51.0.0", optional = true}
 tonic = { version = "0.11", features = ["transport", "tls"] }
 ahash = { version = "0.8.6" }
 bytes = { version = "1.5.0" }
 futures = { version = "0.3" }
+
+
+[features]
+arrow_flight = ["dep:arrow-flight"]
+polars = ["dep:polars"]

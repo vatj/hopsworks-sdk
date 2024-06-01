@@ -4,11 +4,7 @@ use reqwest::{header::HeaderValue, Method};
 use std::{path::Path, sync::Arc};
 use tokio::sync::Mutex;
 
-use crate::{
-    credentials::controller::write_locally_project_credentials_on_login,
-    project::controller::get_project_list,
-    project::entities::ProjectDTO,
-};
+use crate::platform::{credentials::helper::write_locally_project_credentials_on_login, project::{entities::{ProjectAndUserDTO, ProjectDTO}, service::get_project_and_user_list}};
 
 pub const DEFAULT_CLIENT_URL: &str = "https://c.app.hopsworks.ai/hopsworks-api/api";
 pub const DEFAULT_CLIENT_CERT_DIR: &str = "/tmp/";
@@ -207,7 +203,7 @@ impl HopsworksClient {
         Arc::clone(&self.cert_key)
     }
 
-    pub(crate) fn get_project_id(&self) -> Arc<Mutex<Option<i32>>> {
+    pub fn get_project_id(&self) -> Arc<Mutex<Option<i32>>> {
         Arc::clone(&self.project_id)
     }
 
@@ -310,21 +306,21 @@ impl HopsworksClient {
     }
 
     async fn get_the_project_or_default(&self, project_name: Option<&str>) -> Result<ProjectDTO> {
-        let projects: Vec<ProjectDTO> = get_project_list().await?;
+        let projects: Vec<ProjectAndUserDTO> = get_project_and_user_list().await?;
 
         if projects.is_empty() {
             panic!("No project found for this user, please create a project in the UI first.");
         } else if project_name.is_none() {
-             Ok(projects[0].to_owned())
+             Ok(projects[0].project.to_owned())
         } else {
             let name = project_name.unwrap();
 
             let opt_match = projects
                 .iter()
-                .find(|project| project.name == name);
+                .find(|project| project.project.name == name);
 
             if let Some(the_project) = opt_match {
-                Ok(the_project.to_owned())
+                Ok(the_project.project.to_owned())
             } else {
                 panic!("No project with name {} found for this user.", name);
             }

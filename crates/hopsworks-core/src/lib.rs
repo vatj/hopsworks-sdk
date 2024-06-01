@@ -6,6 +6,7 @@ pub mod feature_store;
 pub mod platform;
 
 pub use hopsworks_internal::HopsworksClientBuilder;
+pub use platform::project::Project;
 
 pub async fn login(client_builder: Option<HopsworksClientBuilder>) -> Result<Project> {
     info!("Attempting to login to Hopsworks.");

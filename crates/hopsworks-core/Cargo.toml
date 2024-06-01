@@ -21,3 +21,12 @@ hopsworks-internal = { workspace = true}
 indicatif = { version = "0.17" }
 chrono ={ version = "0.4" }
 
+polars ={ workspace = true, optional = true}
+hopsworks-offline-store = { workspace = true, optional = true, features = ["arrow_flight"]}
+
+
+[features]
+default = []
+polars_insert = ["dep:polars"]
+read_arrow_flight_offline_store = ["dep:hopsworks-offline-store"]
+

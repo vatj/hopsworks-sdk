@@ -1,22 +1,15 @@
 use color_eyre::Result;
-use connectorx::prelude::{Arrow2Destination, Dispatcher, MySQLSource};
-use connectorx::sources::mysql::BinaryProtocol;
-use connectorx::sql::CXQuery;
-use connectorx::transports::MySQLArrow2Transport;
 use log::debug;
 use polars::prelude::DataFrame;
 
-use crate::clients::arrow_flight::client::HopsworksArrowFlightClientBuilder;
-use crate::core::feature_store::storage_connector;
+use crate::controller::feature_store::storage_connector;
 use crate::feature_store::query::read_option::{OfflineReadOptions, OnlineReadOptions};
-use crate::hopsworks_internal::platform::variables::service::get_loadbalancer_external_domain;
-use crate::{
-    feature_store::query::Query,
-    hopsworks_internal::feature_store::{
+use hopsworks_internal::platform::variables::service::get_loadbalancer_external_domain;
+use hopsworks_internal::feature_store::{
         query,
         query::{entities::FeatureStoreQueryDTO, payloads::NewQueryPayload},
-    },
-};
+    };
+use crate::feature_store::query::Query;
 
 pub async fn construct_query(query: &Query) -> Result<FeatureStoreQueryDTO> {
     let query_payload = NewQueryPayload::from(query);
@@ -62,73 +55,4 @@ pub async fn build_mysql_connection_url_from_storage_connector(
     debug!("Connection string: {}", connection_string);
 
     Ok(connection_string)
-}
-
-pub async fn read_query_from_online_feature_store(
-    query: &Query,
-    online_read_options: Option<OnlineReadOptions>,
-) -> Result<DataFrame> {
-    let _online_read_options = online_read_options.unwrap_or_default();
-    let connection_string = build_mysql_connection_url_from_storage_connector(
-        query.left_feature_group().feature_store_id(),
-    )
-    .await?;
-    let builder = MySQLSource::<BinaryProtocol>::new(connection_string.as_str(), 2).unwrap();
-
-    let constructed_query = construct_query(query).await?;
-    let queries = vec![CXQuery::from(&constructed_query.query_online)];
-    let mut destination = Arrow2Destination::new();
-
-    let dispatcher = Dispatcher::<
-        MySQLSource<BinaryProtocol>,
-        Arrow2Destination,
-        MySQLArrow2Transport<BinaryProtocol>,
-    >::new(builder, &mut destination, &queries, None);
-    dispatcher.run().unwrap();
-
-    let df: DataFrame = destination.polars().unwrap();
-
-    Ok(df)
-}
-
-pub async fn read_with_arrow_flight_client(
-    query_object: Query,
-    offline_read_options: Option<OfflineReadOptions>,
-) -> Result<DataFrame> {
-    // Create Feature Store Query based on query object obtained via fg.select()
-    let _offline_read_options = offline_read_options.unwrap_or_default();
-    let feature_store_query_dto = construct_query(&query_object).await?;
-
-    // Create Arrow Flight Client
-    let mut arrow_flight_client = HopsworksArrowFlightClientBuilder::default().build().await?;
-
-    // Extract relevant query string
-    let query_str = feature_store_query_dto
-        .pit_query_asof
-        .clone()
-        .or(Some(feature_store_query_dto.query.clone()))
-        .unwrap_or_else(|| {
-            panic!(
-                "No query string found in Feature Store Query DTO {:#?}.",
-                feature_store_query_dto
-            )
-        });
-
-    // Extract on-demand feature group aliases
-    let on_demand_fg_aliases = feature_store_query_dto
-        .on_demand_feature_groups
-        .iter()
-        .map(|fg| fg.name.clone())
-        .collect();
-
-    // Use arrow flight client methods to convert query to arrow flight payload
-    let query_payload = arrow_flight_client.create_query_object(
-        query_object.clone(),
-        query_str,
-        on_demand_fg_aliases,
-    )?;
-
-    let df = arrow_flight_client.read_query(query_payload).await?;
-
-    Ok(df)
 }

@@ -23,12 +23,12 @@ pub struct QueryDTO {
 #[serde(rename_all = "camelCase")]
 pub struct FeatureStoreQueryDTO {
     href: Option<String>,
-    pub(crate) query: String,
-    pub(crate) query_online: String,
-    pub(crate) pit_query: Option<String>,
-    pub(crate) pit_query_asof: Option<String>,
-    pub(crate) hudi_cached_feature_groups: Vec<FeatureGroupDTO>,
-    pub(crate) on_demand_feature_groups: Vec<FeatureGroupDTO>,
+    pub query: String,
+    pub query_online: String,
+    pub pit_query: Option<String>,
+    pub pit_query_asof: Option<String>,
+    pub hudi_cached_feature_groups: Vec<FeatureGroupDTO>,
+    pub on_demand_feature_groups: Vec<FeatureGroupDTO>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

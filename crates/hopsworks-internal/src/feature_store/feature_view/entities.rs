@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::crate::feature_store::{
+use crate::feature_store::{
     {query::entities::QueryDTO, statistics_config::entities::StatisticsConfigDTO},
 };
-use crate::crate::platform::users::UserDTO;
+use crate::platform::users::UserDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

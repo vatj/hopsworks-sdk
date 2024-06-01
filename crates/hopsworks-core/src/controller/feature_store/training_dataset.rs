@@ -3,11 +3,17 @@ use log::debug;
 use polars::frame::DataFrame;
 
 use crate::{
-    core::feature_store::query::construct_query,
+    controller::feature_store::query::construct_query,
     feature_store::feature_view::training_dataset_builder::{
         TrainingDatasetBuilder, TrainingDatasetBuilderState,
     },
-    hopsworks_internal::{
+    {
+        feature_store::feature_view::{training_dataset::TrainingDataset, FeatureView},
+        feature_store::query::Query,
+    },
+};
+
+use hopsworks_internal::{
         feature_store::{
             feature_view::service as feature_view_service,
             query::entities::QueryDTO,
@@ -20,12 +26,7 @@ use crate::{
             },
         },
         platform::job::JobDTO,
-    },
-    {
-        feature_store::feature_view::{training_dataset::TrainingDataset, FeatureView},
-        feature_store::query::Query,
-    },
-};
+    };
 
 pub async fn create_train_test_split() -> Result<()> {
     todo!("create_train_test_split is not implemented");

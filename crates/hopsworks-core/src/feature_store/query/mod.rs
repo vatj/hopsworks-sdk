@@ -359,3 +359,19 @@ impl From<&Query> for NewQueryPayload {
         }
     }
 }
+
+impl From<&BatchQueryOptions> for FeatureViewBatchQueryPayload {
+    fn from(options: &BatchQueryOptions) -> Self {
+        Self {
+            start_time: options.start_time.map(|t| t.timestamp_millis()),
+            end_time: options.end_time.map(|t| t.timestamp_millis()),
+            td_version: options.td_version,
+            with_label: options.with_label,
+            with_primary_keys: options.with_primary_keys,
+            with_event_time: options.with_event_time,
+            training_helper_columns: options.training_helper_columns.clone(),
+            inference_helper_columns: options.inference_helper_columns.clone(),
+            is_hive_engine: false,
+        }
+    }
+}

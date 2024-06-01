@@ -1,3 +1,5 @@
 pub mod entities;
-pub mod payloads;
 pub mod service;
+
+#[cfg(feature = "arrow_flight_connector")]
+pub mod arrow_flight_connector;

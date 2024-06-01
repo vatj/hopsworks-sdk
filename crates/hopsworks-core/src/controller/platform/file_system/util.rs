@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UploadOptionsInternal {
+pub struct UploadOptions {
     pub chunk_size: usize,
     pub simultaneous_uploads: usize,
     pub max_chunk_retries: i32,
@@ -88,19 +88,7 @@ pub async fn prepare_upload(
     Ok((local_path, params))
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct FlowBaseParams {
-    template_id: i32,
-    flow_chunk_size: usize,
-    pub(super) flow_total_size: usize,
-    flow_identifier: String,
-    pub(super) flow_filename: String,
-    flow_relative_path: String,
-    flow_total_chunks: usize,
-    flow_current_chunk_size: usize,
-    flow_chunk_number: usize,
-}
+
 
 impl FlowBaseParams {
     pub fn new(chunk_size: usize, num_chunks: usize, total_size: usize, file_name: &str) -> Self {
@@ -122,22 +110,6 @@ impl FlowBaseParams {
         params.flow_current_chunk_size = chunk_size;
         params.flow_chunk_number = chunk_number;
         params
-    }
-
-    pub fn to_query_params(&self) -> Vec<(&str, String)> {
-        vec![
-            ("flowChunkNumber", self.flow_chunk_number.to_string()),
-            ("flowChunkSize", self.flow_chunk_size.to_string()),
-            (
-                "flowCurrentChunkSize",
-                self.flow_current_chunk_size.to_string(),
-            ),
-            ("flowTotalSize", self.flow_total_size.to_string()),
-            ("flowIdentifier", self.flow_identifier.clone()),
-            ("flowFilename", self.flow_filename.clone()),
-            ("flowRelativePath", self.flow_relative_path.clone()),
-            ("flowTotalChunks", self.flow_total_chunks.to_string()),
-        ]
     }
 }
 

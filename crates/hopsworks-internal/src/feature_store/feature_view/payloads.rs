@@ -1,12 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    feature_store::query::builder::BatchQueryOptions,
-    crate::feature_store::{
+use crate::feature_store::{
         feature::entities::TrainingDatasetFeatureDTO,
         query::entities::{FeatureStoreQueryDTO, QueryDTO},
-    },
-};
+    };
 
 use super::entities::{KeywordDTO, TagsDTO};
 
@@ -67,20 +64,4 @@ pub struct FeatureViewBatchQueryPayload {
     training_helper_columns: Vec<String>,
     inference_helper_columns: Vec<String>,
     is_hive_engine: bool,
-}
-
-impl From<&BatchQueryOptions> for FeatureViewBatchQueryPayload {
-    fn from(options: &BatchQueryOptions) -> Self {
-        Self {
-            start_time: options.start_time.map(|t| t.timestamp_millis()),
-            end_time: options.end_time.map(|t| t.timestamp_millis()),
-            td_version: options.td_version,
-            with_label: options.with_label,
-            with_primary_keys: options.with_primary_keys,
-            with_event_time: options.with_event_time,
-            training_helper_columns: options.training_helper_columns.clone(),
-            inference_helper_columns: options.inference_helper_columns.clone(),
-            is_hive_engine: false,
-        }
-    }
 }

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::crate::{
+use crate::{
     feature_store::{
         feature_view::entities::TagsDTO, query::entities::QueryDTO,
         statistics_config::entities::StatisticsConfigDTO,

@@ -11,7 +11,7 @@ use std::time::Duration;
 use tokio::task::JoinHandle;
 
 use hopsworks_internal::get_hopsworks_client;
-use hopsworks_core::core::platform::kafka::get_kafka_topic_subject;
+use hopsworks_internal::platform::kafka::get_kafka_topic_subject;
 use hopsworks_core::hopsworks_internal::feature_store::storage_connector::entities::FeatureStoreKafkaConnectorDTO;
 use hopsworks_core::hopsworks_internal::platform::kafka::entities::KafkaSubjectDTO;
 

@@ -1,12 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    feature_store::feature_group::feature::Feature,
-    crate::feature_store::{
+use crate::feature_store::{
         feature_group::entities::FeatureGroupDTO,
         transformation_function::entities::TransformationFunctionDTO,
-    },
-};
+    };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -31,26 +28,6 @@ impl FeatureDTO {
             partition: false,
             hudi_precombine_key: false,
             feature_group_id: None,
-        }
-    }
-}
-
-impl From<&Feature> for FeatureDTO {
-    fn from(feature: &Feature) -> Self {
-        FeatureDTO::new_from_feature(feature)
-    }
-}
-
-impl FeatureDTO {
-    pub fn new_from_feature(feature: &Feature) -> Self {
-        Self {
-            feature_group_id: feature.feature_group_id(),
-            primary: feature.is_primary(),
-            name: feature.name().to_string(),
-            description: feature.description().map(String::from),
-            data_type: feature.data_type().to_string(),
-            partition: feature.is_partition(),
-            hudi_precombine_key: feature.is_hudi_precombine_key(),
         }
     }
 }

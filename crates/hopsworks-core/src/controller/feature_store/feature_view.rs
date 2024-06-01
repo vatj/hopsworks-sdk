@@ -1,24 +1,25 @@
 use std::collections::HashMap;
 
 use color_eyre::Result;
+#[cfg(feature = "polars")]
 use polars::frame::DataFrame;
 
 use crate::{
-    core::feature_store::query::construct_query,
+    controller::feature_store::query::construct_query,
     feature_store::{
         feature_group::feature::Feature,
         feature_view::{transformation_function::TransformationFunction, FeatureView},
         query::{builder::BatchQueryOptions, read_option, Query},
     },
-    hopsworks_internal::feature_store::{
+    feature_store::FeatureGroup,
+};
+use hopsworks_internal::feature_store::{
         feature::entities::{FeatureDTO, TrainingDatasetFeatureDTO},
         feature_group::entities::FeatureGroupDTO,
         feature_view::{self, payloads::NewFeatureViewPayload},
         query::entities::QueryDTO,
         transformation_function::entities::TransformationFunctionDTO,
-    },
-    FeatureGroup,
-};
+    };
 
 pub async fn create_feature_view(
     feature_store_id: i32,
