@@ -3,7 +3,7 @@ use reqwest::{Method, StatusCode};
 
 use crate::get_hopsworks_client;
 
-use super::{entities::FeatureStoreQueryDTO, payloads::NewQueryPayload};
+use super::{FeatureStoreQueryDTO, payloads::NewQueryPayload};
 
 pub async fn construct_query(query_payload: NewQueryPayload) -> Result<FeatureStoreQueryDTO> {
     let res = get_hopsworks_client()

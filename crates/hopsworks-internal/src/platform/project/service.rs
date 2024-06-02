@@ -2,7 +2,7 @@ use color_eyre::Result;
 use reqwest::{Method, StatusCode};
 
 use super::{
-    entities::{ProjectAndUserDTO, SingleProjectDTO},
+    {ProjectAndUserDTO, SingleProjectDTO},
     payloads::NewProjectPayload,
 };
 use crate::get_hopsworks_client;

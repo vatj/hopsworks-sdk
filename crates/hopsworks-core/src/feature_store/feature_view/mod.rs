@@ -21,7 +21,7 @@ use crate::{
         },
     },
     feature_store::query::Query,
-    hopsworks_internal::feature_store::feature_view::entities::FeatureViewDTO,
+    hopsworks_internal::feature_store::feature_view::FeatureViewDTO,
 };
 use std::collections::HashMap;
 

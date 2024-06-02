@@ -2,15 +2,15 @@ use color_eyre::Result;
 use reqwest::{Method, StatusCode};
 
 use super::{
-    entities::FeatureViewDTO,
+    FeatureViewDTO,
     payloads::{FeatureViewBatchQueryPayload, NewFeatureViewPayload},
 };
 use crate::get_hopsworks_client;
 use crate::{
         feature_store::{
-            query::entities::QueryDTO,
+            query::QueryDTO,
             training_dataset::{
-                entities::TrainingDatasetDTO,
+                TrainingDatasetDTO,
                 payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
             },
         },

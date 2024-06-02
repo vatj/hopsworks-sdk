@@ -17,7 +17,7 @@ use hopsworks_api::feature_store::{
         feature_view::training_dataset::TrainingDataset, feature_view::FeatureView, query::Query,
     };
 use hopsworks_internal::get_hopsworks_client;
-use hopsworks_internal::credentials::entities::RegisterArrowFlightClientCertificatePayload;
+use hopsworks_internal::credentials::RegisterArrowFlightClientCertificatePayload;
 use hopsworks_core::hopsworks_internal::platform::variables;
 
 use super::filter::QueryArrowFlightPayload;

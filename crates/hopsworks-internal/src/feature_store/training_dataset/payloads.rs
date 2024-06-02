@@ -2,11 +2,11 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::feature_store::{
-        feature::entities::TrainingDatasetFeatureDTO,
-        feature_view::entities::{KeywordDTO, TagsDTO},
-        query::entities::{FeatureStoreQueryDTO, QueryDTO},
-        statistics_config::entities::StatisticsConfigDTO,
-        storage_connector::entities::StorageConnectorDTO,
+        feature::TrainingDatasetFeatureDTO,
+        feature_view::{KeywordDTO, TagsDTO},
+        query::{FeatureStoreQueryDTO, QueryDTO},
+        statistics_config::StatisticsConfigDTO,
+        storage_connector::StorageConnectorDTO,
     };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]

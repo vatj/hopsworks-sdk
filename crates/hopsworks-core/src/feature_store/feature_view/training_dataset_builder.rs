@@ -8,7 +8,7 @@ use crate::{
         feature_group::statistics_config::StatisticsConfig, query::QueryFilterOrLogic,
     },
     hopsworks_internal::feature_store::{
-        storage_connector::entities::StorageConnectorDTO,
+        storage_connector::StorageConnectorDTO,
         training_dataset::payloads::TrainingDatasetSplitSizes,
     },
 };

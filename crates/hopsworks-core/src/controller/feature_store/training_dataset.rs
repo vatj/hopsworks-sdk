@@ -16,7 +16,7 @@ use crate::{
 use hopsworks_internal::{
         feature_store::{
             feature_view::service as feature_view_service,
-            query::entities::QueryDTO,
+            query::QueryDTO,
             training_dataset::{
                 self,
                 payloads::{

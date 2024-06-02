@@ -20,7 +20,7 @@ use crate::{
     core::feature_store::query::read_with_arrow_flight_client,
     feature_store::{query::Query, FeatureStore},
     platform::job_execution::JobExecution,
-    hopsworks_internal::feature_store::feature_group::entities::FeatureGroupDTO,
+    hopsworks_internal::feature_store::feature_group::FeatureGroupDTO,
     util,
 };
 

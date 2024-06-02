@@ -1,6 +1,6 @@
 use color_eyre::Result;
 
-use super::entities::ProjectDTO;
+use super::ProjectDTO;
 use super::payloads::NewProjectPayload;
 use super::service::get_project_and_user_list;
 

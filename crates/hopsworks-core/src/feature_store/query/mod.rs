@@ -15,7 +15,7 @@ use crate::{
         read_query_from_online_feature_store, read_with_arrow_flight_client,
     },
     feature_store::feature_group::{feature::Feature, FeatureGroup},
-    hopsworks_internal::feature_store::query::entities::QueryDTO,
+    hopsworks_internal::feature_store::query::QueryDTO,
 };
 
 use self::read_option::{OfflineReadOptions, OnlineReadOptions};

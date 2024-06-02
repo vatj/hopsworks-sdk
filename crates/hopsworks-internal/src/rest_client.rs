@@ -4,7 +4,7 @@ use reqwest::{header::HeaderValue, Method};
 use std::{path::Path, sync::Arc};
 use tokio::sync::Mutex;
 
-use crate::platform::{credentials::helper::write_locally_project_credentials_on_login, project::{entities::{ProjectAndUserDTO, ProjectDTO}, service::get_project_and_user_list}};
+use crate::platform::{credentials::helper::write_locally_project_credentials_on_login, project::{{ProjectAndUserDTO, ProjectDTO}, service::get_project_and_user_list}};
 
 pub const DEFAULT_CLIENT_URL: &str = "https://c.app.hopsworks.ai/hopsworks-api/api";
 pub const DEFAULT_CLIENT_CERT_DIR: &str = "/tmp/";

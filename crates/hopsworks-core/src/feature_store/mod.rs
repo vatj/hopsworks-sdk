@@ -10,22 +10,16 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::{
-    core::feature_store::{
+use crate::controller::feature_store::{
         feature_group::get_feature_group_by_name_and_version,
         feature_view::{create_feature_view, get_feature_view_by_name_and_version},
         training_dataset::get_training_dataset_by_name_and_version,
         transformation_function::get_transformation_function_by_name_and_version,
-    },
-    hopsworks_internal::feature_store::entities::FeatureStoreDTO,
-};
+    };
 
-use self::{
-    feature_view::{
-        training_dataset::TrainingDataset, transformation_function::TransformationFunction,
-    },
-    query::Query,
-};
+use feature_view::{training_dataset::TrainingDataset, transformation_function::TransformationFunction};
+use query::Query;
+use hopsworks_internal::feature_store::{FeatureStoreDTO, feature_group::FeatureGroupDTO};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureStore {

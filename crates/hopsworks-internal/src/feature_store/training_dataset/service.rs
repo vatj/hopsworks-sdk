@@ -4,7 +4,7 @@ use reqwest::{Method, StatusCode};
 use crate::get_hopsworks_client;
 
 use super::{
-    entities::TrainingDatasetDTO,
+    TrainingDatasetDTO,
     payloads::{NewTrainingDatasetPayload, NewTrainingDatasetPayloadV2},
 };
 

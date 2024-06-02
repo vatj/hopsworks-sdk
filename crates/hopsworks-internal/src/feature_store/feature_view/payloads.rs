@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 use crate::feature_store::{
-        feature::entities::TrainingDatasetFeatureDTO,
-        query::entities::{FeatureStoreQueryDTO, QueryDTO},
+        feature::TrainingDatasetFeatureDTO,
+        query::{FeatureStoreQueryDTO, QueryDTO},
     };
 
-use super::entities::{KeywordDTO, TagsDTO};
+use super::{KeywordDTO, TagsDTO};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

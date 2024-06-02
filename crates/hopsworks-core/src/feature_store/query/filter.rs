@@ -2,7 +2,7 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::feature_store::feature_group::feature::Feature;
-use hopsworks_core::hopsworks_internal::feature_store::query::entities::{
+use hopsworks_core::hopsworks_internal::feature_store::query::{
         QueryFilterDTO, QueryFilterOrLogicDTO, QueryLogicDTO,
     };
 

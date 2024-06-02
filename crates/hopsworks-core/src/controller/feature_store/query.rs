@@ -7,7 +7,7 @@ use crate::feature_store::query::read_option::{OfflineReadOptions, OnlineReadOpt
 use hopsworks_internal::platform::variables::service::get_loadbalancer_external_domain;
 use hopsworks_internal::feature_store::{
         query,
-        query::{entities::FeatureStoreQueryDTO, payloads::NewQueryPayload},
+        query::{FeatureStoreQueryDTO, payloads::NewQueryPayload},
     };
 use crate::feature_store::query::Query;
 

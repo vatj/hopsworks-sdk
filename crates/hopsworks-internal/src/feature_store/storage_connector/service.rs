@@ -4,7 +4,7 @@ use reqwest::Method;
 
 use crate::get_hopsworks_client;
 
-use super::entities::{
+use super::{
     FeatureStoreJdbcConnectorDTO, FeatureStoreKafkaConnectorDTO, StorageConnectorDTO,
 };
 

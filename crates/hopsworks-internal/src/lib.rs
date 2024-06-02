@@ -96,7 +96,7 @@ pub use rest_client::HopsworksClientBuilder;
 use rest_client::HopsworksClient;
 use color_eyre::Result;
 use log::debug;
-use platform::project::entities::ProjectDTO;
+use platform::project::ProjectDTO;
 use tokio::sync::OnceCell;
 
 static HOPSWORKS_CLIENT: OnceCell<HopsworksClient> = OnceCell::const_new();

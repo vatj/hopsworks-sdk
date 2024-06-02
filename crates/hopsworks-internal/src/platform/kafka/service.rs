@@ -3,7 +3,7 @@ use reqwest::Method;
 
 use crate::get_hopsworks_client;
 
-use super::entities::{KafkaBrokersDTO, KafkaSubjectDTO};
+use super::{KafkaBrokersDTO, KafkaSubjectDTO};
 
 pub async fn get_project_broker_endpoints(external: bool) -> Result<KafkaBrokersDTO> {
     let query_params = [("external", external)];

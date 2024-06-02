@@ -2,7 +2,7 @@ use color_eyre::eyre::Result;
 use directories::BaseDirs;
 use log::debug;
 
-use super::entities::{HopsworksProfileConfig, HopsworksTomlConfig};
+use super::{HopsworksProfileConfig, HopsworksTomlConfig};
 
 pub fn get_hopsworks_profiles_config_file() -> Result<std::path::PathBuf> {
     if let Some(base_dirs) = BaseDirs::new() {

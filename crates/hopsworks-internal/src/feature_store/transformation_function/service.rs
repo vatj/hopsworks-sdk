@@ -5,7 +5,7 @@ use reqwest::{Method, StatusCode};
 
 use crate::get_hopsworks_client;
 
-use super::entities::{TransformationFunctionDTO, TransformationFunctionResponse};
+use super::{TransformationFunctionDTO, TransformationFunctionResponse};
 
 pub async fn get_transformation_function_by_name_and_version(
     feature_store_id: i32,

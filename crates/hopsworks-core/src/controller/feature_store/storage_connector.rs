@@ -1,5 +1,5 @@
 use crate::hopsworks_internal::feature_store::storage_connector::{
-    entities::{FeatureStoreJdbcConnectorDTO, FeatureStoreKafkaConnectorDTO},
+    {FeatureStoreJdbcConnectorDTO, FeatureStoreKafkaConnectorDTO},
     service,
 };
 use color_eyre::Result;

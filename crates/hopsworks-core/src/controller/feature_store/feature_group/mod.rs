@@ -8,7 +8,7 @@ pub mod polars_insert;
 
 use hopsworks_internal::feature_store::{
         feature::payloads::NewFeaturePayload,
-        feature_group::{self, entities::FeatureGroupDTO, payloads::NewFeatureGroupPayload},
+        feature_group::{self, FeatureGroupDTO, payloads::NewFeatureGroupPayload},
     };
 
 use super::feature;

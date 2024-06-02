@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 
 use crate::feature_store::{
-        feature::entities::FeatureDTO, feature_group::entities::FeatureGroupDTO,
+        feature::FeatureDTO, feature_group::FeatureGroupDTO,
     };
 
-use super::{entities::QueryFilterOrLogicDTO, enums::JoinType};
+use super::{QueryFilterOrLogicDTO, enums::JoinType};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

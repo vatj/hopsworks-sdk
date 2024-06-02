@@ -10,5 +10,5 @@ pub use platform::project::Project;
 
 pub async fn login(client_builder: Option<HopsworksClientBuilder>) -> Result<Project> {
     info!("Attempting to login to Hopsworks.");
-    Ok(hopsworks_internal::login(client_builder).await.map(|project_dto| Project::new(project_dto))?)
+    Ok(hopsworks_internal::login(client_builder).await.map(|project_dto| Project::from(project_dto))?)
 }

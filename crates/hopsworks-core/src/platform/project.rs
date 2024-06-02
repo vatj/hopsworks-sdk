@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::feature_store;
 use crate::feature_store::FeatureStore;
-use crate::hopsworks_internal::platform::project::entities::ProjectDTO;
+use crate::hopsworks_internal::platform::project::ProjectDTO;
 
 use super::job::Job;
 

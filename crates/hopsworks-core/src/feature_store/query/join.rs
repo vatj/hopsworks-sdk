@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::hopsworks_internal::feature_store::query::entities::JoinQueryDTO;
+use crate::hopsworks_internal::feature_store::query::JoinQueryDTO;
 
 use super::Query;
 

@@ -14,11 +14,11 @@ use crate::{
     feature_store::FeatureGroup,
 };
 use hopsworks_internal::feature_store::{
-        feature::entities::{FeatureDTO, TrainingDatasetFeatureDTO},
-        feature_group::entities::FeatureGroupDTO,
+        feature::{FeatureDTO, TrainingDatasetFeatureDTO},
+        feature_group::FeatureGroupDTO,
         feature_view::{self, payloads::NewFeatureViewPayload},
-        query::entities::QueryDTO,
-        transformation_function::entities::TransformationFunctionDTO,
+        query::QueryDTO,
+        transformation_function::TransformationFunctionDTO,
     };
 
 pub async fn create_feature_view(
