@@ -1,6 +1,6 @@
 use color_eyre::Result;
 
-use crate::hopsworks_internal::platform::job::{self, JobDTO};
+use hopsworks_internal::platform::job::{self, JobDTO};
 
 pub async fn get_job_by_name(job_name: &str) -> Result<JobDTO> {
     Ok(job::service::get_job_by_name(job_name).await?)

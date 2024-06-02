@@ -3,7 +3,8 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-use crate::hopsworks_internal::file_system::service;
+use hopsworks_internal::platform::file_system::{service, FlowBaseParams};
+pub mod util;
 
 const FLOW_PERMANENT_ERRORS_STATUS: [reqwest::StatusCode; 5] = [
     reqwest::StatusCode::NOT_FOUND,
@@ -12,8 +13,6 @@ const FLOW_PERMANENT_ERRORS_STATUS: [reqwest::StatusCode; 5] = [
     reqwest::StatusCode::INTERNAL_SERVER_ERROR,
     reqwest::StatusCode::NOT_IMPLEMENTED,
 ];
-
-pub mod util;
 
 pub async fn file_or_dir_exists(path: &str) -> Result<bool> {
     let resp = service::get_path_metadata(path).await;
@@ -70,7 +69,7 @@ pub async fn upload(
     local_path: &str,
     upload_path: &str,
     overwrite: bool,
-    upload_options: util::UploadOptionsInternal,
+    upload_options: util::UploadOptions,
 ) -> Result<String> {
     let (local_path, base_params) = util::prepare_upload(
         local_path,
@@ -87,6 +86,7 @@ pub async fn upload(
     let chunk_size = upload_options.chunk_size;
     let max_chunk_retries = upload_options.max_chunk_retries;
     let chunk_retry_interval = upload_options.chunk_retry_interval;
+    
     pbar.set_style(
             ProgressStyle::default_bar()
                 .template("{desc}: {percentage:.3}%|{bar}| {bytes}/{total_bytes} elapsed<{elapsed} remaining<{eta}")?
@@ -138,7 +138,7 @@ pub async fn upload(
 
 async fn upload_chunk(
     path: &str,
-    flow_params: util::FlowBaseParams,
+    flow_params: FlowBaseParams,
     chunk: Vec<u8>,
     max_chunk_retries: i32,
     chunk_retry_interval: u64,

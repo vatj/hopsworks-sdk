@@ -7,9 +7,9 @@
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::core::feature_store;
+use crate::controller::feature_store;
 use crate::feature_store::FeatureStore;
-use crate::hopsworks_internal::platform::project::ProjectDTO;
+use hopsworks_internal::platform::project::ProjectDTO;
 
 use super::job::Job;
 
@@ -88,7 +88,7 @@ impl Project {
     /// }
     /// ```
     pub async fn get_job(&self, job_name: &str) -> Result<Job> {
-        crate::core::platform::job::get_job_by_name(job_name).await
+        crate::controller::platform::job::get_job_by_name(job_name).await
     }
 
     /// Get a list of all [`Job`]s in the project.
@@ -108,16 +108,16 @@ impl Project {
     /// }
     /// ```
     pub async fn get_jobs(&self) -> Result<Vec<Job>> {
-        crate::core::platform::job::get_job_list().await
+        crate::controller::platform::job::get_job_list().await
     }
 }
 
 pub async fn create_project(project_name: &str, description: &Option<&str>) -> Result<Project> {
-    crate::core::platform::project::create_project(project_name, description).await
+    crate::controller::platform::project::create_project(project_name, description).await
 }
 
 pub async fn get_project_list() -> Result<Vec<Project>> {
-    Ok(crate::core::platform::project::get_project_list()
+    Ok(crate::controller::platform::project::get_project_list()
         .await?
         .iter()
         .map(Project::from)

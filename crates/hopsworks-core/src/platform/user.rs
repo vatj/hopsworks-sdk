@@ -4,7 +4,7 @@
 //! but it can be used to get information about the user that is logged in to the SDK.
 use serde::{Deserialize, Serialize};
 
-use crate::hopsworks_internal::platform::users::UserDTO;
+use hopsworks_internal::platform::users::UserDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
@@ -49,13 +49,7 @@ impl From<UserDTO> for User {
 
 impl From<User> for UserDTO {
     fn from(user: User) -> Self {
-        UserDTO::new_from_user(user)
-    }
-}
-
-impl UserDTO {
-    pub fn new_from_user(user: User) -> Self {
-        Self {
+        UserDTO{
             email: user.email,
             first_name: user.first_name,
             last_name: user.last_name,

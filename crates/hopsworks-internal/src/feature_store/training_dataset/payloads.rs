@@ -8,43 +8,7 @@ use crate::feature_store::{
         statistics_config::StatisticsConfigDTO,
         storage_connector::StorageConnectorDTO,
     };
-
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub enum TrainingDatasetType {
-    #[serde(rename = "HOPSFS_TRAINING_DATASET")]
-    HopsFS,
-    #[serde(rename = "EXTERNAL_TRAINING_DATASET")]
-    External,
-    #[serde(rename = "IN_MEMORY_TRAINING_DATASET")]
-    InMemory,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct TrainingDatasetSplitSizes {
-    train: f64,
-    test: f64,
-    validation: f64,
-}
-
-impl TrainingDatasetSplitSizes {
-    pub fn new(train: f64, test: f64, validation: f64) -> Self {
-        Self {
-            train,
-            test,
-            validation,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub enum TrainingDatasetDataFormat {
-    CSV,
-    TSV,
-    Parquet,
-    Avro,
-    ORC,
-    TFRecord,
-}
+use super::{TrainingDatasetDataFormat, TrainingDatasetType, TrainingDatasetSplitSizes};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

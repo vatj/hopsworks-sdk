@@ -1,15 +1,22 @@
 use color_eyre::Result;
 use log::debug;
+#[cfg(feature = "polars")]
 use polars::prelude::DataFrame;
 
 use crate::controller::feature_store::storage_connector;
-use crate::feature_store::query::read_option::{OfflineReadOptions, OnlineReadOptions};
+
 use hopsworks_internal::platform::variables::service::get_loadbalancer_external_domain;
 use hopsworks_internal::feature_store::{
         query,
         query::{FeatureStoreQueryDTO, payloads::NewQueryPayload},
     };
 use crate::feature_store::query::Query;
+
+#[cfg(feature = "read_arrow_flight_offline_store")]
+use crate::feature_store::query::read_option::OfflineReadOptions;
+
+#[cfg(feature = "read_sql_online_store")]
+use crate::feature_store::query::read_option::OnlineReadOptions;
 
 pub async fn construct_query(query: &Query) -> Result<FeatureStoreQueryDTO> {
     let query_payload = NewQueryPayload::from(query);

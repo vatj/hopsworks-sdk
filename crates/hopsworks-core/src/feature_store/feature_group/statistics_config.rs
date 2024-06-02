@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use hopsworks_core::hopsworks_internal::feature_store::statistics_config::StatisticsConfigDTO;
+use hopsworks_internal::feature_store::statistics_config::StatisticsConfigDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct StatisticsConfig {
@@ -31,13 +31,7 @@ impl From<&StatisticsConfigDTO> for StatisticsConfig {
 
 impl From<&StatisticsConfig> for StatisticsConfigDTO {
     fn from(statistics_config: &StatisticsConfig) -> Self {
-        StatisticsConfigDTO::new_from_statistics_config(statistics_config)
-    }
-}
-
-impl StatisticsConfigDTO {
-    pub fn new_from_statistics_config(statistics_config: &StatisticsConfig) -> Self {
-        Self {
+        StatisticsConfigDTO{
             enabled: statistics_config.enabled,
             histograms: statistics_config.histograms,
             correlations: statistics_config.correlations,

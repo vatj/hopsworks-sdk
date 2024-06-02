@@ -1,7 +1,7 @@
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::hopsworks_internal::platform::job_execution::JobExecutionDTO;
+use hopsworks_internal::platform::job_execution::JobExecutionDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JobExecutionUserDTO {
@@ -71,7 +71,7 @@ impl JobExecution {
     /// }
     /// ```
     pub async fn download_logs(&self, local_dir: Option<&str>) -> Result<()> {
-        crate::core::platform::job_execution::download_job_execution_logs(
+        crate::controller::platform::job_execution::download_job_execution_logs(
             self.job_name.as_str(),
             self.id,
             local_dir,
@@ -82,7 +82,7 @@ impl JobExecution {
     /// Delete the job execution from the hopsworks cluster. Note that if the job_execution is still running
     /// it will be terminated before deletion. The deletion cleans up the logs on the file system.
     pub async fn delete(&self) -> Result<()> {
-        crate::core::platform::job_execution::delete_job_execution(self.job_name.as_str(), self.id)
+        crate::controller::platform::job_execution::delete_job_execution(self.job_name.as_str(), self.id)
             .await
     }
 
@@ -124,7 +124,7 @@ impl JobExecution {
     /// }
     /// ```
     pub async fn await_termination(&self) -> Result<()> {
-        crate::core::platform::job_execution::await_termination(self.job_name.as_str(), self.id)
+        crate::controller::platform::job_execution::await_termination(self.job_name.as_str(), self.id)
             .await
     }
 
@@ -155,7 +155,7 @@ impl JobExecution {
     ///  Ok(())
     /// ```
     pub async fn stop(&self) -> Result<JobExecution> {
-        Ok(crate::core::platform::job_execution::stop_job_execution(
+        Ok(crate::controller::platform::job_execution::stop_job_execution(
             self.job_name.as_str(),
             self.id,
         )
@@ -201,7 +201,7 @@ impl JobExecution {
     /// ```
     pub async fn get_current_state(&self) -> Result<JobExecutionState> {
         Ok(
-            crate::core::platform::job_execution::get_job_execution_by_id(
+            crate::controller::platform::job_execution::get_job_execution_by_id(
                 self.job_name.as_str(),
                 self.id,
             )

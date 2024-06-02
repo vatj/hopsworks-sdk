@@ -1,7 +1,7 @@
 use color_eyre::Result;
-use polars::{datatypes::CategoricalOrdering, prelude::{DataType, Schema, TimeUnit}};
+use polars::prelude::{DataType, Schema, TimeUnit};
 
-use crate::hopsworks_internal::feature_store::feature::payloads::NewFeaturePayload;
+use hopsworks_internal::feature_store::feature::payloads::NewFeaturePayload;
 
 pub fn extract_features_from_polars_schema(schema: Schema) -> Result<Vec<NewFeaturePayload>> {
     Ok(schema

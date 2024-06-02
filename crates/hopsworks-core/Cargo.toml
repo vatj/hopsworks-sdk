@@ -16,17 +16,22 @@ tokio = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 reqwest = { workspace = true }
 serde_json = { workspace = true }
+polars ={ workspace = true }
 hopsworks-internal = { workspace = true}
 
 indicatif = { version = "0.17" }
 chrono ={ version = "0.4" }
 
-polars ={ workspace = true, optional = true}
-hopsworks-offline-store = { workspace = true, optional = true, features = ["arrow_flight"]}
 
+hopsworks-offline-store = { workspace = true, optional = true, features = ["arrow_flight"]}
+hopsworks-online-store ={ workspace = true, optional = true, features = ["sql2polars", "rest2polars"]}
+hopsworks-insert ={ workspace = true, optional = true}
 
 [features]
 default = []
-polars_insert = ["dep:polars"]
-read_arrow_flight_offline_store = ["dep:hopsworks-offline-store"]
+polars = []
+polars_insert = ["hopsworks-insert", "polars"]
+read_arrow_flight_offline_store = ["dep:hopsworks-offline-store", "polars"]
+read_sql_online_store = ["dep:hopsworks-online-store", "polars"]
+read_rest_online_store = ["dep:hopsworks-online-store", "polars"]
 

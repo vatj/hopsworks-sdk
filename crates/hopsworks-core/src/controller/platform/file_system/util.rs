@@ -2,6 +2,9 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
+use hopsworks_internal::platform::file_system::FlowBaseParams;
+
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UploadOptions {
     pub chunk_size: usize,
@@ -88,30 +91,6 @@ pub async fn prepare_upload(
     Ok((local_path, params))
 }
 
-
-
-impl FlowBaseParams {
-    pub fn new(chunk_size: usize, num_chunks: usize, total_size: usize, file_name: &str) -> Self {
-        Self {
-            template_id: -1,
-            flow_chunk_size: chunk_size,
-            flow_total_size: total_size,
-            flow_identifier: format!("{}_{}", total_size, file_name),
-            flow_filename: file_name.to_string(),
-            flow_relative_path: file_name.to_string(),
-            flow_total_chunks: num_chunks,
-            flow_current_chunk_size: 0,
-            flow_chunk_number: 0,
-        }
-    }
-
-    pub fn get_chunk_params(&self, chunk_size: usize, chunk_number: usize) -> FlowBaseParams {
-        let mut params = self.clone();
-        params.flow_current_chunk_size = chunk_size;
-        params.flow_chunk_number = chunk_number;
-        params
-    }
-}
 
 #[cfg(test)]
 mod tests {

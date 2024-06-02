@@ -1,4 +1,4 @@
-use crate::hopsworks_internal::feature_store::storage_connector::{
+use hopsworks_internal::feature_store::storage_connector::{
     {FeatureStoreJdbcConnectorDTO, FeatureStoreKafkaConnectorDTO},
     service,
 };

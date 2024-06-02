@@ -4,21 +4,31 @@ pub mod filter;
 pub mod join;
 
 use color_eyre::Result;
-use polars::frame::DataFrame;
+
 use serde::{Deserialize, Serialize};
 
 pub use filter::{QueryFilter, QueryFilterOrLogic, QueryLogic};
 pub use join::{JoinOptions, JoinQuery};
 
-use crate::{
-    core::feature_store::query::{
-        read_query_from_online_feature_store, read_with_arrow_flight_client,
-    },
-    feature_store::feature_group::{feature::Feature, FeatureGroup},
-    hopsworks_internal::feature_store::query::QueryDTO,
-};
+use crate::feature_store::feature_group::{feature::Feature, FeatureGroup};
 
-use self::read_option::{OfflineReadOptions, OnlineReadOptions};
+#[cfg(feature = "read_arrow_flight_offline_store")]
+use hopsworks_offline_store::read::read_with_arrow_flight_client;
+#[cfg(feature = "read_arrow_flight_offline_store")]
+use self::read_option::OfflineReadOptions;
+
+#[cfg(feature = "read_sql_online_store")]
+use hopsworks_online_store::read::read_query_from_online_feature_store;
+#[cfg(feature = "read_sql_online_store")]
+use self::read_option::OfflineReadOptions;
+
+use hopsworks_internal::feature_store::{
+    query::{QueryDTO, JoinQueryDTO, QueryFilterOrLogicDTO, payloads::{NewQueryPayload, NewJoinQueryPayload},}, 
+    feature_group::FeatureGroupDTO, 
+    feature::FeatureDTO,
+    feature_view::payloads::FeatureViewBatchQueryPayload,
+};
+use super::query::builder::BatchQueryOptions;
 
 /// Query object are used to read data from the feature store, both online and offline.
 ///
@@ -237,6 +247,7 @@ impl Query {
         (features, feature_groups)
     }
 
+    #[cfg(feature = "read_sql_online_store")]
     pub async fn read_from_online_feature_store(
         &self,
         online_read_options: Option<OnlineReadOptions>,
@@ -244,6 +255,7 @@ impl Query {
         read_query_from_online_feature_store(self, online_read_options).await
     }
 
+    #[cfg(feature = "read_arrow_flight_offline_store")]
     pub async fn read_from_offline_feature_store(
         &self,
         offline_read_options: Option<OfflineReadOptions>,
@@ -362,7 +374,7 @@ impl From<&Query> for NewQueryPayload {
 
 impl From<&BatchQueryOptions> for FeatureViewBatchQueryPayload {
     fn from(options: &BatchQueryOptions) -> Self {
-        Self {
+        Self{
             start_time: options.start_time.map(|t| t.timestamp_millis()),
             end_time: options.end_time.map(|t| t.timestamp_millis()),
             td_version: options.td_version,

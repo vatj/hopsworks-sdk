@@ -8,7 +8,7 @@ pub mod transformation_function;
 
 use color_eyre::Result;
 
-use crate::hopsworks_internal::feature_store::{self, FeatureStoreDTO};
+use hopsworks_internal::feature_store::{self, FeatureStoreDTO};
 
 pub async fn get_project_default_feature_store(project_name: &str) -> Result<FeatureStoreDTO> {
     let feature_store_name = format!("{project_name}_featurestore");

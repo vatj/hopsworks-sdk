@@ -5,13 +5,13 @@ use polars::prelude::Schema;
 
 #[cfg(feature = "polars-insert")]
 pub mod polars_insert;
+#[cfg(predicate = "polars-insert")]
+use super::feature;
 
 use hopsworks_internal::feature_store::{
         feature::payloads::NewFeaturePayload,
         feature_group::{self, FeatureGroupDTO, payloads::NewFeatureGroupPayload},
     };
-
-use super::feature;
 
 pub async fn get_feature_group_by_name_and_version(
     feature_store_id: i32,

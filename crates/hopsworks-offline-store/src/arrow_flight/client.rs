@@ -8,17 +8,14 @@ use std::collections::HashMap;
 use std::time::Duration;
 use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity};
 
-use crate::clients::arrow_flight::{decoder, utils};
-use hopsworks_core::hopsworks_internal::feature_store::{
+use crate::arrow_flight::{decoder, utils};
+use hopsworks_internal::feature_store::{
             storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
             training_dataset::payloads::TrainingDatasetArrowFlightPayload,
         };
-use hopsworks_api::feature_store::{
-        feature_view::training_dataset::TrainingDataset, feature_view::FeatureView, query::Query,
-    };
 use hopsworks_internal::get_hopsworks_client;
-use hopsworks_internal::credentials::RegisterArrowFlightClientCertificatePayload;
-use hopsworks_core::hopsworks_internal::platform::variables;
+use hopsworks_internal::platform::credentials::RegisterArrowFlightClientCertificatePayload;
+use hopsworks_internal::platform::variables;
 
 use super::filter::QueryArrowFlightPayload;
 

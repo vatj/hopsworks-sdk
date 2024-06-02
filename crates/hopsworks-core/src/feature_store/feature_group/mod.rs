@@ -12,23 +12,29 @@ pub mod statistics_config;
 
 use color_eyre::Result;
 use log::debug;
-use polars::frame::DataFrame;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    core::feature_store::feature_group,
-    core::feature_store::query::read_with_arrow_flight_client,
-    feature_store::{query::Query, FeatureStore},
-    platform::job_execution::JobExecution,
-    hopsworks_internal::feature_store::feature_group::FeatureGroupDTO,
-    util,
-};
+use crate::feature_store::{query::Query, FeatureStore};
+
+#[cfg(feature = "polars_insert")]
+use platform::job_execution::JobExecution;
+#[cfg(feature = "polars_insert")]
+use crate::controller::feature_store::feature_group;
+#[cfg(feature = "polars_insert")]
+use polars::frame::DataFrame;
+
+#[cfg(feature = "read_arrow_flight_offline_store")]
+use hopsworks_offline_store::read_with_arrow_flight_client;
+#[cfg(feature = "read_arrow_flight_offline_store")]
+use super::query::read_option::OfflineReadOptions;
+#[cfg(feature = "read_arrow_flight_offline_store")]
+use crate::controller::feature_store::feature_group;
+
+use hopsworks_internal::{feature_store::{feature_group::FeatureGroupDTO, statistics_config::StatisticsConfigDTO, feature::FeatureDTO}, platform::users::UserDTO, util};
 
 use self::{feature::Feature, statistics_config::StatisticsConfig};
 
 use crate::platform::user::User;
-
-use super::query::read_option::OfflineReadOptions;
 
 /// Feature Group are metadata objects describing a table in the Feature Store.
 /// They are the primary interface through which one can ingest Feature data to the Feature Store.
@@ -302,6 +308,7 @@ impl FeatureGroup {
     ///  Ok(())
     /// }
     /// ```
+    #[cfg(feature = "polars_insert")]
     pub async fn insert(&mut self, dataframe: &mut DataFrame) -> Result<JobExecution> {
         if self.id().is_none() {
             let feature_group_dto = feature_group::save_feature_group_metadata(
@@ -432,6 +439,7 @@ impl FeatureGroup {
     ///  Ok(())
     /// }
     /// ```
+    #[cfg(feature = "read_arrow_flight_offline_store")]
     pub async fn read_from_offline_feature_store(
         &self,
         offline_read_options: Option<OfflineReadOptions>,
@@ -449,13 +457,7 @@ impl FeatureGroup {
 
 impl From<&FeatureGroup> for FeatureGroupDTO {
     fn from(feature_group: &FeatureGroup) -> Self {
-        FeatureGroupDTO::new_from_feature_group(feature_group)
-    }
-}
-
-impl FeatureGroupDTO {
-    pub fn new_from_feature_group(feature_group: &FeatureGroup) -> Self {
-        Self {
+        FeatureGroupDTO {
             id: feature_group.id().unwrap_or(0),
             online_topic_name: feature_group
                 .online_topic_name()

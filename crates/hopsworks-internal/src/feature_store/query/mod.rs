@@ -12,7 +12,7 @@ use enums::{JoinType, QueryFilterCondition, QueryLogicType};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryDTO {
-    href: Option<String>,
+    pub href: Option<String>,
     pub left_feature_group: FeatureGroupDTO,
     pub left_features: Vec<FeatureDTO>,
     pub feature_store_name: String,

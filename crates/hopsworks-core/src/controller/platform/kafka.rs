@@ -1,7 +1,7 @@
 use color_eyre::Result;
 
-use crate::hopsworks_internal::platform::kafka;
-use crate::hopsworks_internal::platform::kafka::KafkaSubjectDTO;
+use hopsworks_internal::platform::kafka;
+use hopsworks_internal::platform::kafka::KafkaSubjectDTO;
 
 pub async fn get_project_broker_endpoints(external: bool) -> Result<Vec<String>> {
     let brokers_dto = kafka::service::get_project_broker_endpoints(external).await?;

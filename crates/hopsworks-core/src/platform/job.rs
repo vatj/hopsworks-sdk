@@ -2,13 +2,10 @@
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    core::platform::job_execution::start_new_execution_for_named_job,
-    hopsworks_internal::platform::job::JobDTO,
-};
+use crate::controller::platform::job_execution::start_new_execution_for_named_job;
 
 use super::job_execution::JobExecution;
-
+use hopsworks_internal::platform::job::JobDTO;
 /// Job on Hopsworks Cluster. A job is akin to a script which can be executed on the cluster.
 /// Jobs can be of different types, e.g. PySpark, Spark, Python, etc.
 /// Jobs can be executed on the cluster and the [`JobExecution`] can be monitored.
@@ -120,7 +117,7 @@ impl Job {
     /// }
     /// ```
     pub async fn get_executions(&self) -> Result<Vec<JobExecution>> {
-        match crate::core::platform::job_execution::get_job_executions(self.name.as_str()).await {
+        match crate::controller::platform::job_execution::get_job_executions(self.name.as_str()).await {
             Ok(executions) => Ok(executions.into_iter().map(JobExecution::from).collect()),
             Err(e) => Err(e),
         }
@@ -149,7 +146,7 @@ impl Job {
     /// }
     /// ```
     pub async fn save(&self, updated_job_config: serde_json::Value) -> Result<Job> {
-        match crate::core::platform::job::update_job(self.name.as_str(), updated_job_config).await {
+        match crate::controller::platform::job::update_job(self.name.as_str(), updated_job_config).await {
             Ok(job_dto) => Ok(Job::from(job_dto)),
             Err(e) => Err(e),
         }
@@ -172,7 +169,7 @@ impl Job {
     /// }
     /// ```
     pub async fn delete(&self) -> Result<()> {
-        match crate::core::platform::job::delete_job(self.name.as_str()).await {
+        match crate::controller::platform::job::delete_job(self.name.as_str()).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -212,7 +209,7 @@ impl Job {
 /// }
 /// ```
 pub async fn get_job_configuration(job_type: &str) -> Result<serde_json::Value> {
-    crate::core::platform::job::get_job_configuration(job_type).await
+    crate::controller::platform::job::get_job_configuration(job_type).await
 }
 
 /// Create a new job.
@@ -244,7 +241,7 @@ pub async fn get_job_configuration(job_type: &str) -> Result<serde_json::Value> 
 /// }
 /// ```
 pub async fn create_job(job_name: &str, job_configuration: serde_json::Value) -> Result<Job> {
-    match crate::core::platform::job::create_job(job_name, job_configuration).await {
+    match crate::controller::platform::job::create_job(job_name, job_configuration).await {
         Ok(job_dto) => Ok(Job::from(job_dto)),
         Err(e) => Err(e),
     }

@@ -3,15 +3,12 @@ use color_eyre::Result;
 use polars::frame::DataFrame;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    feature_store::{
+use crate::feature_store::{
         feature_group::statistics_config::StatisticsConfig, query::QueryFilterOrLogic,
-    },
-    hopsworks_internal::feature_store::{
-        storage_connector::StorageConnectorDTO,
-        training_dataset::payloads::TrainingDatasetSplitSizes,
-    },
-};
+    };
+use hopsworks_internal::feature_store::{
+        statistics_config::StatisticsConfigDTO, storage_connector::StorageConnectorDTO, training_dataset::{payloads::NewTrainingDatasetPayloadV2, TrainingDatasetDataFormat, TrainingDatasetSplitSizes}
+    };
 
 use super::training_dataset::TrainingDataset;
 
@@ -271,16 +268,16 @@ where
     }
 
     async fn register(&self) -> Result<TrainingDataset> {
-        crate::core::feature_store::training_dataset::register_training_dataset(self).await
+        crate::controller::feature_store::training_dataset::register_training_dataset(self).await
     }
 
     pub async fn materialize_on_cluster(&self) -> Result<TrainingDataset> {
-        crate::core::feature_store::training_dataset::materialize_on_cluster(self).await
+        crate::controller::feature_store::training_dataset::materialize_on_cluster(self).await
     }
 
     pub async fn read_from_offline_feature_store(&self) -> Result<(TrainingDataset, DataFrame)> {
         let training_dataset = self.register().await?;
-        let df = crate::core::feature_store::training_dataset::read_from_offline_feature_store(
+        let df = crate::controller::feature_store::training_dataset::read_from_offline_feature_store(
             &training_dataset,
         )
         .await?;

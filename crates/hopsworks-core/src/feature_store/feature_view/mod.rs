@@ -10,27 +10,37 @@ pub mod training_dataset_builder;
 pub mod transformation_function;
 
 use color_eyre::Result;
-use polars::prelude::DataFrame;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    core::feature_store::{
-        query::{read_query_from_online_feature_store, read_with_arrow_flight_client},
-        training_dataset::{
+    controller::feature_store::training_dataset::{
             create_train_test_split, create_training_dataset_attached_to_feature_view,
         },
-    },
     feature_store::query::Query,
-    hopsworks_internal::feature_store::feature_view::FeatureViewDTO,
 };
+
 use std::collections::HashMap;
+use hopsworks_internal::feature_store::feature_view::FeatureViewDTO;
 
 use self::{training_dataset_builder::NoSplit, transformation_function::TransformationFunction};
 
 use super::query::{
-    builder::BatchQueryOptions,
-    read_option::{self, OfflineReadOptions, OnlineReadOptions},
+    builder::BatchQueryOptions
 };
+
+#[cfg(feature = "read_arrow_flight_offline_store")]
+use polars::prelude::DataFrame;
+
+#[cfg(feature = "read_sql_online_store")]
+use crate::controller::feature_store::query::read_query_from_online_feature_store;
+#[cfg(feature= "read_sql_online_store")] 
+use super::query::read_option::OnlineReadOptions;
+
+#[cfg(feature = "read_arrow_flight_offline_store")]
+use crate::controller::feature_store::query::read_with_arrow_flight_client;
+#[cfg(feature= "read_arrow_flight_offline_store")] 
+use super::query::read_option::OfflineReadOptions;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureView {
@@ -186,20 +196,21 @@ impl FeatureView {
         &self,
         batch_query_options: &BatchQueryOptions,
     ) -> Result<String> {
-        crate::core::feature_store::feature_view::get_batch_query_string(self, batch_query_options)
+        crate::controller::feature_store::feature_view::get_batch_query_string(self, batch_query_options)
             .await
     }
 
     pub async fn get_batch_query(&self, batch_query_options: &BatchQueryOptions) -> Result<Query> {
-        crate::core::feature_store::feature_view::get_batch_query(self, batch_query_options).await
+        crate::controller::feature_store::feature_view::get_batch_query(self, batch_query_options).await
     }
 
+    #[cfg(feature = "read_arrow_flight_offline_store")]
     pub async fn get_batch_data(
         &self,
         batch_query_options: &BatchQueryOptions,
-        offline_read_options: Option<read_option::OfflineReadOptions>,
+        offline_read_options: Option<OfflineReadOptions>,
     ) -> Result<DataFrame> {
-        crate::core::feature_store::feature_view::get_batch_data(
+        crate::controller::feature_store::feature_view::get_batch_data(
             self,
             batch_query_options,
             offline_read_options,
@@ -241,6 +252,7 @@ impl FeatureView {
         Ok(())
     }
 
+    #[cfg(feature = "read_arrow_flight_offline_store")]
     pub async fn read_from_offline_feature_store(
         &self,
         offline_read_options: Option<OfflineReadOptions>,
@@ -248,6 +260,7 @@ impl FeatureView {
         read_with_arrow_flight_client(self.query.clone(), offline_read_options).await
     }
 
+    #[cfg(feature = "read_sql_online_store")]
     pub async fn read_from_online_feature_store(
         &self,
         online_read_options: Option<OnlineReadOptions>,

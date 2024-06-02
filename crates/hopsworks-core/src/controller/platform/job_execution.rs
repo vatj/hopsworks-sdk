@@ -1,6 +1,6 @@
 use color_eyre::Result;
 
-use crate::hopsworks_internal::platform::job_execution::{self, JobExecutionDTO};
+use hopsworks_internal::platform::job_execution::{self, JobExecutionDTO};
 
 use super::file_system::download;
 

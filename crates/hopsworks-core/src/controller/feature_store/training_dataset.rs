@@ -71,7 +71,7 @@ pub async fn create_training_dataset_attached_to_feature_view(
 ) -> Result<TrainingDataset> {
     let (features, feature_groups) = feature_view.query().features_and_feature_groups();
     let training_features =
-        crate::core::feature_store::feature_view::features_to_transformed_features(
+        crate::controller::feature_store::feature_view::features_to_transformed_features(
             &features,
             &feature_groups,
             feature_view.transformation_functions(),

@@ -2,7 +2,6 @@ use polars::prelude::{DataFrame, Schema};
 use hopsworks_insert::kafka_producer::produce_df;
 use crate::platform::job_execution::JobExecution;
 
-#[cfg(feature="polars-insert")]
 pub async fn insert_in_registered_feature_group(
     feature_store_id: i32,
     feature_group_id: i32,

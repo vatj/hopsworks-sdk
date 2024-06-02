@@ -1,10 +1,8 @@
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    feature_store::query::{filter::QueryFilterCondition, QueryFilter, QueryFilterOrLogic},
-    hopsworks_core::hopsworks_internal::feature_store::feature::FeatureDTO,
-};
+use crate::feature_store::query::{QueryFilter, QueryFilterOrLogic};
+use hopsworks_internal::{feature_store::query::enums::QueryFilterCondition, feature_store::feature::FeatureDTO};
 
 /// Feature entity gathering metadata about a feature in a [`FeatureGroup`][super::FeatureGroup].
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -354,13 +352,7 @@ impl Feature {
 
 impl From<&Feature> for FeatureDTO {
     fn from(feature: &Feature) -> Self {
-        FeatureDTO::new_from_feature(feature)
-    }
-}
-
-impl FeatureDTO {
-    pub fn new_from_feature(feature: &Feature) -> Self {
-        Self {
+        FeatureDTO{
             feature_group_id: feature.feature_group_id(),
             primary: feature.is_primary(),
             name: feature.name().to_string(),
