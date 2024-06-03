@@ -1,18 +1,12 @@
 use color_eyre::Result;
 use log::debug;
 
-use crate::{
-    feature_store::{
-        feature_group::{feature::Feature, FeatureGroup},
-        query::{Query, QueryFilter, QueryFilterOrLogic, QueryLogic},
-    },
-    hopsworks_internal::feature_store::storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
+use super::payloads::{
+    QueryFilterArrowFlightPayload, QueryFilterOrLogicArrowFlightPayload,
+    QueryLogicArrowFlightPayload, FeatureGroupConnectorArrowFlightPayload
 };
 
-use super::filter::{
-    QueryFilterArrowFlightPayload, QueryFilterOrLogicArrowFlightPayload,
-    QueryLogicArrowFlightPayload,
-};
+use hopsworks_core::feature_store::{feature_group::FeatureGroup, query::Query, feature_group::feature::Feature, query::QueryFilter, query::QueryLogic};
 
 pub(super) fn serialize_feature_group_connector(
     _feature_group: &FeatureGroup,

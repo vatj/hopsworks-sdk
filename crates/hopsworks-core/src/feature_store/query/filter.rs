@@ -343,22 +343,6 @@ impl std::fmt::Display for QueryFilterOrLogic {
     }
 }
 
-
-impl std::fmt::Display for QueryFilterCondition {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match *self {
-            QueryFilterCondition::GreaterThanOrEqual => write!(f, ">="),
-            QueryFilterCondition::GreaterThan => write!(f, ">"),
-            QueryFilterCondition::LessThanOrEqual => write!(f, "<="),
-            QueryFilterCondition::LessThan => write!(f, "<"),
-            QueryFilterCondition::Equal => write!(f, "=="),
-            QueryFilterCondition::NotEqual => write!(f, "!="),
-            QueryFilterCondition::In => write!(f, "IN"),
-            QueryFilterCondition::Like => write!(f, "LIKE"),
-        }
-    }
-}
-
 impl From<&QueryFilterOrLogic> for QueryFilterOrLogicDTO {
     fn from(query_filter_or_logic: &QueryFilterOrLogic) -> Self {
         match query_filter_or_logic {

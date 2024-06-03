@@ -15,4 +15,5 @@ log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
 
-hopsworks-core = { path = "../hopsworks-core" }
+hopsworks-core = { workspace = true}
+hopsworks-internal ={ workspace = true }

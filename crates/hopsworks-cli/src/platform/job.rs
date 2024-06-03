@@ -47,7 +47,7 @@ pub enum JobSubCommand {
     },
 }
 
-pub async fn show_job_info(job_name: &str, project: hopsworks::platform::project::Project) {
+pub async fn show_job_info(job_name: &str, project: hopsworks_core::platform::project::Project) {
     println!(
         "Job Info for job {:?}:\n{:#?}",
         job_name,
@@ -55,9 +55,9 @@ pub async fn show_job_info(job_name: &str, project: hopsworks::platform::project
     );
 }
 
-pub async fn show_list_jobs(project: hopsworks::platform::project::Project) {
+pub async fn show_list_jobs(project: hopsworks_core::platform::project::Project) {
     println!("Fetching all jobs within project {}:", project.name(),);
-    let jobs: Vec<hopsworks::platform::job::Job> = project
+    let jobs: Vec<hopsworks_core::platform::job::Job> = project
         .get_jobs()
         .await
         .unwrap_or_else(|_| panic!("Failed to fetch jobs for project {}.\n", project.name()));
@@ -73,7 +73,7 @@ pub async fn show_list_jobs(project: hopsworks::platform::project::Project) {
 }
 
 pub async fn show_list_executions(
-    project: hopsworks::platform::project::Project,
+    project: hopsworks_core::platform::project::Project,
     name: &str,
     _active: bool,
 ) {
@@ -92,7 +92,7 @@ pub async fn show_list_executions(
 }
 
 pub async fn show_run_job(
-    project: hopsworks::platform::project::Project,
+    project: hopsworks_core::platform::project::Project,
     name: &str,
     args: &Option<String>,
     await_termination: bool,

@@ -12,16 +12,6 @@ pub use join::{JoinOptions, JoinQuery};
 
 use crate::feature_store::feature_group::{feature::Feature, FeatureGroup};
 
-#[cfg(feature = "read_arrow_flight_offline_store")]
-use hopsworks_offline_store::read::read_with_arrow_flight_client;
-#[cfg(feature = "read_arrow_flight_offline_store")]
-use self::read_option::OfflineReadOptions;
-
-#[cfg(feature = "read_sql_online_store")]
-use hopsworks_online_store::read::read_query_from_online_feature_store;
-#[cfg(feature = "read_sql_online_store")]
-use self::read_option::OfflineReadOptions;
-
 use hopsworks_internal::feature_store::{
     query::{QueryDTO, JoinQueryDTO, QueryFilterOrLogicDTO, payloads::{NewQueryPayload, NewJoinQueryPayload},}, 
     feature_group::FeatureGroupDTO, 
@@ -247,22 +237,6 @@ impl Query {
         (features, feature_groups)
     }
 
-    #[cfg(feature = "read_sql_online_store")]
-    pub async fn read_from_online_feature_store(
-        &self,
-        online_read_options: Option<OnlineReadOptions>,
-    ) -> Result<DataFrame> {
-        read_query_from_online_feature_store(self, online_read_options).await
-    }
-
-    #[cfg(feature = "read_arrow_flight_offline_store")]
-    pub async fn read_from_offline_feature_store(
-        &self,
-        offline_read_options: Option<OfflineReadOptions>,
-    ) -> Result<DataFrame> {
-        read_with_arrow_flight_client(self.clone(), offline_read_options).await
-    }
-
     pub fn join(mut self, query: Query, join_options: JoinOptions) -> Self {
         if self.joins.is_none() {
             self.joins = Some(vec![]);
@@ -316,20 +290,6 @@ impl From<QueryDTO> for Query {
             left_feature_group_end_time: dto.left_feature_group_end_time,
         }
     }
-}
-
-pub mod read_option {
-    //! Read options for feature store query
-    //!
-    //! Placeholder for future functionality, the aim is both to offer more fine grained control over
-    //! how data is read from the feature store and to provide sensible defaults when none are specified.
-    use serde::{Deserialize, Serialize};
-
-    #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-    pub struct OfflineReadOptions {}
-
-    #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-    pub struct OnlineReadOptions {}
 }
 
 impl From<&Query> for QueryDTO {

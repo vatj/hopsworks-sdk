@@ -9,15 +9,15 @@ use super::{QueryFilterOrLogicDTO, enums::JoinType};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct NewQueryPayload {
-    feature_store_name: String,
-    feature_store_id: i32,
-    left_feature_group: FeatureGroupDTO,
-    left_features: Vec<FeatureDTO>,
-    left_feature_group_start_time: Option<String>,
-    left_feature_group_end_time: Option<String>,
-    joins: Option<Vec<NewJoinQueryPayload>>,
-    hive_engine: bool,
-    filters: Option<Vec<QueryFilterOrLogicDTO>>,
+    pub feature_store_name: String,
+    pub feature_store_id: i32,
+    pub left_feature_group: FeatureGroupDTO,
+    pub left_features: Vec<FeatureDTO>,
+    pub left_feature_group_start_time: Option<String>,
+    pub left_feature_group_end_time: Option<String>,
+    pub joins: Option<Vec<NewJoinQueryPayload>>,
+    pub hive_engine: bool,
+    pub filters: Option<Vec<QueryFilterOrLogicDTO>>,
 }
 
 impl NewQueryPayload {
@@ -47,13 +47,13 @@ impl NewQueryPayload {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct NewJoinQueryPayload {
-    query: NewQueryPayload,
-    on: Option<Vec<String>>,
-    left_on: Option<Vec<String>>,
-    right_on: Option<Vec<String>>,
+    pub query: NewQueryPayload,
+    pub on: Option<Vec<String>>,
+    pub left_on: Option<Vec<String>>,
+    pub right_on: Option<Vec<String>>,
     #[serde(rename = "type")]
-    join_type: JoinType,
-    prefix: Option<String>,
+    pub join_type: JoinType,
+    pub prefix: Option<String>,
 }
 
 impl NewJoinQueryPayload {

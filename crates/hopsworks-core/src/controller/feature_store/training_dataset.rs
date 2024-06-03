@@ -1,6 +1,5 @@
 use color_eyre::Result;
 use log::debug;
-use polars::frame::DataFrame;
 
 use crate::{
     controller::feature_store::query::construct_query,
@@ -49,12 +48,6 @@ where
         )
         .await?,
     ))
-}
-
-pub async fn read_from_offline_feature_store(
-    _training_dataset: &TrainingDataset,
-) -> Result<DataFrame> {
-    todo!("read_from_offline_feature_store is not implemented");
 }
 
 pub async fn materialize_on_cluster<S>(

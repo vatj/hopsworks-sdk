@@ -48,7 +48,7 @@ pub fn convert_polars_data_type(data_type: &DataType) -> &str {
         DataType::Duration(TimeUnit::Nanoseconds) => "bigint",
         DataType::Duration(TimeUnit::Microseconds) => "bigint",
         DataType::Date => "date",
-        DataType::Utf8 => "string",
+        DataType::String => "string",
         DataType::Categorical(None, _) => "string",
         _ => panic!("DataType {:?} not supported.", data_type),
     }

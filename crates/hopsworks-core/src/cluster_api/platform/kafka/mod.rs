@@ -6,7 +6,7 @@ pub mod service;
 #[serde(rename_all = "camelCase")]
 pub struct KafkaTopicDTO {
     href: String,
-    pub(crate) name: String,
+    pub name: String,
     schema_name: String,
     schema_version: i32,
     shared: bool,
@@ -15,10 +15,10 @@ pub struct KafkaTopicDTO {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct KafkaSubjectDTO {
-    pub(crate) id: i32,
+    pub id: i32,
     subject: String,
-    pub(crate) version: i32,
-    pub(crate) schema: String,
+    pub version: i32,
+    pub schema: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

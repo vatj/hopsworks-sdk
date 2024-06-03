@@ -55,13 +55,13 @@ impl NewFeatureViewPayload {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FeatureViewBatchQueryPayload {
-    start_time: Option<i64>,
-    end_time: Option<i64>,
-    td_version: Option<i32>,
-    with_label: bool,
-    with_primary_keys: bool,
-    with_event_time: bool,
-    training_helper_columns: Vec<String>,
-    inference_helper_columns: Vec<String>,
-    is_hive_engine: bool,
+    pub start_time: Option<i64>,
+    pub end_time: Option<i64>,
+    pub td_version: Option<i32>,
+    pub with_label: bool,
+    pub with_primary_keys: bool,
+    pub with_event_time: bool,
+    pub training_helper_columns: Vec<String>,
+    pub inference_helper_columns: Vec<String>,
+    pub is_hive_engine: bool,
 }

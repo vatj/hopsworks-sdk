@@ -13,6 +13,7 @@ env_logger = { workspace = true }
 tokio = { workspace = true }
 polars ={ workspace = true}
 hopsworks-internal = { workspace = true }
+hopsworks-core = { workspace = true }
 serde_json = { version = "1.0" }
 
 arrow-format = { version = "0.8.1", features = [

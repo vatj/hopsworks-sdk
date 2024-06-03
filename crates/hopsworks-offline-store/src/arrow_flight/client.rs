@@ -8,16 +8,10 @@ use std::collections::HashMap;
 use std::time::Duration;
 use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity};
 
-use crate::arrow_flight::{decoder, utils};
-use hopsworks_internal::feature_store::{
-            storage_connector::payloads::FeatureGroupConnectorArrowFlightPayload,
-            training_dataset::payloads::TrainingDatasetArrowFlightPayload,
-        };
-use hopsworks_internal::get_hopsworks_client;
+use crate::arrow_flight::{decoder, utils, payloads::{FeatureGroupConnectorArrowFlightPayload, TrainingDatasetArrowFlightPayload, QueryArrowFlightPayload}};
+use hopsworks_internal::{get_hopsworks_client, util};
 use hopsworks_internal::platform::credentials::RegisterArrowFlightClientCertificatePayload;
 use hopsworks_internal::platform::variables;
-
-use super::filter::QueryArrowFlightPayload;
 
 #[derive(Debug, Clone, Default)]
 pub struct HopsworksArrowFlightClientBuilder {}

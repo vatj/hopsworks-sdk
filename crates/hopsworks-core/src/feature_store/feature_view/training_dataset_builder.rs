@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use color_eyre::Result;
-use polars::frame::DataFrame;
 use serde::{Deserialize, Serialize};
 
 use crate::feature_store::{
@@ -267,22 +266,12 @@ where
         TrainingDatasetSplitSizes::new(train_split_size, test_split_size, validation_split_size)
     }
 
-    async fn register(&self) -> Result<TrainingDataset> {
+    pub async fn register(&self) -> Result<TrainingDataset> {
         crate::controller::feature_store::training_dataset::register_training_dataset(self).await
     }
 
     pub async fn materialize_on_cluster(&self) -> Result<TrainingDataset> {
         crate::controller::feature_store::training_dataset::materialize_on_cluster(self).await
-    }
-
-    pub async fn read_from_offline_feature_store(&self) -> Result<(TrainingDataset, DataFrame)> {
-        let training_dataset = self.register().await?;
-        let df = crate::controller::feature_store::training_dataset::read_from_offline_feature_store(
-            &training_dataset,
-        )
-        .await?;
-
-        Ok((training_dataset, df))
     }
 }
 

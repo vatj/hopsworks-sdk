@@ -13,21 +13,21 @@ pub struct JobExectutionMinimalDTO {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct JobExecutionDTO {
-    pub(crate) href: String,
-    pub(crate) id: i32,
-    pub(crate) submission_time: String,
-    pub(crate) state: String,
+    pub href: String,
+    pub id: i32,
+    pub submission_time: String,
+    pub state: String,
     hdfs_user: String,
     args: String,
     final_status: String,
     progress: f64,
     user: JobExecutionUserDTO,
-    pub(crate) files_to_remove: Vec<String>,
+    pub files_to_remove: Vec<String>,
     duration: i64,
-    pub(crate) job: Option<JobDTO>,
-    pub(crate) stdout_path: Option<String>,
-    pub(crate) stderr_path: Option<String>,
-    pub(crate) job_name: Option<String>,
+    pub job: Option<JobDTO>,
+    pub stdout_path: Option<String>,
+    pub stderr_path: Option<String>,
+    pub job_name: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -7,12 +7,12 @@ pub mod service;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct JobDTO {
-    pub(crate) href: String,
-    pub(crate) id: i32,
-    pub(crate) name: String,
-    pub(crate) creation_time: String,
-    pub(crate) config: serde_json::Value,
-    pub(crate) job_type: String,
+    pub href: String,
+    pub id: i32,
+    pub name: String,
+    pub creation_time: String,
+    pub config: serde_json::Value,
+    pub job_type: String,
     creator: JobCreatorDTO,
     executions: JobExectutionMinimalDTO,
 }

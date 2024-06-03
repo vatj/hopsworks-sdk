@@ -16,20 +16,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::feature_store::{query::Query, FeatureStore};
 
-#[cfg(feature = "polars_insert")]
-use platform::job_execution::JobExecution;
-#[cfg(feature = "polars_insert")]
-use crate::controller::feature_store::feature_group;
-#[cfg(feature = "polars_insert")]
-use polars::frame::DataFrame;
-
-#[cfg(feature = "read_arrow_flight_offline_store")]
-use hopsworks_offline_store::read_with_arrow_flight_client;
-#[cfg(feature = "read_arrow_flight_offline_store")]
-use super::query::read_option::OfflineReadOptions;
-#[cfg(feature = "read_arrow_flight_offline_store")]
-use crate::controller::feature_store::feature_group;
-
 use hopsworks_internal::{feature_store::{feature_group::FeatureGroupDTO, statistics_config::StatisticsConfigDTO, feature::FeatureDTO}, platform::users::UserDTO, util};
 
 use self::{feature::Feature, statistics_config::StatisticsConfig};
@@ -267,94 +253,6 @@ impl FeatureGroup {
             .find(|feature| feature.name() == feature_name)
     }
 
-    /// Inserts or upserts data into the Feature Group table.
-    ///
-    /// Dataframe is written row by row to the project Kafka topic.
-    /// A Hudi job is then triggered to materialize the data into the offline Feature Group table.
-    ///
-    /// If the Feature Group is online enabled, Hopsworks onlineFS service
-    /// writes rows by primary key to RonDB. Only the most recent value for a primary key
-    /// is stored.
-    ///
-    /// # Arguments
-    /// * `dataframe` - A mutable reference to a Polars DataFrame containing the data to insert.
-    ///
-    /// # Returs
-    /// A JobExecution object containing information about status of the insertion job.
-    ///
-    /// # Example
-    /// ```no_run
-    /// use color_eyre::Result;
-    ///
-    /// use polars::prelude::*;
-    ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<()> {
-    ///   let project = hopsworks::login(None).await?;
-    ///   let feature_store = project.get_feature_store().await?;
-    ///
-    ///   let mut feature_group = feature_store
-    ///     .get_feature_group("my_feature_group", Some(1))
-    ///     .await?
-    ///     .expect("Feature Group not found");
-    ///
-    ///   let mut mini_df = df! [
-    ///     "number" => [2i64, 3i64],
-    ///     "word" => ["charlie", "dylan"]
-    ///   ]?;
-    ///
-    ///  feature_group.insert(&mut mini_df).await?;
-    ///
-    ///  Ok(())
-    /// }
-    /// ```
-    #[cfg(feature = "polars_insert")]
-    pub async fn insert(&mut self, dataframe: &mut DataFrame) -> Result<JobExecution> {
-        if self.id().is_none() {
-            let feature_group_dto = feature_group::save_feature_group_metadata(
-                self.featurestore_id,
-                feature_group::build_new_feature_group_payload(
-                    &self.name,
-                    self.version,
-                    self.description.as_deref(),
-                    self.primary_key
-                        .as_ref()
-                        .unwrap()
-                        .iter()
-                        .map(|pk| pk.as_ref())
-                        .collect(),
-                    self.event_time.as_deref(),
-                    dataframe.schema(),
-                    self.online_enabled,
-                )
-                .unwrap(),
-            )
-            .await?;
-
-            self.id = Some(feature_group_dto.id);
-            self.online_topic_name = feature_group_dto.online_topic_name;
-            self.creator = Some(User::from(feature_group_dto.creator));
-            self.location = Some(feature_group_dto.location);
-            self.statistics_config = feature_group_dto
-                .statistics_config
-                .as_ref()
-                .map(StatisticsConfig::from);
-            self.features_mut()
-                .extend(feature_group_dto.features.into_iter().map(Feature::from));
-        }
-
-        feature_group::insert_in_registered_feature_group(
-            self.featurestore_id,
-            self.id().unwrap(),
-            self.name.as_str(),
-            self.version,
-            self.online_topic_name().unwrap_or_default(),
-            dataframe,
-            &self.get_primary_keys()?,
-        )
-        .await
-    }
-
     /// Returns the list of owned feature names for the feature group.
     pub fn get_feature_names(&self) -> Vec<&str> {
         self.features.iter().map(|f| f.name()).collect()
@@ -414,44 +312,6 @@ impl FeatureGroup {
                 })
                 .collect(),
         ))
-    }
-
-    /// Reads feature group data from Hopsworks via the Arrow Flight client.
-    ///
-    /// # Example
-    /// ```no_run
-    /// use color_eyre::Result;
-    ///
-    /// use polars::prelude::*;
-    ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<()> {
-    ///  let project = hopsworks::login(None).await?;
-    ///  let feature_store = project.get_feature_store().await?;
-    ///  
-    ///  let feature_group = feature_store
-    ///    .get_feature_group("my_feature_group", None)
-    ///    .await?
-    ///    .expect("Feature Group not found");
-    ///
-    ///  let df = feature_group.read_from_offline_feature_store(None).await?;
-    ///
-    ///  Ok(())
-    /// }
-    /// ```
-    #[cfg(feature = "read_arrow_flight_offline_store")]
-    pub async fn read_from_offline_feature_store(
-        &self,
-        offline_read_options: Option<OfflineReadOptions>,
-    ) -> Result<DataFrame> {
-        let query = self.select(&self.get_feature_names())?;
-        debug!(
-            "Reading data from feature group {} with Arrow Flight client",
-            self.name
-        );
-        let read_df = read_with_arrow_flight_client(query, offline_read_options).await?;
-
-        Ok(read_df)
     }
 }
 

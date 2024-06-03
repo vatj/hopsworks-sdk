@@ -13,7 +13,11 @@ color-eyre = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
+
 hopsworks-core ={ workspace = true }
+hopsworks-insert ={ workspace = true, optional = true}
+hopsworks-offline-store = { workspace = true, optional = true}
+hopsworks-online-store = { workspace = true, optional = true}
 
 # Debug and Error handling related dependencies
 anyhow = { version = "1.0" }
@@ -23,3 +27,8 @@ tracing-subscriber = { version = "0.3", default-features = false, features = [
     "env-filter",
     "fmt",
 ] }
+
+[features]
+read_arrow_flight_offline_store = ["hopsworks-offline-store"]
+read_rest_online_store = ["hopsworks-online-store"]
+read_sql_online_store = ["hopsworks-online-store"]

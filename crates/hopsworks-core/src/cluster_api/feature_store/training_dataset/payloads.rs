@@ -115,30 +115,3 @@ pub struct SparkJobConfiguration {
     #[serde(rename = "type")]
     spark_job_configuration_type: String,
 }
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TrainingDatasetArrowFlightPayload {
-    pub fs_name: String,
-    pub fv_name: String,
-    pub fv_version: i32,
-    pub tds_version: i32,
-    pub tds_query: String,
-}
-
-impl TrainingDatasetArrowFlightPayload {
-    pub fn new(
-        fs_name: String,
-        fv_name: String,
-        fv_version: i32,
-        tds_version: i32,
-        tds_query: String,
-    ) -> Self {
-        Self {
-            fs_name,
-            fv_name,
-            fv_version,
-            tds_version,
-            tds_query,
-        }
-    }
-}

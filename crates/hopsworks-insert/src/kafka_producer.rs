@@ -87,7 +87,7 @@ fn convert_df_row_to_avro_record<'a>(
             }
             DataType::Float32 => record.put(column_names[jdx], Some(value.try_extract::<f32>()?)),
             DataType::Float64 => record.put(column_names[jdx], Some(value.try_extract::<f64>()?)),
-            DataType::Utf8 => record.put(column_names[jdx], Some(value.to_string())),
+            DataType::String => record.put(column_names[jdx], Some(value.to_string())),
             DataType::Datetime(TimeUnit::Microseconds, None) => {
                 record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
             }
@@ -121,7 +121,7 @@ fn convert_df_row_to_avro_record<'a>(
             DataType::List(_) => todo!(),
             DataType::Categorical(_, _) => todo!(),
             DataType::Struct(_) => todo!(),
-            DataType::Unknown => todo!(),
+            _ => todo!(),
         }
 
         if primary_keys.contains(&column_names[jdx]) {

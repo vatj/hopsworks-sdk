@@ -38,21 +38,21 @@ pub struct FeatureStoreQueryDTO {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct JoinQueryDTO {
-    pub(crate) query: QueryDTO,
+    pub query: QueryDTO,
     #[serde(rename = "type")]
-    pub(crate) join_type: JoinType,
-    pub(crate) on: Option<Vec<String>>,
-    pub(crate) left_on: Option<Vec<String>>,
-    pub(crate) right_on: Option<Vec<String>>,
-    pub(crate) prefix: Option<String>,
+    pub join_type: JoinType,
+    pub on: Option<Vec<String>>,
+    pub left_on: Option<Vec<String>>,
+    pub right_on: Option<Vec<String>>,
+    pub prefix: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryFilterDTO {
-    pub(crate) feature: FeatureDTO,
-    pub(crate) condition: QueryFilterCondition,
-    pub(crate) value: serde_json::Value,
+    pub feature: FeatureDTO,
+    pub condition: QueryFilterCondition,
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -1,10 +1,13 @@
 use clap::{Parser, Subcommand};
 use color_eyre::Result;
 
-use hopsworks::HopsworksClientBuilder;
+use hopsworks_core::HopsworksClientBuilder;
 use hopsworks_internal::profiles::read::get_hopsworks_profile;
 
 mod platform;
+
+use platform::project::{self, ProjectSubCommand};
+use platform::job::{self, JobSubCommand};
 
 /// A CLI to interact with the Hopsworks Platform without leaving the terminal.
 /// Requires a valid API key to be set in the environment variable `HOPSWORKS_API_KEY`.
@@ -36,11 +39,11 @@ enum HopsworksCliSubCommands {
     #[command(arg_required_else_help = true)]
     Project {
         #[command(subcommand)]
-        command: project::ProjectSubCommand,
+        command: ProjectSubCommand,
     },
     Job {
         #[command(subcommand)]
-        command: job::JobSubCommand,
+        command: JobSubCommand,
     },
 }
 
@@ -62,20 +65,20 @@ async fn main() -> Result<()> {
             hopsworks_client_builder.with_project_name(args.project.unwrap().as_str());
     }
 
-    let current_project = hopsworks::login(Some(hopsworks_client_builder)).await?;
+    let current_project = hopsworks_core::login(Some(hopsworks_client_builder)).await?;
 
     match args.command {
         HopsworksCliSubCommands::Project { command } => match command {
-            project::ProjectSubCommand::Info {} => project::show_project_info(current_project),
-            project::ProjectSubCommand::List {} => project::show_list_projects().await,
+            ProjectSubCommand::Info {} => project::show_project_info(current_project),
+            ProjectSubCommand::List {} => project::show_list_projects().await,
         },
         HopsworksCliSubCommands::Job { command } => match command {
-            job::JobSubCommand::Info { name } => job::show_job_info(&name, current_project).await,
-            job::JobSubCommand::List {} => job::show_list_jobs(current_project).await,
-            job::JobSubCommand::ListExecutions { name, active } => {
+            JobSubCommand::Info { name } => job::show_job_info(&name, current_project).await,
+            JobSubCommand::List {} => job::show_list_jobs(current_project).await,
+            JobSubCommand::ListExecutions { name, active } => {
                 job::show_list_executions(current_project, &name, active).await
             }
-            job::JobSubCommand::Run {
+            JobSubCommand::Run {
                 name,
                 args,
                 await_termination,

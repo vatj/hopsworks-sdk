@@ -117,9 +117,5 @@ pub async fn create_project(project_name: &str, description: &Option<&str>) -> R
 }
 
 pub async fn get_project_list() -> Result<Vec<Project>> {
-    Ok(crate::controller::platform::project::get_project_list()
-        .await?
-        .iter()
-        .map(Project::from)
-        .collect())
+    crate::controller::platform::project::get_project_list().await
 }

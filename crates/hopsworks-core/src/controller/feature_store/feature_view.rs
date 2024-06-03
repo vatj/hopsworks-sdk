@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
 use color_eyre::Result;
-#[cfg(feature = "read_arrow_flight_offline_store")]
-use polars::frame::DataFrame;
 
 use crate::{
     controller::feature_store::query::construct_query,
@@ -20,9 +18,6 @@ use hopsworks_internal::feature_store::{
         query::QueryDTO,
         transformation_function::TransformationFunctionDTO,
     };
-
-#[cfg(feature = "read_arrow_flight_offline_store")]
-use crate::feature_store::query::read_option;
 
 pub async fn create_feature_view(
     feature_store_id: i32,
@@ -100,19 +95,6 @@ pub async fn get_batch_query(
     .await?;
 
     Ok(Query::from(query_dto))
-}
-
-#[cfg(feature = "read_arrow_flight_offline_store")]
-pub async fn get_batch_data(
-    feature_view: &FeatureView,
-    batch_query_options: &BatchQueryOptions,
-    offline_read_options: Option<read_option::OfflineReadOptions>,
-) -> Result<DataFrame> {
-    let batch_query = get_batch_query(feature_view, batch_query_options).await?;
-
-    batch_query
-        .read_from_offline_feature_store(offline_read_options)
-        .await
 }
 
 pub fn features_to_transformed_features(

@@ -13,6 +13,7 @@ env_logger = { workspace = true }
 tokio = { workspace = true }
 polars = { workspace = true }
 hopsworks-internal = { workspace = true }
+hopsworks-core = { workspace = true }
 
 rdkafka = { version = "0.36.0", features = ["tokio", "libz", "ssl"] }
 apache-avro = { version = "0.16", features = ["derive"] }

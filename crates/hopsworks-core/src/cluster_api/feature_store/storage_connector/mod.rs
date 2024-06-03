@@ -11,17 +11,17 @@ pub mod arrow_flight_connector;
 #[serde(rename_all = "camelCase")]
 pub struct FeatureStoreKafkaConnectorDTO {
     #[serde(rename = "type")]
-    pub(crate) _type: String,
-    pub(crate) bootstrap_servers: String,
-    pub(crate) security_protocol: String,
-    pub(crate) ssl_endpoint_identification_algorithm: String,
-    pub(crate) options: Vec<String>,
-    pub(crate) external_kafka: bool,
-    pub(crate) id: i32,
-    pub(crate) description: String,
-    pub(crate) name: String,
-    pub(crate) featurestore_id: i32,
-    pub(crate) storage_connector_type: String,
+    pub _type: String,
+    pub bootstrap_servers: String,
+    pub security_protocol: String,
+    pub ssl_endpoint_identification_algorithm: String,
+    pub options: Vec<String>,
+    pub external_kafka: bool,
+    pub id: i32,
+    pub description: String,
+    pub name: String,
+    pub featurestore_id: i32,
+    pub storage_connector_type: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -49,8 +49,8 @@ pub struct FeatureStoreJdbcConnectorDTO {
     #[serde(rename = "featurestoreId")]
     feature_store_id: i32,
     storage_connector_type: String,
-    pub(crate) connection_string: String,
-    pub(crate) arguments: Vec<HashMap<String, String>>,
+    pub connection_string: String,
+    pub arguments: Vec<HashMap<String, String>>,
 }
 
 pub enum StorageConnectorDTO {

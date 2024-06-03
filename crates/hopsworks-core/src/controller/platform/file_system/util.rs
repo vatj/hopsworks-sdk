@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use hopsworks_internal::platform::file_system::FlowBaseParams;
 
+const DEFAULT_FLOW_CHUNK_SIZE: usize = 1048576;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UploadOptions {
@@ -13,6 +14,32 @@ pub struct UploadOptions {
     pub chunk_retry_interval: u64,
 }
 
+impl UploadOptions {
+    pub fn new(
+        chunk_size: usize,
+        simultaneous_uploads: usize,
+        max_chunk_retries: i32,
+        chunk_retry_interval: u64,
+    ) -> Self {
+        UploadOptions {
+            chunk_size,
+            simultaneous_uploads,
+            max_chunk_retries,
+            chunk_retry_interval,
+        }
+    }
+}
+
+impl Default for UploadOptions {
+    fn default() -> Self {
+        UploadOptions {
+            chunk_size: DEFAULT_FLOW_CHUNK_SIZE,
+            simultaneous_uploads: 3,
+            max_chunk_retries: 3,
+            chunk_retry_interval: 1000,
+        }
+    }
+}
 
 /// Build the path to download the file on the local fs and return to the user, it should be absolute for consistency
 /// Download in CWD if local_path not specified
