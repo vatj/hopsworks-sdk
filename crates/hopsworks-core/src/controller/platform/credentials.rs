@@ -4,7 +4,7 @@ use std::path::Path;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
-use super::service::get_hopsworks_credentials_for_project;
+use crate::cluster_api::platform::credentials::service::get_hopsworks_credentials_for_project;
 
 pub async fn write_locally_project_credentials_on_login(cert_dir: &str) -> Result<String> {
     let credentials_dto = get_hopsworks_credentials_for_project().await?;

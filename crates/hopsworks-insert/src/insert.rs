@@ -45,45 +45,12 @@ use hopsworks_core::{controller::feature_store::feature_group, feature_store::fe
 ///  Ok(())
 /// }
 /// ```
-pub async fn insert(fgroup : &mut FeatureGroup, dataframe: &mut DataFrame) -> Result<JobExecution> {
-    if fgroup.id().is_none() {
-        let feature_group_dto = feature_group::save_feature_group_metadata(
-            fgroup.featurestore_id,
-            feature_group::build_new_feature_group_payload(
-                &fgroup.name,
-                fgroup.version,
-                fgroup.description.as_deref(),
-                fgroup.primary_key
-                    .as_ref()
-                    .unwrap()
-                    .iter()
-                    .map(|pk| pk.as_ref())
-                    .collect(),
-                fgroup.event_time.as_deref(),
-                dataframe.schema(),
-                fgroup.online_enabled,
-            )
-            .unwrap(),
-        )
-        .await?;
-
-        fgroup.id = Some(feature_group_dto.id);
-        fgroup.online_topic_name = feature_group_dto.online_topic_name;
-        fgroup.creator = Some(User::from(feature_group_dto.creator));
-        fgroup.location = Some(feature_group_dto.location);
-        fgroup.statistics_config = feature_group_dto
-            .statistics_config
-            .as_ref()
-            .map(StatisticsConfig::from);
-        fgroup.features_mut()
-            .extend(feature_group_dto.features.into_iter().map(Feature::from));
-    }
-
+pub async fn insert(fgroup : &FeatureGroup, dataframe: &mut DataFrame) -> Result<JobExecution> {
     feature_group::insert_in_registered_feature_group(
-        fgroup.featurestore_id,
+        fgroup.feature_store_id(),
         fgroup.id().unwrap(),
-        fgroup.name.as_str(),
-        fgroup.version,
+        fgroup.name(),
+        fgroup.version(),
         fgroup.online_topic_name().unwrap_or_default(),
         dataframe,
         &fgroup.get_primary_keys()?,

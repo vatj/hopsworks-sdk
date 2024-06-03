@@ -5,9 +5,8 @@ use crate::cluster_api::feature_store::{feature::FeatureDTO, feature_group::Feat
 
 pub mod payloads;
 pub mod service;
-pub mod enums;
 
-use enums::{JoinType, QueryFilterCondition, QueryLogicType};
+use crate::feature_store::query::enums::{JoinType, QueryFilterCondition, QueryLogicType};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

@@ -59,9 +59,7 @@ impl Project {
     /// }
     /// ```
     pub async fn get_feature_store(&self) -> Result<FeatureStore> {
-        Ok(FeatureStore::from(
-            feature_store::get_project_default_feature_store(self.project_name.as_str()).await?,
-        ))
+        feature_store::get_project_default_feature_store(self.project_name.as_str()).await
     }
 
     /// Get a [`Job`] by name. Use it to manage the job, e.g. run it or update the configuration.

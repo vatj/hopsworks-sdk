@@ -8,10 +8,15 @@ use std::collections::HashMap;
 use std::time::Duration;
 use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity};
 
-use crate::arrow_flight::{decoder, utils, payloads::{FeatureGroupConnectorArrowFlightPayload, TrainingDatasetArrowFlightPayload, QueryArrowFlightPayload}};
+use crate::arrow_flight::{decoder, utils};
+use crate::cluster_api::payloads::{
+    FeatureGroupConnectorArrowFlightPayload, QueryArrowFlightPayload, TrainingDatasetArrowFlightPayload,
+};
+use crate::cluster_api::payloads::RegisterArrowFlightClientCertificatePayload;
 use hopsworks_core::{get_hopsworks_client, util};
-use hopsworks_core::cluster_api::credentials::RegisterArrowFlightClientCertificatePayload;
-use hopsworks_core::cluster_api::platform::variables;
+
+use hopsworks_core::controller::platform::variables;
+use hopsworks_core::feature_store::{FeatureView, query::Query, feature_view::training_dataset::TrainingDataset};
 
 #[derive(Debug, Clone, Default)]
 pub struct HopsworksArrowFlightClientBuilder {}
@@ -37,7 +42,7 @@ impl HopsworksArrowFlightClientBuilder {
     }
 
     async fn check_flyingduck_enabled(&self) -> Result<()> {
-        let is_enabled = variables::service::get_flyingduck_enabled().await?;
+        let is_enabled = variables::get_flyingduck_enabled().await?;
         if !is_enabled {
             return Err(color_eyre::Report::msg("Flying Duck is not enabled"));
         }
@@ -45,7 +50,7 @@ impl HopsworksArrowFlightClientBuilder {
     }
 
     async fn get_arrow_flight_url(&self) -> Result<String> {
-        let load_balancer_url = variables::service::get_loadbalancer_external_domain().await?;
+        let load_balancer_url = variables::get_loadbalancer_external_domain().await?;
         let load_balancer_url_from_env = std::env::var("HOPSWORKS_EXTERNAL_LOADBALANCER_URL");
         let arrow_flight_url = format!(
             "https://{}:5005",

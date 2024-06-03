@@ -2,11 +2,9 @@ use color_eyre::Result;
 
 #[cfg(feature = "polars")]
 use polars::prelude::Schema;
+#[cfg(feature = "polars")]
+use crate::controller::feature_store::feature;
 
-#[cfg(feature = "polars-insert")]
-pub mod polars_insert;
-#[cfg(predicate = "polars-insert")]
-use super::feature;
 
 use crate::cluster_api::feature_store::{
         feature::payloads::NewFeaturePayload,
@@ -89,3 +87,5 @@ pub async fn save_feature_group_metadata(
 
     Ok(feature_group_dto)
 }
+
+

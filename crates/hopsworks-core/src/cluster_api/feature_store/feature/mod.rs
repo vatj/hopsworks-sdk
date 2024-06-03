@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::feature_store::feature_group::feature::Feature;
 use crate::cluster_api::feature_store::{
         feature_group::FeatureGroupDTO,
         transformation_function::TransformationFunctionDTO,
@@ -60,6 +61,20 @@ impl TrainingDatasetFeatureDTO {
             transformation_function,
             index: 0,
             featuregroup: feature_group.clone(),
+        }
+    }
+}
+
+impl From<&Feature> for FeatureDTO {
+    fn from(feature: &Feature) -> Self {
+        FeatureDTO{
+            feature_group_id: feature.feature_group_id(),
+            primary: feature.is_primary(),
+            name: feature.name().to_string(),
+            description: feature.description().map(String::from),
+            data_type: feature.data_type().to_string(),
+            partition: feature.is_partition(),
+            hudi_precombine_key: feature.is_hudi_precombine_key(),
         }
     }
 }

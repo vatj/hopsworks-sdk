@@ -2,6 +2,7 @@
 pub mod builder;
 pub mod filter;
 pub mod join;
+pub mod enums;
 
 use color_eyre::Result;
 
@@ -19,6 +20,7 @@ use crate::cluster_api::feature_store::{
     feature_view::payloads::FeatureViewBatchQueryPayload,
 };
 use super::query::builder::BatchQueryOptions;
+
 
 /// Query object are used to read data from the feature store, both online and offline.
 ///

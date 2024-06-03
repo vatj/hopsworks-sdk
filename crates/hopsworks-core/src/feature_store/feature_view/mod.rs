@@ -25,22 +25,7 @@ use crate::cluster_api::feature_store::feature_view::FeatureViewDTO;
 
 use self::{training_dataset_builder::NoSplit, transformation_function::TransformationFunction};
 
-use super::query::{
-    builder::BatchQueryOptions
-};
-
-#[cfg(feature = "read_arrow_flight_offline_store")]
-use polars::prelude::DataFrame;
-
-#[cfg(feature = "read_sql_online_store")]
-use crate::controller::feature_store::query::read_query_from_online_feature_store;
-#[cfg(feature= "read_sql_online_store")] 
-use super::query::read_option::OnlineReadOptions;
-
-#[cfg(feature = "read_arrow_flight_offline_store")]
-use crate::controller::feature_store::query::read_with_arrow_flight_client;
-#[cfg(feature= "read_arrow_flight_offline_store")] 
-use super::query::read_option::OfflineReadOptions;
+use super::query::builder::BatchQueryOptions;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureView {
@@ -202,20 +187,6 @@ impl FeatureView {
 
     pub async fn get_batch_query(&self, batch_query_options: &BatchQueryOptions) -> Result<Query> {
         crate::controller::feature_store::feature_view::get_batch_query(self, batch_query_options).await
-    }
-
-    #[cfg(feature = "read_arrow_flight_offline_store")]
-    pub async fn get_batch_data(
-        &self,
-        batch_query_options: &BatchQueryOptions,
-        offline_read_options: Option<OfflineReadOptions>,
-    ) -> Result<DataFrame> {
-        crate::controller::feature_store::feature_view::get_batch_data(
-            self,
-            batch_query_options,
-            offline_read_options,
-        )
-        .await
     }
 
     pub fn training_dataset_builder(

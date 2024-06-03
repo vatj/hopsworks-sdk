@@ -97,10 +97,11 @@ pub mod feature_store;
 pub mod platform;
 pub mod profiles;
 pub mod util;
+pub mod rest_client;
 
 pub use platform::project::Project;
-pub use cluster_api::rest_client::HopsworksClientBuilder;
-use cluster_api::rest_client::HopsworksClient;
+pub use rest_client::HopsworksClientBuilder;
+use rest_client::HopsworksClient;
 
 
 static HOPSWORKS_CLIENT: OnceCell<HopsworksClient> = OnceCell::const_new();

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::feature_store::query::enums::{QueryFilterCondition, QueryLogicType};
+use hopsworks_core::feature_store::query::enums::{QueryFilterCondition, QueryLogicType};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureGroupConnectorArrowFlightPayload {
@@ -184,6 +184,23 @@ impl TrainingDatasetArrowFlightPayload {
             fv_version,
             tds_version,
             tds_query,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RegisterArrowFlightClientCertificatePayload {
+    tstore: String,
+    kstore: String,
+    cert_key: String,
+}
+
+impl RegisterArrowFlightClientCertificatePayload {
+    pub fn new(tstore: String, kstore: String, cert_key: String) -> Self {
+        Self {
+            tstore,
+            kstore,
+            cert_key,
         }
     }
 }

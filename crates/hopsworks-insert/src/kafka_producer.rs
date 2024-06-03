@@ -16,16 +16,11 @@ use hopsworks_core::feature_store::storage_connector::FeatureStoreKafkaConnector
 use hopsworks_core::platform::kafka::KafkaSubject;
 
 async fn setup_future_producer(
-    kafka_connector: FeatureStoreKafkaConnectorDTO,
+    kafka_connector: FeatureStoreKafkaConnector,
+    cert_dir: String,
 ) -> Result<FutureProducer> {
-    let cert_dir = get_hopsworks_client()
-        .await
-        .get_cert_dir()
-        .lock()
-        .await
-        .clone();
     let bootstrap_servers =
-        std::env::var("HOPSWORKS_KAFKA_BROKERS").unwrap_or(kafka_connector.bootstrap_servers);
+        std::env::var("HOPSWORKS_KAFKA_BROKERS").unwrap_or(kafka_connector.bootstrap_servers().to_string());
     Ok(ClientConfig::new()
         .set("bootstrap.servers", bootstrap_servers)
         .set("message.timeout.ms", "300000")
@@ -167,17 +162,18 @@ fn make_future_record_from_encoded<'a>(
 
 pub async fn produce_df(
     df: &mut polars::prelude::DataFrame,
-    kafka_connector: FeatureStoreKafkaConnectorDTO,
+    kafka_connector: FeatureStoreKafkaConnector,
     subject_name: &str,
     opt_version: Option<&str>,
     online_topic_name: &str,
     primary_keys: &[&str],
     feature_group_id: i32,
+    cert_dir: String,
 ) -> Result<()> {
-    let producer: &FutureProducer = &setup_future_producer(kafka_connector).await?;
-    let subject_dto: KafkaSubjectDTO = get_kafka_topic_subject(subject_name, opt_version).await?;
+    let producer: &FutureProducer = &setup_future_producer(kafka_connector, cert_dir).await?;
+    let subject: KafkaSubject = get_kafka_topic_subject(subject_name, opt_version).await?;
 
-    let avro_schema = Schema::parse_str(subject_dto.schema.as_str())?;
+    let avro_schema = Schema::parse_str(subject.schema.as_str())?;
 
     // This value are wrapped into an Arc to allow read-only access across threads
     // meaning clone only increases the ref count, no extra-memory is allocated
@@ -190,10 +186,10 @@ pub async fn produce_df(
             .unwrap()
             .to_string(),
     );
-    let subject_id = Arc::new(subject_dto.id.to_string());
+    let subject_id = Arc::new(subject.id.to_string());
     let feature_group_id = Arc::new(feature_group_id.to_string());
     let topic_name = Arc::new(online_topic_name);
-    let version = Arc::new(subject_dto.version.to_string());
+    let version = Arc::new(subject.version.to_string());
 
     df.as_single_chunk_par();
 
@@ -386,20 +382,7 @@ mod tests {
     #[tokio::test]
     async fn test_setup_future_producer() {
         // Arrange
-        let _ = crate::login(None).await.unwrap();
-        let kafka_connector = FeatureStoreKafkaConnectorDTO {
-            bootstrap_servers: "localhost:9092".to_string(),
-            _type: "kafka".to_string(),
-            security_protocol: "ssl".to_string(),
-            ssl_endpoint_identification_algorithm: "none".to_string(),
-            options: vec![],
-            external_kafka: true,
-            id: 1,
-            description: "empty".to_string(),
-            name: "kafka_connector_1".to_string(),
-            featurestore_id: 1,
-            storage_connector_type: "kafka".to_string(),
-        };
+        let kafka_connector = FeatureStoreKafkaConnector::new_test();
 
         // Act
         let result = setup_future_producer(kafka_connector).await;

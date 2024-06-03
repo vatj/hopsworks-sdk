@@ -4,7 +4,8 @@ use crate::cluster_api::feature_store::{
         feature::FeatureDTO, feature_group::FeatureGroupDTO,
     };
 
-use super::{QueryFilterOrLogicDTO, enums::JoinType};
+use super::QueryFilterOrLogicDTO;
+use crate::feature_store::query::enums::JoinType;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

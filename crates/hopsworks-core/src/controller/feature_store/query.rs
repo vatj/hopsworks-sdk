@@ -1,7 +1,5 @@
 use color_eyre::Result;
 use log::debug;
-#[cfg(feature = "polars")]
-use polars::prelude::DataFrame;
 
 use crate::controller::feature_store::storage_connector;
 
@@ -24,7 +22,7 @@ pub async fn build_mysql_connection_url_from_storage_connector(
     let online_storage_connector =
         storage_connector::get_feature_store_online_connector(feature_store_id).await?;
     let password = online_storage_connector
-        .arguments
+        .arguments()
         .iter()
         .find(|arg| arg.get("name") == Some(&String::from("password")))
         .expect("No password key found in online feature store connector arguments")
@@ -32,14 +30,14 @@ pub async fn build_mysql_connection_url_from_storage_connector(
         .expect("No password value found in online feature store connector arguments")
         .clone();
     let username = online_storage_connector
-        .arguments
+        .arguments()
         .iter()
         .find(|arg| arg.get("name") == Some(&String::from("user")))
         .expect("No user key found in online feature store connector arguments")
         .get("value")
         .expect("No user value found in online feature store connector arguments");
     let mut connection_string = online_storage_connector
-        .connection_string
+        .connection_string()
         .replace("jdbc:", "");
     let end_range = connection_string[8..].find(':').unwrap();
     let mut host = get_loadbalancer_external_domain().await?;

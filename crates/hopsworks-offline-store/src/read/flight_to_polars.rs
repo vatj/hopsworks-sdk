@@ -3,14 +3,6 @@ use crate::arrow_flight::client::HopsworksArrowFlightClientBuilder;
 
 use polars::prelude::DataFrame;
 
-pub struct ArrowFlightReadOptions {
-    pub(crate) host: String,
-    pub(crate) port: u16,
-    pub(crate) tls: bool,
-    pub(crate) root_cert_path: Option<String>,
-    pub(crate) token: Option<String>,
-}
-
 pub async fn read_with_arrow_flight_client(
     query_str: String,
     _offline_read_options: ArrowFlightReadOptions,

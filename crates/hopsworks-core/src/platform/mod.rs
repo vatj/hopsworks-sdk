@@ -7,3 +7,4 @@ pub mod job;
 pub mod job_execution;
 pub mod project;
 pub mod user;
+pub mod kafka;

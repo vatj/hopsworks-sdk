@@ -4,9 +4,6 @@ use serde::{Deserialize, Serialize};
 
 pub mod service;
 
-#[cfg(feature = "arrow_flight_connector")]
-pub mod arrow_flight_connector;
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FeatureStoreKafkaConnectorDTO {
@@ -20,7 +17,8 @@ pub struct FeatureStoreKafkaConnectorDTO {
     pub id: i32,
     pub description: String,
     pub name: String,
-    pub featurestore_id: i32,
+    #[serde(rename = "featurestoreId")]
+    pub feature_store_id: i32,
     pub storage_connector_type: String,
 }
 
@@ -32,6 +30,7 @@ pub struct FeatureStoreHopsfsConnectorDTO {
     id: i32,
     description: String,
     name: String,
+    #[serde(rename = "featurestoreId")]
     feature_store_id: i32,
     storage_connector_type: String,
     hopsfs_path: String,
@@ -49,8 +48,8 @@ pub struct FeatureStoreJdbcConnectorDTO {
     #[serde(rename = "featurestoreId")]
     feature_store_id: i32,
     storage_connector_type: String,
-    pub connection_string: String,
-    pub arguments: Vec<HashMap<String, String>>,
+    pub(crate) connection_string: String,
+    pub(crate) arguments: Vec<HashMap<String, String>>,
 }
 
 pub enum StorageConnectorDTO {

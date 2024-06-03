@@ -1,8 +1,8 @@
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::feature_store::query::{QueryFilter, QueryFilterOrLogic};
-use crate::cluster_api::{feature_store::query::enums::QueryFilterCondition, feature_store::feature::FeatureDTO};
+use crate::feature_store::query::{QueryFilter, QueryFilterOrLogic, enums::QueryFilterCondition};
+use crate::cluster_api::feature_store::feature::FeatureDTO;
 
 /// Feature entity gathering metadata about a feature in a [`FeatureGroup`][super::FeatureGroup].
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -350,16 +350,3 @@ impl Feature {
     }
 }
 
-impl From<&Feature> for FeatureDTO {
-    fn from(feature: &Feature) -> Self {
-        FeatureDTO{
-            feature_group_id: feature.feature_group_id(),
-            primary: feature.is_primary(),
-            name: feature.name().to_string(),
-            description: feature.description().map(String::from),
-            data_type: feature.data_type().to_string(),
-            partition: feature.is_partition(),
-            hudi_precombine_key: feature.is_hudi_precombine_key(),
-        }
-    }
-}

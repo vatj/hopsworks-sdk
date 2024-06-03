@@ -16,7 +16,7 @@ tokio = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 reqwest = { workspace = true }
 serde_json = { workspace = true }
-polars ={ workspace = true }
+polars ={ workspace = true, optional = true}
 
 indicatif = { version = "0.17" }
 chrono ={ version = "0.4", features = ["serde"] }
@@ -24,10 +24,6 @@ toml = { version = "0.8" }
 directories = { version = "5.0" }
 
 [features]
-default = []
-polars = []
-polars_insert = []
-read_arrow_flight_offline_store = []
-read_sql_online_store = []
-read_rest_online_store = []
+default = ["polars"]
+polars = ["dep:polars"]
 

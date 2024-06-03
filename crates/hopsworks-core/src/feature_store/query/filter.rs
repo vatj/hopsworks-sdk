@@ -2,8 +2,9 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::feature_store::feature_group::feature::Feature;
+use crate::feature_store::query::enums::{QueryFilterCondition, QueryLogicType};
 use crate::cluster_api::feature_store::query::{
-        QueryFilterDTO, QueryFilterOrLogicDTO, QueryLogicDTO, enums::QueryFilterCondition, enums::QueryLogicType,
+        QueryFilterDTO, QueryFilterOrLogicDTO, QueryLogicDTO,
     };
 use crate::cluster_api::feature_store::feature::FeatureDTO;
 

@@ -2,6 +2,7 @@
 pub mod feature_group;
 pub mod feature_view;
 pub mod query;
+pub mod storage_connector;
 
 pub use feature_group::FeatureGroup;
 pub use feature_view::FeatureView;

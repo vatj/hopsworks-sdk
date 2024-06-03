@@ -1,4 +1,11 @@
-use hopsworks_core::controller::feature_store::feature;
+use color_eyre::Result;
+use log::debug;
+use polars::prelude::DataFrame;
+
+use hopsworks_core::feature_store::FeatureGroup;
+
+use super::read_options::ArrowFlightReadOptions;
+use super::flight_to_polars::read_with_arrow_flight_client;
 
 /// Reads feature group data from Hopsworks via the Arrow Flight client.
 ///
@@ -24,15 +31,15 @@ use hopsworks_core::controller::feature_store::feature;
 /// }
 /// ```
 pub async fn read_from_offline_feature_store(
-    feature_group: &FeatureGroup,
-    offline_read_options: Option<ArrowFlightReadOptions>,
+    fgroup: &FeatureGroup,
+    _offline_read_options: Option<ArrowFlightReadOptions>,
 ) -> Result<DataFrame> {
-    let query = self.select(&self.get_feature_names())?;
+    let query = fgroup.select(&fgroup.get_feature_names())?;
     debug!(
         "Reading data from feature group {} with Arrow Flight client",
-        self.name
+        fgroup.name()
     );
-    let read_df = read_with_arrow_flight_client(query, offline_read_options).await?;
+    let read_df = read_with_arrow_flight_client(query, _offline_read_options).await?;
 
     Ok(read_df)
 }

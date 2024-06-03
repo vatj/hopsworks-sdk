@@ -1,4 +1,6 @@
 use color_eyre::Result;
+
+#[cfg(feature = "polars")]
 use polars::prelude::{DataType, Schema, TimeUnit};
 
 use crate::cluster_api::feature_store::feature::payloads::NewFeaturePayload;
@@ -15,6 +17,7 @@ pub fn extract_features_from_polars_schema(schema: Schema) -> Result<Vec<NewFeat
         .collect())
 }
 
+#[cfg(feature = "polars")]
 pub fn build_feature_payloads_from_schema_and_feature_group_options(
     schema: Schema,
     primary_key: Vec<&str>,
@@ -30,6 +33,7 @@ pub fn build_feature_payloads_from_schema_and_feature_group_options(
     Ok(feature_payloads)
 }
 
+#[cfg(feature = "polars")]
 pub fn convert_polars_data_type(data_type: &DataType) -> &str {
     // polars to arrow data type
     match data_type {

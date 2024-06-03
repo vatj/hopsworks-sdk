@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::cluster_api::feature_store::query::{JoinQueryDTO, QueryDTO, enums::JoinType, payloads::{NewJoinQueryPayload, NewQueryPayload},};
+use crate::cluster_api::feature_store::query::{JoinQueryDTO, QueryDTO, payloads::{NewJoinQueryPayload, NewQueryPayload}};
+use crate::feature_store::query::enums::JoinType;
 
 use super::Query;
 

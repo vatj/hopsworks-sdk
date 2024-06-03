@@ -22,6 +22,11 @@ use self::{feature::Feature, statistics_config::StatisticsConfig};
 
 use crate::platform::user::User;
 
+#[cfg(feature = "polars")]
+use polars::prelude::DataFrame;
+#[cfg(feature = "polars")]
+use crate::controller::feature_store::feature_group;
+
 /// Feature Group are metadata objects describing a table in the Feature Store.
 /// They are the primary interface through which one can ingest Feature data to the Feature Store.
 /// Once a Feature Group is created, one can insert/upsert data to it using the `insert` method.
@@ -309,5 +314,46 @@ impl FeatureGroup {
                 .collect(),
         ))
     }
+
+    #[cfg(feature = "polars")]
+    pub async fn register_feature_group(&mut self, dataframe: &DataFrame) -> Result<()> {
+        if self.id().is_none() {
+        let feature_group_dto = feature_group::save_feature_group_metadata(
+            self.featurestore_id,
+            feature_group::build_new_feature_group_payload(
+                &self.name(),
+                self.version(),
+                self.description(),
+                self.primary_key
+                    .as_ref()
+                    .unwrap()
+                    .iter()
+                    .map(|pk| pk.as_ref())
+                    .collect(),
+                self.event_time.as_deref(),
+                dataframe.schema(),
+                self.online_enabled,
+            )
+            .unwrap(),
+        )
+        .await?;
+
+        self.id = Some(feature_group_dto.id);
+        self.online_topic_name = feature_group_dto.online_topic_name;
+        self.creator = Some(User::from(feature_group_dto.creator));
+        self.location = Some(feature_group_dto.location);
+        self.statistics_config = feature_group_dto
+            .statistics_config
+            .as_ref()
+            .map(StatisticsConfig::from);
+        self.features_mut()
+            .extend(feature_group_dto.features.into_iter().map(Feature::from));
+
+         Ok(())
+    } else {
+        Err(color_eyre::eyre::eyre!("Feature Group already registered."))
+    }
+    }
+    
 }
 
