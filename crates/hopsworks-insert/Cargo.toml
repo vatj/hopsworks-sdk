@@ -12,7 +12,7 @@ log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
 polars = { workspace = true }
-hopsworks-internal = { workspace = true }
+
 hopsworks-core = { workspace = true }
 
 rdkafka = { version = "0.36.0", features = ["tokio", "libz", "ssl"] }

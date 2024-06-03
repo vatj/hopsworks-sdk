@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use hopsworks_internal::feature_store::query::{JoinQueryDTO, QueryDTO, enums::JoinType, payloads::{NewJoinQueryPayload, NewQueryPayload},};
+use crate::cluster_api::feature_store::query::{JoinQueryDTO, QueryDTO, enums::JoinType, payloads::{NewJoinQueryPayload, NewQueryPayload},};
 
 use super::Query;
 

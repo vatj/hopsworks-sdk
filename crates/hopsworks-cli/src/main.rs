@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use color_eyre::Result;
 
 use hopsworks_core::HopsworksClientBuilder;
-use hopsworks_internal::profiles::read::get_hopsworks_profile;
+use hopsworks_core::profiles::read::get_hopsworks_profile;
 
 mod platform;
 

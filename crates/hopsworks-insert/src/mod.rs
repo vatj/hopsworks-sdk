@@ -8,7 +8,7 @@ pub mod polars_insert;
 #[cfg(predicate = "polars-insert")]
 use super::feature;
 
-use hopsworks_internal::feature_store::{
+use crate::cluster_api::feature_store::{
         feature::payloads::NewFeaturePayload,
         feature_group::{self, FeatureGroupDTO, payloads::NewFeatureGroupPayload},
     };

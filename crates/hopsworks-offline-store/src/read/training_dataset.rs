@@ -9,9 +9,9 @@ pub async fn read_from_offline_feature_store(
     todo!("read_from_offline_feature_store is not implemented");
 }
 
-pub async fn read_from_offline_feature_store(training_dataset_builder: &TrainingDatasetBuilder<S>) -> Result<(TrainingDataset, DataFrame)> {
+pub async fn build_and_read_from_offline_feature_store(training_dataset_builder: &TrainingDatasetBuilder<S>) -> Result<(TrainingDataset, DataFrame)> {
         let training_dataset = training_dataset_builder.register().await?;
-        let df = crate::controller::feature_store::training_dataset::read_from_offline_feature_store(
+        let df = crate::read::training_dataset::read_from_offline_feature_store(
             &training_dataset,
         )
         .await?;

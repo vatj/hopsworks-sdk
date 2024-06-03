@@ -87,7 +87,7 @@
 //! }
 //! ```
 use color_eyre::Result;
-
+use hopsworks_core::Project;
 pub use hopsworks_core::HopsworksClientBuilder;
 
 /// Login to Hopsworks and return the chosen project.

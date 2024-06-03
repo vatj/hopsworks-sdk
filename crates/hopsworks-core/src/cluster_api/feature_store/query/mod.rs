@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-use crate::feature_store::{feature::FeatureDTO, feature_group::FeatureGroupDTO};
+use crate::cluster_api::feature_store::{feature::FeatureDTO, feature_group::FeatureGroupDTO};
 
 pub mod payloads;
 pub mod service;

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::feature_store::feature::payloads::NewFeaturePayload;
+use crate::cluster_api::feature_store::feature::payloads::NewFeaturePayload;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::platform::job_execution::JobExectutionMinimalDTO;
+use crate::cluster_api::platform::job_execution::JobExectutionMinimalDTO;
 
 pub mod service;
 

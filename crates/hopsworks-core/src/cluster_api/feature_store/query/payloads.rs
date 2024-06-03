@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::feature_store::{
+use crate::cluster_api::feature_store::{
         feature::FeatureDTO, feature_group::FeatureGroupDTO,
     };
 

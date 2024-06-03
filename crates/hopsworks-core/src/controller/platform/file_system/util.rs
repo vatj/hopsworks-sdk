@@ -2,7 +2,7 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
-use hopsworks_internal::platform::file_system::FlowBaseParams;
+use crate::cluster_api::platform::file_system::FlowBaseParams;
 
 const DEFAULT_FLOW_CHUNK_SIZE: usize = 1048576;
 

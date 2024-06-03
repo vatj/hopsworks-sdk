@@ -21,7 +21,7 @@ use crate::{
 };
 
 use std::collections::HashMap;
-use hopsworks_internal::feature_store::feature_view::FeatureViewDTO;
+use crate::cluster_api::feature_store::feature_view::FeatureViewDTO;
 
 use self::{training_dataset_builder::NoSplit, transformation_function::TransformationFunction};
 

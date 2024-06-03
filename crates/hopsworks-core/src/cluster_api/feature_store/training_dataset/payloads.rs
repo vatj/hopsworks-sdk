@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::feature_store::{
+use crate::cluster_api::feature_store::{
         feature::TrainingDatasetFeatureDTO,
         feature_view::{KeywordDTO, TagsDTO},
         query::{FeatureStoreQueryDTO, QueryDTO},

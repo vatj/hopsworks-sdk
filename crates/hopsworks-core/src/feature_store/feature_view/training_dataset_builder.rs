@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::feature_store::{
         feature_group::statistics_config::StatisticsConfig, query::QueryFilterOrLogic,
     };
-use hopsworks_internal::feature_store::{
+use crate::cluster_api::feature_store::{
         statistics_config::StatisticsConfigDTO, storage_connector::StorageConnectorDTO, training_dataset::{payloads::NewTrainingDatasetPayloadV2, TrainingDatasetDataFormat, TrainingDatasetSplitSizes}
     };
 

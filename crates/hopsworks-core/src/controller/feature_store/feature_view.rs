@@ -11,7 +11,7 @@ use crate::{
     },
     feature_store::FeatureGroup,
 };
-use hopsworks_internal::feature_store::{
+use crate::cluster_api::feature_store::{
         feature::{FeatureDTO, TrainingDatasetFeatureDTO},
         feature_group::FeatureGroupDTO,
         feature_view::{self, payloads::NewFeatureViewPayload},

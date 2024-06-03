@@ -5,7 +5,7 @@
 //! [Hopsworks Python client](https://github.com/logicalclocks/hopsworks-api) to make full use of this functionality.
 use serde::{Deserialize, Serialize};
 
-use hopsworks_internal::feature_store::transformation_function::TransformationFunctionDTO;
+use crate::cluster_api::feature_store::transformation_function::TransformationFunctionDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TransformationFunction {

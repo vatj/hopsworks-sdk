@@ -6,7 +6,7 @@ use super::{
     payloads::{FeatureViewBatchQueryPayload, NewFeatureViewPayload},
 };
 use crate::get_hopsworks_client;
-use crate::{
+use crate::cluster_api::{
         feature_store::{
             query::QueryDTO,
             training_dataset::{

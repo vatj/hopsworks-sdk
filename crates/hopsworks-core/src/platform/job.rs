@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::controller::platform::job_execution::start_new_execution_for_named_job;
 
 use super::job_execution::JobExecution;
-use hopsworks_internal::platform::job::JobDTO;
+use crate::cluster_api::platform::job::JobDTO;
 /// Job on Hopsworks Cluster. A job is akin to a script which can be executed on the cluster.
 /// Jobs can be of different types, e.g. PySpark, Spark, Python, etc.
 /// Jobs can be executed on the cluster and the [`JobExecution`] can be monitored.
@@ -147,7 +147,7 @@ impl Job {
     /// ```
     pub async fn save(&self, updated_job_config: serde_json::Value) -> Result<Job> {
         match crate::controller::platform::job::update_job(self.name.as_str(), updated_job_config).await {
-            Ok(job_dto) => Ok(Job::from(job_dto)),
+            Ok(job) => Ok(job),
             Err(e) => Err(e),
         }
     }
@@ -242,7 +242,7 @@ pub async fn get_job_configuration(job_type: &str) -> Result<serde_json::Value> 
 /// ```
 pub async fn create_job(job_name: &str, job_configuration: serde_json::Value) -> Result<Job> {
     match crate::controller::platform::job::create_job(job_name, job_configuration).await {
-        Ok(job_dto) => Ok(Job::from(job_dto)),
+        Ok(job) => Ok(job),
         Err(e) => Err(e),
     }
 }

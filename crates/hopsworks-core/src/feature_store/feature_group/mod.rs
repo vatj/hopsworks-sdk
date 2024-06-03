@@ -15,8 +15,8 @@ use log::debug;
 use serde::{Deserialize, Serialize};
 
 use crate::feature_store::{query::Query, FeatureStore};
-
-use hopsworks_internal::{feature_store::{feature_group::FeatureGroupDTO, statistics_config::StatisticsConfigDTO, feature::FeatureDTO}, platform::users::UserDTO, util};
+use crate::util;
+use crate::cluster_api::feature_store::feature_group::FeatureGroupDTO;
 
 use self::{feature::Feature, statistics_config::StatisticsConfig};
 
@@ -81,35 +81,6 @@ pub struct FeatureGroup {
 }
 
 impl FeatureGroup {
-    pub fn new_from_dto(feature_group_dto: FeatureGroupDTO) -> Self {
-        Self {
-            featurestore_id: feature_group_dto.featurestore_id,
-            featurestore_name: feature_group_dto.featurestore_name,
-            feature_group_type: feature_group_dto.feature_group_type,
-            description: feature_group_dto.description,
-            created: feature_group_dto.created,
-            creator: Some(User::new_from_dto(feature_group_dto.creator)),
-            version: feature_group_dto.version,
-            name: feature_group_dto.name,
-            id: Some(feature_group_dto.id),
-            location: Some(feature_group_dto.location),
-            statistics_config: feature_group_dto
-                .statistics_config
-                .as_ref()
-                .map(StatisticsConfig::new_from_dto),
-            features: feature_group_dto
-                .features
-                .iter()
-                .map(|feature_dto| Feature::new_from_dto(feature_dto.to_owned()))
-                .collect(),
-            online_enabled: feature_group_dto.online_enabled,
-            time_travel_format: feature_group_dto.time_travel_format,
-            online_topic_name: feature_group_dto.online_topic_name,
-            primary_key: None,
-            event_time: None,
-        }
-    }
-
     pub fn new_local(
         feature_store: &FeatureStore,
         name: &str,
@@ -143,7 +114,32 @@ impl FeatureGroup {
 
 impl From<FeatureGroupDTO> for FeatureGroup {
     fn from(feature_group_dto: FeatureGroupDTO) -> Self {
-        FeatureGroup::new_from_dto(feature_group_dto)
+        FeatureGroup {
+            featurestore_id: feature_group_dto.featurestore_id,
+            featurestore_name: feature_group_dto.featurestore_name,
+            feature_group_type: feature_group_dto.feature_group_type,
+            description: feature_group_dto.description,
+            created: feature_group_dto.created,
+            creator: Some(User::new_from_dto(feature_group_dto.creator)),
+            version: feature_group_dto.version,
+            name: feature_group_dto.name,
+            id: Some(feature_group_dto.id),
+            location: Some(feature_group_dto.location),
+            statistics_config: feature_group_dto
+                .statistics_config
+                .as_ref()
+                .map(StatisticsConfig::new_from_dto),
+            features: feature_group_dto
+                .features
+                .iter()
+                .map(|feature_dto| Feature::new_from_dto(feature_dto.to_owned()))
+                .collect(),
+            online_enabled: feature_group_dto.online_enabled,
+            time_travel_format: feature_group_dto.time_travel_format,
+            online_topic_name: feature_group_dto.online_topic_name,
+            primary_key: None,
+            event_time: None,
+        }
     }
 }
 
@@ -160,7 +156,7 @@ impl FeatureGroup {
         self.featurestore_id
     }
 
-    pub(crate) fn feature_store_name(&self) -> &str {
+    pub fn feature_store_name(&self) -> &str {
         self.featurestore_name.as_str()
     }
 
@@ -315,45 +311,3 @@ impl FeatureGroup {
     }
 }
 
-impl From<&FeatureGroup> for FeatureGroupDTO {
-    fn from(feature_group: &FeatureGroup) -> Self {
-        FeatureGroupDTO {
-            id: feature_group.id().unwrap_or(0),
-            online_topic_name: feature_group
-                .online_topic_name()
-                .map(|online_topic_name| online_topic_name.to_string()),
-            creator: match feature_group.creator() {
-                Some(user) => UserDTO::from(user.clone()),
-                None => panic!("creator field should not be None for an initialized FeatureGroup"),
-            },
-            location: feature_group.location().unwrap_or("").to_string(),
-            statistics_config: Some(match feature_group.statistics_config() {
-                Some(statistics_config) => StatisticsConfigDTO::from(statistics_config),
-                None => panic!(
-                    "statistics_config field should not be None for an initialized FeatureGroup"
-                ),
-            }),
-            features: feature_group
-                .features()
-                .iter()
-                .map(FeatureDTO::from)
-                .collect(),
-            feature_group_type: match feature_group.feature_group_type() {
-                "STREAM_FEATURE_GROUP" => "streamFeatureGroupDTO".to_owned(),
-                "streamFeatureGroupDTO" => "streamFeatureGroupDTO".to_owned(),
-                _ => "streamFeatureGroupDTO".to_owned(),
-            },
-            featurestore_id: feature_group.feature_store_id(),
-            featurestore_name: feature_group.feature_store_name().to_string(),
-            description: feature_group
-                .description()
-                .map(|description| description.to_string()),
-            created: feature_group.created().to_string(),
-            version: feature_group.version(),
-            name: feature_group.name().to_string(),
-
-            online_enabled: feature_group.is_online_enabled(),
-            time_travel_format: feature_group.time_travel_format().to_string(),
-        }
-    }
-}

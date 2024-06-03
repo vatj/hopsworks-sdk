@@ -12,7 +12,7 @@ use crate::{
     },
 };
 
-use hopsworks_internal::{
+use crate::cluster_api::{
         feature_store::{
             feature_view::service as feature_view_service,
             query::QueryDTO,

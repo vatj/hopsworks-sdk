@@ -1,6 +1,6 @@
 use color_eyre::Result;
 
-use hopsworks_internal::platform::job::service;
+use crate::cluster_api::platform::job::service;
 use crate::platform::job::Job;
 
 pub async fn get_job_by_name(job_name: &str) -> Result<Job> {

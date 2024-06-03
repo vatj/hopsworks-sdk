@@ -88,14 +88,14 @@
 //! ```
 
 use color_eyre::Result;
-use log::info;
 use log::debug;
 use tokio::sync::OnceCell;
 
-pub mod cluster_api;
+pub(crate) mod cluster_api;
 pub mod controller;
 pub mod feature_store;
 pub mod platform;
+pub mod profiles;
 pub mod util;
 
 pub use platform::project::Project;
@@ -116,9 +116,9 @@ pub async fn get_hopsworks_client() -> &'static HopsworksClient {
 }
 
 pub async fn login(client_builder: Option<HopsworksClientBuilder>) -> Result<Project> {
-    HOPSWORKS_CLIENT
+    Ok(Project::from(&HOPSWORKS_CLIENT
         .get_or_try_init(|| async { client_builder.unwrap_or_default().build().await })
         .await?
         .login()
-        .map(|project_dto| Project::from(&project_dto))?
+        .await?))
 }

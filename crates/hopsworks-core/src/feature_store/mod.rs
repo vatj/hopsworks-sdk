@@ -19,7 +19,7 @@ use crate::controller::feature_store::{
 
 use feature_view::{training_dataset::TrainingDataset, transformation_function::TransformationFunction};
 use query::Query;
-use hopsworks_internal::feature_store::FeatureStoreDTO;
+use crate::cluster_api::feature_store::FeatureStoreDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureStore {

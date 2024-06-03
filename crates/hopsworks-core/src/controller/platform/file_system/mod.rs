@@ -3,7 +3,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-use hopsworks_internal::platform::file_system::{service, FlowBaseParams};
+use crate::cluster_api::platform::file_system::{service, FlowBaseParams};
 pub mod util;
 
 const FLOW_PERMANENT_ERRORS_STATUS: [reqwest::StatusCode; 5] = [

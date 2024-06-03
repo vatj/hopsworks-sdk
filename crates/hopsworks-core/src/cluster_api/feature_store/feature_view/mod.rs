@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::feature_store::{
+use crate::cluster_api::feature_store::{
     {query::QueryDTO, statistics_config::StatisticsConfigDTO},
 };
-use crate::platform::users::UserDTO;
+use crate::cluster_api::platform::users::UserDTO;
 
 pub mod payloads;
 pub mod service;

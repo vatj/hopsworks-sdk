@@ -17,10 +17,11 @@ serde = { workspace = true, features = ["derive"] }
 reqwest = { workspace = true }
 serde_json = { workspace = true }
 polars ={ workspace = true }
-hopsworks-internal = { workspace = true}
 
 indicatif = { version = "0.17" }
-chrono ={ version = "0.4" }
+chrono ={ version = "0.4", features = ["serde"] }
+toml = { version = "0.8" }
+directories = { version = "5.0" }
 
 [features]
 default = []

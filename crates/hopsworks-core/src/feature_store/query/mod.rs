@@ -12,7 +12,7 @@ pub use join::{JoinOptions, JoinQuery};
 
 use crate::feature_store::feature_group::{feature::Feature, FeatureGroup};
 
-use hopsworks_internal::feature_store::{
+use crate::cluster_api::feature_store::{
     query::{QueryDTO, JoinQueryDTO, QueryFilterOrLogicDTO, payloads::{NewQueryPayload, NewJoinQueryPayload},}, 
     feature_group::FeatureGroupDTO, 
     feature::FeatureDTO,
@@ -136,7 +136,7 @@ impl Query {
         }
     }
 
-    pub(crate) fn feature_store_name(&self) -> &str {
+    pub fn feature_store_name(&self) -> &str {
         self.feature_store_name.as_ref()
     }
 
@@ -176,7 +176,7 @@ impl Query {
         self.joins.get_or_insert_with(std::vec::Vec::new)
     }
 
-    pub(crate) fn get_feature_group_by_feature(&self, feature: &Feature) -> Option<&FeatureGroup> {
+    pub fn get_feature_group_by_feature(&self, feature: &Feature) -> Option<&FeatureGroup> {
         let feature_group = self.left_features.iter().find_map(|f| {
             if f.name() == feature.name() {
                 Some(&self.left_feature_group)

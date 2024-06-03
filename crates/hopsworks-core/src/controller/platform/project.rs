@@ -1,6 +1,6 @@
 use color_eyre::Result;
 
-use hopsworks_internal::platform::project::{payloads::NewProjectPayload, service};
+use crate::cluster_api::platform::project::{payloads::NewProjectPayload, service};
 use crate::platform::project::Project;
 
 pub async fn get_project_list() -> Result<Vec<Project>> {

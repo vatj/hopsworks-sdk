@@ -5,8 +5,8 @@ use polars::prelude::DataFrame;
 
 use crate::controller::feature_store::storage_connector;
 
-use hopsworks_internal::platform::variables::service::get_loadbalancer_external_domain;
-use hopsworks_internal::feature_store::{
+use crate::cluster_api::platform::variables::service::get_loadbalancer_external_domain;
+use crate::cluster_api::feature_store::{
         query,
         query::{FeatureStoreQueryDTO, payloads::NewQueryPayload},
     };

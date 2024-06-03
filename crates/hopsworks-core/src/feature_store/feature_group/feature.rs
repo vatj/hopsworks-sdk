@@ -2,7 +2,7 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::feature_store::query::{QueryFilter, QueryFilterOrLogic};
-use hopsworks_internal::{feature_store::query::enums::QueryFilterCondition, feature_store::feature::FeatureDTO};
+use crate::cluster_api::{feature_store::query::enums::QueryFilterCondition, feature_store::feature::FeatureDTO};
 
 /// Feature entity gathering metadata about a feature in a [`FeatureGroup`][super::FeatureGroup].
 #[derive(Debug, Serialize, Deserialize, Clone)]
