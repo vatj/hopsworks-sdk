@@ -1,14 +1,21 @@
+// use arrow2::io::flight;
 use arrow_flight::{Action, FlightClient, FlightDescriptor};
 use bytes::Bytes;
+use color_eyre::eyre::Ok;
 use color_eyre::Result;
 use futures::stream::{StreamExt, TryStreamExt};
 use log::{debug, info};
-use polars::prelude::DataFrame;
+
 use std::collections::HashMap;
 use std::time::Duration;
+use std::vec;
 use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity};
-
-use crate::arrow_flight::{decoder, utils};
+use arrow::record_batch::RecordBatch;
+use polars::prelude::*;
+use polars_core::utils::accumulate_vertical_dataframes;
+// use polars_arrow::record_batch::RecordBatch;
+// use crate::arrow_flight::{decoder, utils};
+use crate::arrow_flight::utils;
 use crate::cluster_api::payloads::{
     FeatureGroupConnectorArrowFlightPayload, QueryArrowFlightPayload, TrainingDatasetArrowFlightPayload,
 };
@@ -17,6 +24,9 @@ use hopsworks_core::{get_hopsworks_client, util};
 
 use hopsworks_core::controller::platform::variables;
 use hopsworks_core::feature_store::{FeatureView, query::Query, feature_view::training_dataset::TrainingDataset};
+
+
+
 
 #[derive(Debug, Clone, Default)]
 pub struct HopsworksArrowFlightClientBuilder {}
@@ -165,54 +175,21 @@ impl HopsworksArrowFlightClient {
     async fn _get_dataset(&mut self, descriptor: FlightDescriptor) -> Result<DataFrame> {
         debug!("Getting dataset with descriptor: {:#?}", descriptor);
         let flight_info = self.client.get_flight_info(descriptor).await?;
-        let opt_endpoint = flight_info.endpoint.get(0);
+        let opt_endpoint = flight_info.endpoint.first();
 
         if let Some(endpoint) = opt_endpoint {
             debug!("Endpoint: {:#?}", endpoint);
             if let Some(ticket) = endpoint.ticket.clone() {
                 debug!("Ticket: {:#?}", ticket);
 
-                let decoded = decoder::FlightDataDecoder::new(
-                    self.client
-                        .inner_mut()
-                        .do_get(ticket.clone())
-                        .await?
-                        .into_inner(),
-                );
-
-                let mut df_stream = decoder::FlightDataFrameStream::new(decoded);
-
-                if let Some(result_df) = df_stream.next().await {
-                    match result_df {
-                        Ok(df) => {
-                            info!("Retrieved polars df: {:#?}", df.head(Some(5)));
-                            return Ok(df);
-                        }
-                        Err(e) => return Err(color_eyre::Report::new(e)),
-                    }
+                let mut dfs: Vec<DataFrame> = vec![];
+                let mut record_data_stream = self.client.do_get(ticket).await?;
+                while record_data_stream.next().await.is_some() {
+                    let record_batch = record_data_stream.next().await.expect("Failed to get record batch")?;
+                    dfs.push(record_batch_to_dataframe(&record_batch)?);
                 }
-
-                Err(color_eyre::Report::msg(
-                    "No dataframe found in flight data stream",
-                ))
-
-                // Left here if we want to use the apache arrow implementation to get record batches
-                // and then convert the record batch to a dataframe.
-                //
-                // let flight_data_stream = self.client.do_get(ticket).await?.into_inner();
-                // let mut record_batch_stream = FlightRecordBatchStream::new(flight_data_stream);
-                // // Read back RecordBatches
-                // while let Some(batch) = record_batch_stream.next().await {
-                //     // while let Some(batch) = flight_data_stream.next().await {
-                //     match batch {
-                //         Ok(rec_batch) => {
-                //             info!("Record batch: {:#?}", rec_batch);
-                //         }
-                //         Err(_) => {
-                //             todo!()
-                //         }
-                //     };
-                // }
+                
+                Ok(accumulate_vertical_dataframes(dfs))
             } else {
                 let flight_descriptor_cmd: String;
                 if let Some(flight_descriptor) = flight_info.flight_descriptor {
@@ -265,7 +242,7 @@ impl HopsworksArrowFlightClient {
         Ok(())
     }
 
-    pub fn create_query_object(
+    pub fn create_flight_query(
         &self,
         query: Query,
         query_str: String,
@@ -307,3 +284,16 @@ impl HopsworksArrowFlightClient {
         ))
     }
 }
+
+fn record_batch_to_dataframe(batch: &RecordBatch) -> Result<DataFrame> {
+        let schema = batch.schema();
+        let mut columns = Vec::with_capacity(batch.num_columns());
+        for (i, column) in batch.columns().iter().enumerate() {
+            let arrow = Box::<dyn polars_arrow::array::Array>::from(&**column);
+            columns.push(Series::from_arrow(
+                &schema.fields().get(i).unwrap().name(),
+                arrow,
+            )?);
+        }
+        Ok(DataFrame::from_iter(columns))
+    }

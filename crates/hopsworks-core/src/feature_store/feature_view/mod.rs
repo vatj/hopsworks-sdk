@@ -222,20 +222,4 @@ impl FeatureView {
         create_training_dataset_attached_to_feature_view(self).await?;
         Ok(())
     }
-
-    #[cfg(feature = "read_arrow_flight_offline_store")]
-    pub async fn read_from_offline_feature_store(
-        &self,
-        offline_read_options: Option<OfflineReadOptions>,
-    ) -> Result<DataFrame> {
-        read_with_arrow_flight_client(self.query.clone(), offline_read_options).await
-    }
-
-    #[cfg(feature = "read_sql_online_store")]
-    pub async fn read_from_online_feature_store(
-        &self,
-        online_read_options: Option<OnlineReadOptions>,
-    ) -> Result<DataFrame> {
-        read_query_from_online_feature_store(&self.query.clone(), online_read_options).await
-    }
 }

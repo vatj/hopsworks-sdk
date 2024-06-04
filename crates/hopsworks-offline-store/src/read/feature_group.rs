@@ -39,7 +39,7 @@ pub async fn read_from_offline_feature_store(
         "Reading data from feature group {} with Arrow Flight client",
         fgroup.name()
     );
-    let read_df = read_with_arrow_flight_client(query, _offline_read_options).await?;
+    let read_df = read_with_arrow_flight_client(query, _offline_read_options, vec![]).await?;
 
     Ok(read_df)
 }

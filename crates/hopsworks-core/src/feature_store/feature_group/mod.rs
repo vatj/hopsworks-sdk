@@ -321,7 +321,7 @@ impl FeatureGroup {
         let feature_group_dto = feature_group::save_feature_group_metadata(
             self.featurestore_id,
             feature_group::build_new_feature_group_payload(
-                &self.name(),
+                self.name(),
                 self.version(),
                 self.description(),
                 self.primary_key

@@ -1,7 +1,7 @@
 use color_eyre::Result;
 
 use crate::cluster_api::platform::kafka;
-use crate::cluster_api::platform::kafka::KafkaSubjectDTO;
+use crate::platform::kafka::KafkaSubject;
 
 pub async fn get_project_broker_endpoints(external: bool) -> Result<Vec<String>> {
     let brokers_dto = kafka::service::get_project_broker_endpoints(external).await?;
@@ -22,6 +22,6 @@ pub async fn get_project_broker_endpoints(external: bool) -> Result<Vec<String>>
 pub async fn get_kafka_topic_subject(
     subject_name: &str,
     opt_version: Option<&str>,
-) -> Result<KafkaSubjectDTO> {
-    kafka::service::get_kafka_topic_subject(subject_name, opt_version).await
+) -> Result<KafkaSubject> {
+    Ok(KafkaSubject::from(kafka::service::get_kafka_topic_subject(subject_name, opt_version).await?))
 }

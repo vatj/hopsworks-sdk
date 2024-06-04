@@ -11,19 +11,14 @@ color-eyre = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
-polars ={ workspace = true}
+polars ={ workspace = true, features = ["arrow_rs"] }
 hopsworks-core = { workspace = true }
 serde ={ workspace=true, features = ["derive"] }
 serde_json = { version = "1.0" }
-
-arrow-format = { version = "0.8.1", features = [
-    "flight-data",
-    "flight-service",
-] }
-arrow2 = { version = "0.18", features = ["io_flight", "default", "arrow"] }
-arrow-schema = { version = "51.0.0" }
-arrow-ipc = { version = "51.0.0" }
-arrow-flight = { version = "51.0.0"}
+polars-arrow ={ version = "0.40.0", features = ["arrow_rs"] }
+polars-core = { version = "0.40.0", features = ["arrow_rs"] }
+arrow = { version = "51"}
+arrow-flight = { version = "51"}
 tonic = { version = "0.11", features = ["transport", "tls"] }
 ahash = { version = "0.8.6" }
 bytes = { version = "1.5.0" }

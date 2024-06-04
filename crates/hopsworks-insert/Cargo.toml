@@ -10,7 +10,7 @@ repository = { workspace = true }
 color-eyre = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["full"]}
 polars = { workspace = true }
 
 hopsworks-core = { workspace = true }
