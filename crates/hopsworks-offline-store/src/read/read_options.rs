@@ -1,7 +1,7 @@
 pub struct ArrowFlightReadOptions {
-    pub(crate) host: String,
-    pub(crate) port: u16,
-    pub(crate) tls: bool,
-    pub(crate) root_cert_path: Option<String>,
-    pub(crate) token: Option<String>,
+    pub(crate) _host: String,
+    pub(crate) _port: u16,
+    pub(crate) _tls: bool,
+    pub(crate) _root_cert_path: Option<String>,
+    pub(crate) _token: Option<String>,
 }

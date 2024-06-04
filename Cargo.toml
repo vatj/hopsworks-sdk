@@ -38,6 +38,6 @@ hopsworks-core = { path = "crates/hopsworks-core" }
 hopsworks-cli ={ path = "crates/hopsworks-cli" }
 hopsworks-offline-store = { path = "crates/hopsworks-offline-store" }
 hopsworks-online-store ={ path = "crates/hopsworks-online-store" }
-hopsworks-insert ={ path = "crates/hopsworks-insert" }
+hopsworks-kafka ={ path = "crates/hopsworks-kafka" }
 hopsworks-python ={ path = "crates/hopsworks-python" }
 

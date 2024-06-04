@@ -87,8 +87,18 @@
 //! }
 //! ```
 use color_eyre::Result;
-use hopsworks_core::Project;
+
+pub use hopsworks_core::platform::{
+    project::Project,
+    job::Job,
+    job_execution::JobExecution,
+};
+pub use hopsworks_core::feature_store::{
+    FeatureStore, FeatureGroup, FeatureView, feature_view::training_dataset::TrainingDataset, query::Query,
+};
+
 pub use hopsworks_core::HopsworksClientBuilder;
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Login to Hopsworks and return the chosen project.
 /// If no client builder is provided, a default client builder to connect to [Hopsworks Serverless App](https://app.hopsworks.ai) is used.

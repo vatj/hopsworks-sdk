@@ -7,13 +7,13 @@ license = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-hopsworks-core = { workspace = true }
 hopsworks-offline-store = { workspace = true }
 hopsworks-online-store = { workspace = true }
+hopsworks-kafka ={ workspace = true }
 hopsworks-api = { workspace = true }
 lazy_static = { version = "1.4" }
-pyo3 = {workspace = true, optional = true}
-pyo3-log = {workspace = true, optional = true}
+pyo3 = {workspace = true}
+pyo3-log = {workspace = true}
 
 [lib]
 crate-type = ["cdylib"]

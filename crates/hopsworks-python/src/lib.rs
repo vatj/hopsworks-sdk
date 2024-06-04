@@ -6,7 +6,7 @@ pub mod pylib {
     }
     #[pyfunction]
     pub fn version() -> &'static str {
-        hopsworks_rs::VERSION
+        hopsworks_api::VERSION
     }
 
     #[pyfunction]
@@ -14,9 +14,10 @@ pub mod pylib {
         LOG_RESET_HANDLE.reset();
     }
 
-    #[pymodule]
-    fn hopsworks_rs(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+    fn hopsworks_sdk(_py: Python<'_>) -> PyResult<()> {
         refresh_logger();
+
+        let m = PyModule::new_bound(_py, "hopsworks_sdk")?;
 
         m.add_wrapped(wrap_pyfunction!(version))?;
         m.add_wrapped(wrap_pyfunction!(refresh_logger))?;

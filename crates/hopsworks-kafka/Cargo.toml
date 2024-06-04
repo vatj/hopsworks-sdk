@@ -1,5 +1,5 @@
 [package]
-name = "hopsworks-insert"
+name = "hopsworks-kafka"
 edition = { workspace = true }
 version = { workspace = true }
 authors = { workspace = true }

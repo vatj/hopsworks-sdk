@@ -15,7 +15,7 @@ env_logger = { workspace = true }
 tokio = { workspace = true }
 
 hopsworks-core ={ workspace = true }
-hopsworks-insert ={ workspace = true, optional = true}
+hopsworks-kafka ={ workspace = true, optional = true}
 hopsworks-offline-store = { workspace = true, optional = true}
 hopsworks-online-store = { workspace = true, optional = true}
 
