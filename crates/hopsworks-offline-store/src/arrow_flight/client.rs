@@ -12,7 +12,7 @@ use std::vec;
 use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity};
 use arrow::record_batch::RecordBatch;
 use polars::prelude::*;
-use polars_core::utils::accumulate_vertical_dataframes;
+use polars_core::utils::accumulate_dataframes_vertical;
 // use polars_arrow::record_batch::RecordBatch;
 // use crate::arrow_flight::{decoder, utils};
 use crate::arrow_flight::utils;
@@ -189,7 +189,7 @@ impl HopsworksArrowFlightClient {
                     dfs.push(record_batch_to_dataframe(&record_batch)?);
                 }
                 
-                Ok(accumulate_vertical_dataframes(dfs))
+                Ok(accumulate_dataframes_vertical(dfs)?)
             } else {
                 let flight_descriptor_cmd: String;
                 if let Some(flight_descriptor) = flight_info.flight_descriptor {
@@ -230,14 +230,7 @@ impl HopsworksArrowFlightClient {
         );
         let mut result = self.client.do_action(action).await?;
         while let Some(batch) = result.next().await {
-            match batch {
-                Ok(_) => {
-                    todo!()
-                }
-                Err(_) => {
-                    todo!()
-                }
-            };
+            todo!("{:?}", batch);
         }
         Ok(())
     }
@@ -291,7 +284,7 @@ fn record_batch_to_dataframe(batch: &RecordBatch) -> Result<DataFrame> {
         for (i, column) in batch.columns().iter().enumerate() {
             let arrow = Box::<dyn polars_arrow::array::Array>::from(&**column);
             columns.push(Series::from_arrow(
-                &schema.fields().get(i).unwrap().name(),
+                schema.fields().get(i).unwrap().name(),
                 arrow,
             )?);
         }
