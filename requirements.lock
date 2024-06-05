@@ -9,7 +9,5 @@
 #   generate-hashes: false
 
 -e file:.
-asyncio==3.4.3
-    # via hopsworks-sdk
 toml==0.10.2
     # via hopsworks-sdk
