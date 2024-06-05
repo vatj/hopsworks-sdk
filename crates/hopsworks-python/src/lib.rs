@@ -45,16 +45,16 @@ impl HopsworksLoginOptions {
 }
 
 #[pyfunction]
-pub async fn login(options: Option<HopsworksLoginOptions>) -> platform::Project {
-    let login_with_options = async move {
-        let project = hopsworks_api::login(options.map(|o| o.builder)).await.unwrap();
-        debug!("Logged in to project: {}", project.name());
-        Project::from(project)
-    };
-    tokio().spawn(login_with_options).await.unwrap()
-    // let project = hopsworks_api::login(options.map(|o| o.builder)).await.unwrap();
-    // debug!("Logged in to project: {}", project.name());
-    // Project::from(project)
+pub fn login(options: Option<HopsworksLoginOptions>) -> platform::Project {
+    // let login_with_options = async move {
+    //     let project = hopsworks_api::login(options.map(|o| o.builder)).await.unwrap();
+    //     debug!("Logged in to project: {}", project.name());
+    //     Project::from(project)
+    // };
+    let project = tokio().block_on(hopsworks_api::login(options.map(|o| o.builder))).unwrap();
+    debug!("Logged in to project: {}", project.name());
+    debug!("{:#?}", project);
+    Project::from(project)
 }
 
 #[pymodule]

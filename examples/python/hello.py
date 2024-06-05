@@ -1,5 +1,4 @@
 # %%
-import asyncio
 from hopsworks_sdk import login
 import pathlib
 import os
@@ -22,6 +21,6 @@ if config["env"].get("RUST_LOG", None):
 
 
 
-project = asyncio.run(login())
+project = login()
 
 # %%
