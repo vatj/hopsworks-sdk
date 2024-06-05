@@ -16,3 +16,7 @@ env_logger = { workspace = true }
 tokio = { workspace = true }
 
 hopsworks-core = { workspace = true}
+
+[[bin]]
+name = "hopsworks"
+path = "src/main.rs"
