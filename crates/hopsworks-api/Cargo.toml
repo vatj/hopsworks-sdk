@@ -1,0 +1,34 @@
+[package]
+name = "hopsworks-api"
+edition = { workspace = true }
+version = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+color-eyre = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+tokio = { workspace = true }
+
+hopsworks-core ={ workspace = true }
+hopsworks-kafka ={ workspace = true, optional = true}
+hopsworks-offline-store = { workspace = true, optional = true}
+hopsworks-online-store = { workspace = true, optional = true}
+
+# Debug and Error handling related dependencies
+anyhow = { version = "1.0" }
+tracing-log = { version = "0.2" }
+tracing-subscriber = { version = "0.3", default-features = false, features = [
+    "ansi",
+    "env-filter",
+    "fmt",
+] }
+
+[features]
+read_arrow_flight_offline_store = ["hopsworks-offline-store"]
+read_rest_online_store = ["hopsworks-online-store"]
+read_sql_online_store = ["hopsworks-online-store"]

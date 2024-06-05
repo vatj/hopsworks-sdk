@@ -1,20 +1,42 @@
-[workspace]
-resolver = "2"
-members = ["crates/*"]
-
 [workspace.package]
+publish = false
 version = "0.0.1"
+description = "Hopsworks SDK for Rust leveraging Polars DataFrames to build blazing fast and reliable feature pipelines for your ML/AI services."
 authors = ["Victor Jouffrey <vicatjou@gmail.com>"]
 edition = "2021"
 license = "AGPL-3.0"
 repository = "https://github.com/vatj/hopsworks-rs"
 
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
 
 [workspace.dependencies]
-clap = { version = "4.5", features = ["derive"] }
-hopsworks = { version = "0.0.1", path = "hopsworks-rs", default-features = false }
 serde = { version = "1", features = ["derive", "rc"] }
+serde_json = { version = "1.0" }
 color-eyre = { version = "0.6" }
 log = { version = "0.4" }
 env_logger = { version = "0.11" }
-tokio = { version = "1.33", features = ["full"] }
+tokio = { version = "1.38", features = ["full"] }
+pyo3 = { version = "0.21", features = ["extension-module", "experimental-async"] }
+pyo3-log = { version = "0.10" }
+chrono = { version = "0.4" }
+polars = { version = "0.40", features = [
+    "lazy",
+    "avro",
+    "strings",
+    "dtype-full",
+    "rows",
+    "dynamic_group_by",
+    "timezones",
+] }
+reqwest = { version = "0.12", features = ["json", "native-tls", "stream"] }
+
+hopsworks-api ={ path = "crates/hopsworks-api" }
+hopsworks-core = { path = "crates/hopsworks-core" }
+hopsworks-cli ={ path = "crates/hopsworks-cli" }
+hopsworks-offline-store = { path = "crates/hopsworks-offline-store" }
+hopsworks-online-store ={ path = "crates/hopsworks-online-store" }
+hopsworks-kafka ={ path = "crates/hopsworks-kafka" }
+hopsworks-python ={ path = "crates/hopsworks-python" }

@@ -1,11 +1,13 @@
 use clap::{Parser, Subcommand};
 use color_eyre::Result;
 
-use hopsworks::HopsworksClientBuilder;
-use hopsworks_utils::get_hopsworks_profile;
+use hopsworks_core::HopsworksClientBuilder;
+use hopsworks_core::profiles::read::get_hopsworks_profile;
 
-mod job;
-mod project;
+mod platform;
+
+use platform::project::{self, ProjectSubCommand};
+use platform::job::{self, JobSubCommand};
 
 /// A CLI to interact with the Hopsworks Platform without leaving the terminal.
 /// Requires a valid API key to be set in the environment variable `HOPSWORKS_API_KEY`.
@@ -37,11 +39,11 @@ enum HopsworksCliSubCommands {
     #[command(arg_required_else_help = true)]
     Project {
         #[command(subcommand)]
-        command: project::ProjectSubCommand,
+        command: ProjectSubCommand,
     },
     Job {
         #[command(subcommand)]
-        command: job::JobSubCommand,
+        command: JobSubCommand,
     },
 }
 
@@ -63,20 +65,20 @@ async fn main() -> Result<()> {
             hopsworks_client_builder.with_project_name(args.project.unwrap().as_str());
     }
 
-    let current_project = hopsworks::login(Some(hopsworks_client_builder)).await?;
+    let current_project = hopsworks_core::login(Some(hopsworks_client_builder)).await?;
 
     match args.command {
         HopsworksCliSubCommands::Project { command } => match command {
-            project::ProjectSubCommand::Info {} => project::show_project_info(current_project),
-            project::ProjectSubCommand::List {} => project::show_list_projects().await,
+            ProjectSubCommand::Info {} => project::show_project_info(current_project),
+            ProjectSubCommand::List {} => project::show_list_projects().await,
         },
         HopsworksCliSubCommands::Job { command } => match command {
-            job::JobSubCommand::Info { name } => job::show_job_info(&name, current_project).await,
-            job::JobSubCommand::List {} => job::show_list_jobs(current_project).await,
-            job::JobSubCommand::ListExecutions { name, active } => {
+            JobSubCommand::Info { name } => job::show_job_info(&name, current_project).await,
+            JobSubCommand::List {} => job::show_list_jobs(current_project).await,
+            JobSubCommand::ListExecutions { name, active } => {
                 job::show_list_executions(current_project, &name, active).await
             }
-            job::JobSubCommand::Run {
+            JobSubCommand::Run {
                 name,
                 args,
                 await_termination,
@@ -96,3 +98,116 @@ async fn main() -> Result<()> {
 
     Ok(())
 }
+
+// /// A CLI to interact with the Hopsworks Feature Store without leaving the terminal.
+// /// Requires a valid API key to be set in the environment variable `HOPSWORKS_API_KEY`.
+// #[derive(Debug, Parser)]
+// #[command(name = "hopsworks-fs")]
+// #[command(about = "A CLI to interact with the Hopsworks Feature Store without leaving the terminal.", long_about = None)]
+// struct HopsworksFeatureStoreCli {
+//     #[command(subcommand)]
+//     command: HopsworksFeatureStoreCliSubCommands,
+// }
+
+// #[derive(Debug, Subcommand)]
+// enum HopsworksFeatureStoreCliSubCommands {
+//     #[command(arg_required_else_help = true)]
+//     FeatureGroup {
+//         #[command(subcommand)]
+//         command: FeatureGroupSubCommand,
+//     },
+//     FeatureView {
+//         #[command(subcommand)]
+//         command: FeatureViewSubCommand,
+//     },
+// }
+
+// #[derive(Debug, Subcommand)]
+// enum FeatureGroupSubCommand {
+//     /// Get metadata information about a Feature Group, defaults to current project
+//     #[command(arg_required_else_help = true)]
+//     Info {
+//         /// Feature Group name in the current project
+//         #[arg(short, long, required = true)]
+//         name: String,
+//     },
+//     /// List all Feature Groups in the current project
+//     List {
+//         /// Only list latest version of each Feature Group
+//         #[arg(long, default_missing_value = "true")]
+//         latest_only: bool,
+//     },
+// }
+
+// #[derive(Debug, Subcommand)]
+// #[command(flatten_help = true)]
+// enum FeatureViewSubCommand {
+//     /// Get metadata information about a Feature View in the current project
+//     #[command(arg_required_else_help = true)]
+//     Info {
+//         /// Feature View name in the current project
+//         #[arg(short, long, required = true)]
+//         name: String,
+//         /// Optional version of the Feature View
+//         /// If not specified, the latest version is used
+//         #[arg(short, long)]
+//         version: Option<i32>,
+//     },
+//     /// List all Feature Views in the current project
+//     List {
+//         /// Only list latest version of each Feature View
+//         #[arg(long, default_missing_value = "true")]
+//         latest_only: bool,
+//     },
+// }
+
+// fn mock_get_feature_group_info(name: String) {
+//     println!("Getting metadata information about Feature Group: {}", name);
+// }
+
+// fn mock_list_feature_groups(latest_only: bool) {
+//     if latest_only {
+//         println!("Listing latest version of each Feature Group in the current project");
+//     } else {
+//         println!("Listing all Feature Groups in the current project");
+//     }
+// }
+
+// fn mock_get_feature_view_info(name: String, version: Option<i32>) {
+//     match version {
+//         Some(v) => println!(
+//             "Getting metadata information about Feature View: {} with version: {}",
+//             name, v
+//         ),
+//         None => println!(
+//             "Getting metadata information about Feature View: {} with the latest version",
+//             name
+//         ),
+//     }
+// }
+
+// fn mock_list_feature_views(latest_only: bool) {
+//     if latest_only {
+//         println!("Listing latest version of each Feature View in the current project");
+//     } else {
+//         println!("Listing all Feature Views in the current project");
+//     }
+// }
+
+// fn main() {
+//     let args = HopsworksFeatureStoreCli::parse();
+
+//     match args.command {
+//         HopsworksFeatureStoreCliSubCommands::FeatureGroup { command } => match command {
+//             FeatureGroupSubCommand::Info { name } => mock_get_feature_group_info(name),
+//             FeatureGroupSubCommand::List { latest_only } => mock_list_feature_groups(latest_only),
+//         },
+//         HopsworksFeatureStoreCliSubCommands::FeatureView { command } => match command {
+//             FeatureViewSubCommand::Info { name, version } => {
+//                 mock_get_feature_view_info(name, version)
+//             }
+//             FeatureViewSubCommand::List { latest_only } => mock_list_feature_views(latest_only),
+//         },
+//     }
+// }
+

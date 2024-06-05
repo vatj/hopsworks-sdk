@@ -1,5 +1,5 @@
 [package]
-name = "hopsworks-cli"
+name = "hopsworks-core"
 edition = { workspace = true }
 version = { workspace = true }
 authors = { workspace = true }
@@ -9,10 +9,21 @@ repository = { workspace = true }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.5", features = ["derive"] }
 color-eyre = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+reqwest = { workspace = true }
+serde_json = { workspace = true }
+polars ={ workspace = true, optional = true}
 
-hopsworks-core = { workspace = true}
+indicatif = { version = "0.17" }
+chrono ={ version = "0.4", features = ["serde"] }
+toml = { version = "0.8" }
+directories = { version = "5.0" }
+
+[features]
+default = ["polars"]
+polars = ["dep:polars"]
+
