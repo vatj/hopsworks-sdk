@@ -1,1 +1,1 @@
-from hopsworks_sdk.hopsworks_rs import version, hello, FeatureStore, FeatureGroup, FeatureView, Job, JobExecution, Project, HopsworksLoginOptions, login
+from hopsworks_sdk.hopsworks_rs import version, FeatureStore, FeatureGroup, FeatureView, Job, JobExecution, Project, HopsworksLoginOptions, login

@@ -59,7 +59,7 @@ impl From<FeatureView> for hopsworks_api::FeatureView {
     }
 }
 
-pub(crate) fn register_module(_py: Python, parent: &PyModule) -> PyResult<()> {
+pub(crate) fn register_module(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     parent.add_class::<FeatureStore>()?;
     parent.add_class::<FeatureGroup>()?;
     parent.add_class::<FeatureView>()?;

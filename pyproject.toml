@@ -9,6 +9,7 @@ authors = [
 ]
 dependencies = [
     "asyncio>=3.4.3",
+    "toml>=0.10.2",
 ]
 name = "hopsworks-sdk"
 maintainers = [

@@ -59,7 +59,7 @@ impl From<JobExecution> for hopsworks_api::JobExecution {
     }
 }
 
-pub(crate) fn register_module(_py: Python, parent: &PyModule) -> PyResult<()> {
+pub(crate) fn register_module(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     parent.add_class::<Project>()?;
     parent.add_class::<Job>()?;
     parent.add_class::<JobExecution>()?;

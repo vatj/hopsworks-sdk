@@ -11,16 +11,16 @@ lazy_static! {
     static ref LOG_RESET_HANDLE: pyo3_log::ResetHandle = pyo3_log::init();
 }
 
+fn tokio() -> &'static tokio::runtime::Runtime {
+    use std::sync::OnceLock;
+    static RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+    RT.get_or_init(|| tokio::runtime::Runtime::new().unwrap())
+}
+
 
 #[pyfunction]
 pub fn version() -> &'static str {
     hopsworks_api::VERSION
-}
-
-/// Prints a message.
-#[pyfunction]
-fn hello() -> PyResult<String> {
-    Ok("Hello from hopsworks-sdk!".into())
 }
 
 #[pyfunction]
@@ -46,21 +46,26 @@ impl HopsworksLoginOptions {
 
 #[pyfunction]
 pub async fn login(options: Option<HopsworksLoginOptions>) -> platform::Project {
-    let project = hopsworks_api::login(options.map(|o| o.builder)).await.unwrap();
-    debug!("Logged in to project: {}", project.name());
-    Project::from(project)
+    let login_with_options = async move {
+        let project = hopsworks_api::login(options.map(|o| o.builder)).await.unwrap();
+        debug!("Logged in to project: {}", project.name());
+        Project::from(project)
+    };
+    tokio().spawn(login_with_options).await.unwrap()
+    // let project = hopsworks_api::login(options.map(|o| o.builder)).await.unwrap();
+    // debug!("Logged in to project: {}", project.name());
+    // Project::from(project)
 }
 
 #[pymodule]
-fn hopsworks_rs(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     refresh_logger();
 
-    feature_store::register_module(_py, m)?;
-    platform::register_module(_py, m)?;
+    feature_store::register_module(m)?;
+    platform::register_module(m)?;
     m.add_wrapped(wrap_pyfunction!(version))?;
-    m.add_wrapped(wrap_pyfunction!(hello))?;
-    m.add_wrapped(wrap_pyfunction!(refresh_logger))?;
     m.add_class::<HopsworksLoginOptions>()?;
     m.add_wrapped(wrap_pyfunction!(login))?;
+    m.add_wrapped(wrap_pyfunction!(refresh_logger))?;
     Ok(())
 }

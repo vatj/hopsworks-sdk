@@ -1,6 +1,27 @@
 # %%
+import asyncio
+from hopsworks_sdk import login
+import pathlib
+import os
+import toml
+import logging
 
-from hopsworks_sdk import version
+config_name = "managed-config.toml"
+config_path = pathlib.Path(os.getcwd()) / "configs" / config_name
+print(config_path)
+config = toml.load(config_path)
+print(config)
 
-print("Hello from Hopsworks SDK version: " + version())
+os.environ["HOPSWORKS_API_KEY"] = config["env"]["HOPSWORKS_API_KEY"]
+
+if config["env"].get("RUST_LOG", None):
+    FORMAT = '%(levelname)s %(name)s %(asctime)-15s %(filename)s:%(lineno)d %(message)s'
+    logging.basicConfig(format=FORMAT)
+    logging.getLogger().setLevel(logging.DEBUG if config["env"]["RUST_LOG"] else logging.INFO)
+    logging.info("RUST_LOG set to %s", config["env"]["RUST_LOG"])
+
+
+
+project = asyncio.run(login())
+
 # %%

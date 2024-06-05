@@ -12,3 +12,5 @@
 asyncio==3.4.3
     # via hopsworks-sdk
 pip==24.0
+toml==0.10.2
+    # via hopsworks-sdk
