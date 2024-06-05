@@ -1,9 +1,3 @@
-mod construction;
-mod export;
-mod general;
-mod io;
-
-use polars::prelude::*;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
@@ -65,4 +59,11 @@ impl From<FeatureView> for hopsworks_api::FeatureView {
     }
 }
 
+pub(crate) fn register_module(_py: Python, parent: &PyModule) -> PyResult<()> {
+    parent.add_class::<FeatureStore>()?;
+    parent.add_class::<FeatureGroup>()?;
+    parent.add_class::<FeatureView>()?;
+
+    Ok(())
+}
 
