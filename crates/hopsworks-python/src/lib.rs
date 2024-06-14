@@ -5,7 +5,7 @@ use log::debug;
 pub mod feature_store;
 pub mod platform;
 
-use platform::Project;
+use platform::project::Project;
 
 lazy_static! {
     static ref LOG_RESET_HANDLE: pyo3_log::ResetHandle = pyo3_log::init();
