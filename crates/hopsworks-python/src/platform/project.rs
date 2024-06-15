@@ -1,5 +1,7 @@
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+
+use crate::feature_store::FeatureStore;
+use crate::tokio;
 
 #[pyclass]
 #[repr(transparent)]
@@ -17,6 +19,14 @@ impl From<hopsworks_api::Project> for Project {
 impl From<Project> for hopsworks_api::Project {
     fn from(project: Project) -> Self {
         project.project
+    }
+}
+
+#[pymethods]
+impl Project {
+    fn get_feature_store(&self) -> PyResult<FeatureStore> {
+        let fs = tokio().block_on(self.project.get_feature_store()).unwrap();
+        Ok(FeatureStore::from(fs))
     }
 }
 

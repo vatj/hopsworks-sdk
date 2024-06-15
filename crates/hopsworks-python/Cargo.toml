@@ -7,6 +7,7 @@ license = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
+
 hopsworks-offline-store = { workspace = true }
 hopsworks-online-store = { workspace = true }
 hopsworks-kafka ={ workspace = true }
@@ -16,6 +17,7 @@ tokio = { version = "1.0", features = ["full"] }
 pyo3 = {workspace = true}
 pyo3-log = {workspace = true}
 log = {workspace = true}
+color-eyre = {workspace = true}
 
 [lib]
 crate-type = ["cdylib"]

@@ -23,4 +23,12 @@ if config["env"].get("RUST_LOG", None):
 
 project = login()
 
+fs = project.get_feature_store()
+
+print(fs)
+
+fg = fs.get_feature_group("transactions_4h_aggs_fraud_batch_fg_5_rust", 1)
+
+print(fg)
+
 # %%
