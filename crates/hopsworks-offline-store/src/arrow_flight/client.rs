@@ -1,3 +1,4 @@
+use arrow_flight::decode::FlightRecordBatchStream;
 use arrow_flight::{Action, FlightClient, FlightDescriptor};
 use bytes::Bytes;
 use color_eyre::eyre::Ok;
@@ -5,15 +6,12 @@ use color_eyre::Result;
 use futures::stream::{StreamExt, TryStreamExt};
 use log::{debug, info};
 
-use std::collections::HashMap;
+
 use std::time::Duration;
 use std::vec;
 use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity};
-use polars::prelude::*;
-use polars_core::utils::accumulate_dataframes_vertical;
-use crate::arrow_flight::utils;
 use crate::cluster_api::payloads::{
-    FeatureGroupConnectorArrowFlightPayload, QueryArrowFlightPayload, TrainingDatasetArrowFlightPayload,
+    QueryArrowFlightPayload, TrainingDatasetArrowFlightPayload,
 };
 use crate::cluster_api::payloads::RegisterArrowFlightClientCertificatePayload;
 use hopsworks_core::{get_hopsworks_client, util};
@@ -153,22 +151,21 @@ impl HopsworksArrowFlightClient {
     pub async fn read_query(
         &mut self,
         query_payload: QueryArrowFlightPayload,
-    ) -> Result<DataFrame> {
+    ) -> Result<FlightRecordBatchStream> {
         info!("Arrow flight client read_query");
         debug!("Query payload: {:#?}", query_payload);
         let descriptor = FlightDescriptor::new_cmd(serde_json::to_string(&query_payload)?);
-        let df = self._get_dataset(descriptor).await?;
-        Ok(df)
+        self._get_dataset(descriptor).await
     }
 
-    pub async fn read_path(&mut self, path: &str) -> Result<DataFrame> {
+    pub async fn read_path(&mut self, path: &str) -> Result<FlightRecordBatchStream> {
         info!("Arrow flight client read_path: {}", path);
         let descriptor = FlightDescriptor::new_path(vec![path.to_string()]);
         let df = self._get_dataset(descriptor).await?;
         Ok(df)
     }
 
-    async fn _get_dataset(&mut self, descriptor: FlightDescriptor) -> Result<DataFrame> {
+    async fn _get_dataset(&mut self, descriptor: FlightDescriptor) -> Result<FlightRecordBatchStream> {
         debug!("Getting dataset with descriptor: {:#?}", descriptor);
         let flight_info = self.client.get_flight_info(descriptor).await?;
         let opt_endpoint = flight_info.endpoint.first();
@@ -177,15 +174,7 @@ impl HopsworksArrowFlightClient {
             debug!("Endpoint: {:#?}", endpoint);
             if let Some(ticket) = endpoint.ticket.clone() {
                 debug!("Ticket: {:#?}", ticket);
-
-                let mut dfs: Vec<DataFrame> = vec![];
-                let mut record_data_stream = self.client.do_get(ticket).await?;
-                while record_data_stream.next().await.is_some() {
-                    let record_batch = record_data_stream.next().await.expect("Failed to get record batch")?;
-                    dfs.push(super::arrow_polars::record_batch_to_dataframe(&record_batch)?);
-                }
-                
-                Ok(accumulate_dataframes_vertical(dfs)?)
+                Ok(self.client.do_get(ticket).await?)
             } else {
                 let flight_descriptor_cmd: String;
                 if let Some(flight_descriptor) = flight_info.flight_descriptor {
@@ -229,48 +218,6 @@ impl HopsworksArrowFlightClient {
             todo!("{:?}", batch);
         }
         Ok(())
-    }
-
-    pub fn create_flight_query(
-        &self,
-        query: Query,
-        query_str: String,
-        on_demand_fg_aliases: Vec<String>,
-    ) -> Result<QueryArrowFlightPayload> {
-        info!(
-            "Creating arrow flight query payload for query with left_feature_group {}",
-            query.left_feature_group().name()
-        );
-        let mut feature_names: HashMap<String, Vec<String>> = HashMap::new();
-        let mut connectors: HashMap<String, FeatureGroupConnectorArrowFlightPayload> =
-            HashMap::new();
-        for feature_group in query.feature_groups() {
-            let fg_name = utils::serialize_feature_group_name(feature_group);
-            feature_names.insert(
-                fg_name.clone(),
-                feature_group
-                    .features()
-                    .iter()
-                    .map(|feature| feature.name().to_string())
-                    .collect(),
-            );
-            let fg_connector = utils::serialize_feature_group_connector(
-                feature_group,
-                &query,
-                on_demand_fg_aliases.clone(),
-            )?;
-            connectors.insert(fg_name, fg_connector);
-        }
-        let filters = match query.filters() {
-            Some(filters) => utils::serialize_filter_expression(filters.clone(), &query, false)?,
-            None => None,
-        };
-        Ok(QueryArrowFlightPayload::new(
-            utils::translate_to_duckdb(&query, query_str)?,
-            feature_names,
-            Some(connectors),
-            filters,
-        ))
     }
 }
 

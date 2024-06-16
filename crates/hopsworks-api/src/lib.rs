@@ -97,6 +97,9 @@ pub use hopsworks_core::feature_store::{
     FeatureStore, FeatureGroup, FeatureView, feature_view::training_dataset::TrainingDataset, query::Query,
 };
 
+#[cfg(feature = "read_arrow_flight_offline_store")]
+pub mod offline_store;
+
 pub use hopsworks_core::HopsworksClientBuilder;
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
