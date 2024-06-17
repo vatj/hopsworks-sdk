@@ -19,6 +19,12 @@ pyo3-log = {workspace = true}
 log = {workspace = true}
 color-eyre = {workspace = true}
 
+# Maker optional with feature flags
+polars = { workspace = true}
+arrow ={ workspace = true, features = ["pyarrow"]}
+
+
+
 [lib]
 crate-type = ["cdylib"]
 name = "hopsworks_sdk"

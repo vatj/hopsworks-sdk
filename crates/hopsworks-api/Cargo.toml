@@ -14,6 +14,7 @@ log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
 polars ={ workspace = true , optional = true}
+arrow ={ workspace = true , optional = true}
 
 hopsworks-core ={ workspace = true }
 hopsworks-kafka ={ workspace = true, optional = true}
@@ -30,6 +31,6 @@ tracing-subscriber = { version = "0.3", default-features = false, features = [
 ] }
 
 [features]
-read_arrow_flight_offline_store = ["hopsworks-offline-store", "polars"]
+read_arrow_flight_offline_store = ["hopsworks-offline-store", "polars", "arrow"]
 read_rest_online_store = ["hopsworks-online-store"]
 read_sql_online_store = ["hopsworks-online-store"]

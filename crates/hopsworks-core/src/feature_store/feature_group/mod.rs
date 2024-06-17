@@ -297,7 +297,7 @@ impl FeatureGroup {
     /// ```
     pub fn select(&self, feature_names: &[&str]) -> Result<Query> {
         debug!(
-            "Selecting features {:?} from feature group {}, building query object",
+            "Selecting features {:?} from feature group {} to build query object",
             feature_names, self.name
         );
         Ok(Query::new_no_joins_no_filter(
@@ -313,6 +313,14 @@ impl FeatureGroup {
                 })
                 .collect(),
         ))
+    }
+
+    pub fn select_all(&self) -> Query {
+        debug!(
+            "Selecting all features from feature group {} to build query object",
+            self.name
+        );
+        Query::new_no_joins_no_filter(self.clone(), self.features().to_vec())
     }
 
     #[cfg(feature = "polars")]
