@@ -31,4 +31,19 @@ fg = fs.get_feature_group("transactions_4h_aggs_fraud_batch_fg_5_rust", 1)
 
 print(fg)
 
+print(dir(fg))
+
+try:
+    polars_df = fg.read_polars_from_offline_store()
+except Exception as e:
+    print(e)
+
+try:
+    arrow_rb = fg.read_record_batch_from_offline_store()
+except Exception as e:
+    print(e)
+
+
+
+
 # %%
