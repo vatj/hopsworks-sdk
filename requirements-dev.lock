@@ -9,6 +9,12 @@
 #   generate-hashes: false
 
 -e file:.
+numpy==1.24.4
+    # via pyarrow
 pip==24.0
+polars==0.20.31
+    # via hopsworks-sdk
+pyarrow==16.1.0
+    # via hopsworks-sdk
 toml==0.10.2
     # via hopsworks-sdk

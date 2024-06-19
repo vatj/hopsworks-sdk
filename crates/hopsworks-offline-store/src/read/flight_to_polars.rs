@@ -23,9 +23,9 @@ pub async fn read_with_arrow_flight_client(
     let mut record_data_stream = arrow_flight_client.read_query(query_payload).await?;
 
     let mut dfs: Vec<DataFrame> = vec![];
-    while record_data_stream.next().await.is_some() {
-        let record_batch = record_data_stream.next().await.expect("Failed to get record batch")?;
-        dfs.push(record_batch_to_dataframe(&record_batch)?);
+    while let Some(record_batch) = record_data_stream.next().await {
+        // let record_batch = record_data_stream.next().await.expect("Failed to get record batch")?;
+        dfs.push(record_batch_to_dataframe(&record_batch?)?);
     }
 
     Ok(accumulate_dataframes_vertical(dfs)?)
