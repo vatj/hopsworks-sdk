@@ -99,6 +99,9 @@ pub use hopsworks_core::feature_store::{
 
 #[cfg(feature = "read_arrow_flight_offline_store")]
 pub mod offline_store;
+#[cfg(feature = "insert_into_kafka")]
+pub mod kafka;
+
 
 pub use hopsworks_core::HopsworksClientBuilder;
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

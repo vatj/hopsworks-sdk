@@ -6,6 +6,7 @@ pub mod feature_store;
 pub mod platform;
 
 use platform::project::Project;
+use hopsworks_api::HopsworksClientBuilder;
 
 lazy_static! {
     static ref LOG_RESET_HANDLE: pyo3_log::ResetHandle = pyo3_log::init();
@@ -31,7 +32,7 @@ pub fn refresh_logger() {
 #[pyclass]
 #[derive(Clone)]
 pub struct HopsworksLoginOptions {
-    pub(crate) builder: hopsworks_api::HopsworksClientBuilder,
+    pub(crate) builder: HopsworksClientBuilder,
 }
 
 #[pymethods]
@@ -39,7 +40,7 @@ impl HopsworksLoginOptions {
     #[new]
     fn new() -> Self {
         Self {
-            builder: hopsworks_api::HopsworksClientBuilder::new(),
+            builder: HopsworksClientBuilder::new(),
         }
     }
 }

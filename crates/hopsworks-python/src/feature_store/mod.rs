@@ -36,11 +36,6 @@ impl FeatureStore {
         let fv = tokio().block_on(self.fs.get_feature_view(name, version)).unwrap();
         Ok(fv.map(feature_view::FeatureView::from))
     }
-
-    fn hello(&self) -> PyResult<()> {
-        println!("Hello from FeatureStore");
-        Ok(())
-    }
 }
 
 

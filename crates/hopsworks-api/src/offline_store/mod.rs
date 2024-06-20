@@ -37,7 +37,7 @@ pub async fn read_from_offline_feature_store(
     fgroup: &FeatureGroup,
     _offline_read_options: Option<ArrowFlightReadOptions>,
 ) -> Result<DataFrame> {
-    let query = fgroup.select(&fgroup.get_feature_names())?;
+    let query = fgroup.select(&fgroup.feature_names())?;
     debug!(
         "Reading data from feature group {} with Arrow Flight client",
         fgroup.name()
@@ -74,7 +74,7 @@ pub async fn read_arrow_from_offline_feature_store(
     fgroup: &FeatureGroup,
     _offline_read_options: Option<ArrowFlightReadOptions>,
 ) -> Result<Vec<RecordBatch>> {
-    let query = fgroup.select(&fgroup.get_feature_names())?;
+    let query = fgroup.select(&fgroup.feature_names())?;
     debug!(
         "Reading data from feature group {} with Arrow Flight client",
         fgroup.name()

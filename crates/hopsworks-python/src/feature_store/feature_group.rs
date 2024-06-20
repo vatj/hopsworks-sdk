@@ -5,7 +5,9 @@ use pyo3::prelude::*;
 use arrow::pyarrow::ToPyArrow;
 use hopsworks_api::offline_store::read_from_offline_feature_store;
 use hopsworks_api::offline_store::read_arrow_from_offline_feature_store;
+use hopsworks_api::kafka::insert_polars_df_into_kafka;
 use pyo3_polars::PyDataFrame;
+use polars::prelude::DataFrame;
 use pyo3::types::PyDict;
 
 use crate::tokio;
@@ -41,15 +43,16 @@ impl FeatureGroup {
 
     // #[cfg(feature="read_arrow_flight_offline_store")]
     fn read_arrow_from_offline_store(&self, py: Python) -> PyResult<PyObject> {
-        let record_batches = tokio().block_on(read_arrow_from_offline_feature_store(&self.fg , None)).unwrap();
-        record_batches.to_pyarrow(py)
-        // let table_class = py.import_bound("pyarrow")?.getattr("Table")?;
-        // let schema = record_batch.schema().to_pyarrow(py);
-        // Ok(table_class.call_method1("from_batches", (record_batch, record_batch.schema().into_py(py))))
+        let batches = tokio().block_on(read_arrow_from_offline_feature_store(&self.fg , None)).unwrap();
+        batches.to_pyarrow(py)
+        // let schema = batches.first().unwrap().schema().to_pyarrow(py);
+        // let table: PyObject = py.import_bound("pyarrow")?.getattr("Table")?.call_method1("from_batches", (batches.to_pyarrow(py).iter(), schema))?.into();
+        // Ok(table)
     }
 
-    fn hello(&self) -> PyResult<()> {
-        println!("Hello from FeatureGroup");
+    fn insert_polars_df_into_kafka(&self, df: PyDataFrame) -> PyResult<()> {
+        let mut dataframe: DataFrame = df.into();
+        tokio().block_on(insert_polars_df_into_kafka(&mut dataframe, &self.fg)).unwrap();
         Ok(())
     }
 }

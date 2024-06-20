@@ -7,11 +7,7 @@ license = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-
-hopsworks-offline-store = { workspace = true }
-hopsworks-online-store = { workspace = true }
-hopsworks-kafka ={ workspace = true }
-hopsworks-api = { workspace = true, features = ["read_arrow_flight_offline_store"]}
+hopsworks-api = { workspace = true, features = ["read_arrow_flight_offline_store", "insert_into_kafka"]}
 lazy_static = { version = "1.4" }
 tokio = { version = "1.0", features = ["full"] }
 pyo3 = {workspace = true, features = ["extension-module", "eyre", "abi3-py38"]}

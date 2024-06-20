@@ -142,8 +142,14 @@ impl From<FeatureGroupDTO> for FeatureGroup {
             online_enabled: feature_group_dto.online_enabled,
             time_travel_format: feature_group_dto.time_travel_format,
             online_topic_name: feature_group_dto.online_topic_name,
-            primary_key: None,
-            event_time: None,
+            primary_key: Some(feature_group_dto.features.iter().filter_map(|f| {
+                if f.primary {
+                    Some(f.name.clone())
+                } else {
+                    None
+                }
+            }).collect()),
+            event_time: feature_group_dto.event_time,
         }
     }
 }
@@ -209,6 +215,10 @@ impl FeatureGroup {
         self.location.as_deref()
     }
 
+    pub fn event_time(&self) -> Option<&str> {
+        self.event_time.as_deref()
+    }
+
     pub fn statistics_config(&self) -> Option<&StatisticsConfig> {
         self.statistics_config.as_ref()
     }
@@ -224,7 +234,12 @@ impl FeatureGroup {
     /// Returns the list of primary keys for the feature group.
     ///
     /// Note that order matters when building primary keys to access values from the online Feature Store.
-    pub fn get_primary_keys(&self) -> Result<Vec<&str>> {
+    pub fn primary_keys(&self) -> Result<Vec<&str>> {
+        debug!(
+            "Getting primary keys for feature group {}: {:?}",
+            self.name(),
+            self.primary_key
+        );
         Ok(self
             .primary_key
             .as_ref()
@@ -234,7 +249,7 @@ impl FeatureGroup {
             .collect())
     }
 
-    pub fn get_primary_keys_owned(&self) -> Result<Vec<String>> {
+    pub fn primary_keys_owned(&self) -> Result<Vec<String>> {
         Ok(self
             .primary_key
             .as_ref()
@@ -248,19 +263,19 @@ impl FeatureGroup {
     ///
     /// # Arguments
     /// * `feature_name` - The name of the feature to get.
-    pub fn get_feature(&self, feature_name: &str) -> Option<&Feature> {
+    pub fn feature_by_name(&self, feature_name: &str) -> Option<&Feature> {
         self.features()
             .iter()
             .find(|feature| feature.name() == feature_name)
     }
 
     /// Returns the list of owned feature names for the feature group.
-    pub fn get_feature_names(&self) -> Vec<&str> {
+    pub fn feature_names(&self) -> Vec<&str> {
         self.features.iter().map(|f| f.name()).collect()
     }
 
     /// Returns the list of owned feature names for the feature group.
-    pub fn get_feature_names_owned(&self) -> Vec<String> {
+    pub fn feature_names_owned(&self) -> Vec<String> {
         self.features()
             .iter()
             .map(|feature| feature.name().to_string())

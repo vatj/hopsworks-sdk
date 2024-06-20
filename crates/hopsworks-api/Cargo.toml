@@ -6,15 +6,13 @@ authors = { workspace = true }
 license = { workspace = true }
 repository = { workspace = true }
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 color-eyre = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
-polars ={ workspace = true , optional = true}
-arrow ={ workspace = true , optional = true}
+polars = { workspace = true , optional = true}
+arrow = { workspace = true , optional = true}
 
 hopsworks-core ={ workspace = true }
 hopsworks-kafka ={ workspace = true, optional = true}
@@ -34,3 +32,4 @@ tracing-subscriber = { version = "0.3", default-features = false, features = [
 read_arrow_flight_offline_store = ["hopsworks-offline-store", "polars", "arrow"]
 read_rest_online_store = ["hopsworks-online-store"]
 read_sql_online_store = ["hopsworks-online-store"]
+insert_into_kafka = ["hopsworks-kafka"]
