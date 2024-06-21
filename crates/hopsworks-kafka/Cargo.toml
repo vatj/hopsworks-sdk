@@ -15,6 +15,6 @@ polars = { workspace = true }
 
 hopsworks-core = { workspace = true }
 
-rdkafka = { version = "0.36.0", features = ["tokio", "libz", "ssl"] }
+rdkafka = { version = "0.36.2", features = ["tokio", "libz", "ssl"] }
 apache-avro = { version = "0.16", features = ["derive"] }
 indicatif = { version = "0.17" }

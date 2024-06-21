@@ -9,6 +9,8 @@ authors = [
 ]
 dependencies = [
     "toml>=0.10.2",
+    "polars>=0.20.31",
+    "pyarrow>=16.1.0",
 ]
 name = "hopsworks-sdk"
 maintainers = [
@@ -30,6 +32,7 @@ homepage = "https://www.hopsworks.ai/"
 managed = true
 dev-dependencies = [
     "pip>=24.0",
+    "ipykernel>=6.0",
 ]
 
 [tool.rye.workspace]

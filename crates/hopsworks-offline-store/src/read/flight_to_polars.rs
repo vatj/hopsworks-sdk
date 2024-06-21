@@ -1,11 +1,13 @@
 use color_eyre::Result;
-use polars::prelude::DataFrame;
+use arrow::record_batch::RecordBatch;
+use polars::prelude::*;
+use futures::StreamExt;
+use polars_core::utils::accumulate_dataframes_vertical;
+
 
 use hopsworks_core::feature_store::query::Query;
-use hopsworks_core::controller::feature_store::query::construct_query;
-
-use crate::arrow_flight::client::HopsworksArrowFlightClientBuilder;
-use crate::read::read_options::ArrowFlightReadOptions;
+use crate::{arrow_flight::client::HopsworksArrowFlightClientBuilder, read::read_options::ArrowFlightReadOptions};
+use super::flight_query_builder::build_flight_query;
 
 
 pub async fn read_with_arrow_flight_client(
@@ -13,39 +15,31 @@ pub async fn read_with_arrow_flight_client(
     _offline_read_options: Option<ArrowFlightReadOptions>,
     _ondemand_fg_aliases: Vec<String>,
 ) -> Result<DataFrame> {
-    // Create Feature Store Query based on query object obtained via fg.select()
-    let feature_store_query_dto = construct_query(&query_object).await?;
-
     // Create Arrow Flight Client
     let mut arrow_flight_client = HopsworksArrowFlightClientBuilder::default().build().await?;
+    
+    let query_payload = build_flight_query(query_object, _offline_read_options, _ondemand_fg_aliases).await?;
 
-    // Extract relevant query string
-    let query_str = feature_store_query_dto
-        .pit_query_asof
-        .clone()
-        .or(Some(feature_store_query_dto.query.clone()))
-        .unwrap_or_else(|| {
-            panic!(
-                "No query string found in Feature Store Query DTO {:#?}.",
-                feature_store_query_dto
-            )
-        });
+    let mut record_data_stream = arrow_flight_client.read_query(query_payload).await?;
 
-    // Extract on-demand feature group aliases
-    let on_demand_fg_aliases = feature_store_query_dto
-        .on_demand_feature_groups
-        .iter()
-        .map(|fg| fg.name.clone())
-        .collect();
+    let mut dfs: Vec<DataFrame> = vec![];
+    while let Some(record_batch) = record_data_stream.next().await {
+        // let record_batch = record_data_stream.next().await.expect("Failed to get record batch")?;
+        dfs.push(record_batch_to_dataframe(&record_batch?)?);
+    }
 
-    // Use arrow flight client methods to convert query to arrow flight payload
-    let query_payload = arrow_flight_client.create_flight_query(
-        query_object.clone(),
-        query_str,
-        on_demand_fg_aliases,
-    )?;
+    Ok(accumulate_dataframes_vertical(dfs)?)
+}
 
-    let df = arrow_flight_client.read_query(query_payload).await?;
-
-    Ok(df)
+fn record_batch_to_dataframe(batch: &RecordBatch) -> Result<DataFrame, PolarsError> {
+    let schema = batch.schema();
+    let mut columns = Vec::with_capacity(batch.num_columns());
+    for (i, column) in batch.columns().iter().enumerate() {
+        let arrow = Box::<(dyn polars_arrow::array::Array + 'static)>::from(&**column);
+        columns.push(Series::from_arrow(
+            schema.fields().get(i).unwrap().name(),
+            arrow,
+        )?);
+    }
+    Ok(DataFrame::from_iter(columns))
 }

@@ -7,15 +7,18 @@ license = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-hopsworks-offline-store = { workspace = true }
-hopsworks-online-store = { workspace = true }
-hopsworks-kafka ={ workspace = true }
-hopsworks-api = { workspace = true }
+hopsworks-api = { workspace = true, features = ["read_arrow_flight_offline_store", "insert_into_kafka"]}
 lazy_static = { version = "1.4" }
 tokio = { version = "1.0", features = ["full"] }
-pyo3 = {workspace = true}
+pyo3 = {workspace = true, features = ["extension-module", "eyre", "abi3-py38"]}
 pyo3-log = {workspace = true}
+pyo3-polars = { version = "0.14.0"}
 log = {workspace = true}
+color-eyre = {workspace = true}
+
+# Maker optional with feature flags
+polars = { workspace = true }
+arrow = { workspace = true, features = ["pyarrow"]}
 
 [lib]
 crate-type = ["cdylib"]

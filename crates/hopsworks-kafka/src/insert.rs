@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use polars::prelude::DataFrame;
+use polars::prelude::*;
 use apache_avro::Schema;
 use std::sync::Arc;
 
@@ -14,12 +14,12 @@ use crate::helper::make_custom_headers;
 use crate::produce_polars_df::produce_df;
 
 pub async fn insert_in_registered_feature_group(
+    dataframe: &mut DataFrame,
     feature_store_id: i32,
     feature_group_id: i32,
     feature_group_name: &str,
     feature_group_version: i32,
     online_topic_name: &str,
-    dataframe: &mut DataFrame,
     primary_keys: &[&str],
     cert_dir: &str,
 ) -> Result<JobExecution> {

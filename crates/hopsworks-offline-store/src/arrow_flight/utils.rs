@@ -1,12 +1,53 @@
 use color_eyre::Result;
-use log::debug;
+use log::{debug, info};
+use std::collections::HashMap;
 
 use crate::cluster_api::payloads::{
-    QueryFilterArrowFlightPayload, QueryFilterOrLogicArrowFlightPayload,
-    QueryLogicArrowFlightPayload, FeatureGroupConnectorArrowFlightPayload
+    FeatureGroupConnectorArrowFlightPayload, QueryArrowFlightPayload, QueryFilterArrowFlightPayload, QueryFilterOrLogicArrowFlightPayload, QueryLogicArrowFlightPayload
 };
 
 use hopsworks_core::feature_store::{feature_group::FeatureGroup, query::Query, feature_group::feature::Feature, query::QueryFilter, query::QueryLogic, query::QueryFilterOrLogic};
+
+pub fn create_flight_query(
+    query: Query,
+    query_str: String,
+    on_demand_fg_aliases: Vec<String>,
+) -> Result<QueryArrowFlightPayload> {
+    info!(
+        "Creating arrow flight query payload for query with left_feature_group {}",
+        query.left_feature_group().name()
+    );
+    let mut feature_names: HashMap<String, Vec<String>> = HashMap::new();
+    let mut connectors: HashMap<String, FeatureGroupConnectorArrowFlightPayload> =
+        HashMap::new();
+    for feature_group in query.feature_groups() {
+        let fg_name = serialize_feature_group_name(feature_group);
+        feature_names.insert(
+            fg_name.clone(),
+            feature_group
+                .features()
+                .iter()
+                .map(|feature| feature.name().to_string())
+                .collect(),
+        );
+        let fg_connector = serialize_feature_group_connector(
+            feature_group,
+            &query,
+            on_demand_fg_aliases.clone(),
+        )?;
+        connectors.insert(fg_name, fg_connector);
+    }
+    let filters = match query.filters() {
+        Some(filters) => serialize_filter_expression(filters.clone(), &query, false)?,
+        None => None,
+    };
+    Ok(QueryArrowFlightPayload::new(
+        translate_to_duckdb(&query, query_str)?,
+        feature_names,
+        Some(connectors),
+        filters,
+    ))
+}
 
 pub(super) fn serialize_feature_group_connector(
     _feature_group: &FeatureGroup,
