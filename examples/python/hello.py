@@ -7,7 +7,7 @@ import logging
 import polars as pl
 
 config_name = "managed-config.toml"
-config_path = pathlib.Path(os.getcwd()) / "configs" / config_name
+config_path = pathlib.Path(os.getcwd()) / "../../configs" / config_name
 print(config_path)
 config = toml.load(config_path)
 print(config)
@@ -46,14 +46,17 @@ try:
     print("Get the polars dataframe from the offline store")
     polars_df = fg.read_polars_from_offline_store()
     print("polars_df : ", polars_df.head(5))
+    print(f"shape: {polars_df.shape()}")
 except Exception as e:
     print(e)
 
 # %%
 polars_df = polars_df.with_columns(
     pl.lit(2.0).alias("trans_volume_mstd"),
+    pl.col("datetime").dt.replace_time_zone(None).alias("datetime"),
     cc_num=pl.Series(range(0, polars_df.shape[0])),
 )
+
 print(polars_df.head(5))
 
 # %%

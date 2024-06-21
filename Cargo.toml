@@ -23,12 +23,11 @@ pyo3 = { version = "0.21", features = ["extension-module", "experimental-async"]
 pyo3-log = { version = "0.10" }
 chrono = { version = "0.4" }
 polars = { version = "0.40.0", features = [
+    "default",
     "lazy",
-    "avro",
     "strings",
     "dtype-full",
     "rows",
-    "timezones",
 ] }
 arrow = { version = "52"}
 reqwest = { version = "0.12", features = ["json", "native-tls", "stream"] }

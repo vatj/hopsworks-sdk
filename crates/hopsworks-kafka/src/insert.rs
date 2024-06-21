@@ -45,15 +45,13 @@ pub async fn insert_in_registered_feature_group(
         feature_group_version,
     );
 
-    let mut df = dataframe.lazy().select([dtype_cols([DataType::Datetime(_, _)]).dt().convert_time_zone(Some("UTC".to_string())).replace_time_zone(None)]).collect()?;
-
     produce_df(
         headers,
         topic_name,
         primary_keys,
         Schema::parse_str(subject.schema())?,
         &future_producer,
-        &mut df,
+        dataframe,
     )
     .await?;
 
