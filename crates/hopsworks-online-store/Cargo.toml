@@ -15,12 +15,25 @@ reqwest = { version = "0.12", features = ["json"], optional = true }
 
 hopsworks-core = { workspace = true }
 
-connectorx = { version = "0.3.3", features = [
-    "src_mysql",
-    "dst_arrow2",
-    "dst_arrow",
-], optional = true}
+connectorx = { version = "0.3.3", optional = true}
+polars = { workspace = true, optional = true}
+arrow = { workspace = true, optional = true}
+
+# Used by connectorx source code
+chrono ={ workspace = true, optional = true}
+serde_json = { workspace = true, optional = true}
+thiserror = { version = "*", optional = true}
+num_traits ={ version = "*", optional = true}
+fehler ={ version = "*", optional = true}
+anyhow ={ version = "*", optional = true}
+
+
 
 [features]
-sql2polars = ["dep:connectorx"]
+connectorx = ["dep:connectorx"]
+connectorx_explicit = ["dep:serde_json", "dep:chrono", "dep:rust_decimal", "dep:thiserror", "dep:num_traits", "dep:fehler", "dep:sql_parser", ]
+connectorx_sql_outdated = ["dep:r2d2", "dep:r2d2_mysql"]
+sql = ["sql2arrow"]
+sql2arrow = ["dep:connectorx", "dep:arrow", ]
+# sql2polars = ["dep:connectorx", "dep:polars"]
 rest2polars = ["dep:reqwest"]
