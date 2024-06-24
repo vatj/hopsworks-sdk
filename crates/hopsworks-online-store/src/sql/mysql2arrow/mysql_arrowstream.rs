@@ -27,7 +27,6 @@ use crate::sql::mysql2arrow::mysql::{
     };
 
 
-
 #[derive(Error, Debug)]
 pub enum MySQLArrowTransportError {
     #[error(transparent)]

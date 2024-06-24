@@ -1,5 +1,4 @@
 use connectorx::impl_typesystem;
-
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use r2d2_mysql::mysql::consts::{ColumnFlags, ColumnType};
 use rust_decimal::Decimal;

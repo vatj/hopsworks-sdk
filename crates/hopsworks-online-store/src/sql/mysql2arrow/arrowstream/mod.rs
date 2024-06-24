@@ -5,7 +5,7 @@ mod errors;
 mod funcs;
 pub mod typesystem;
 
-pub use self::errors::{ArrowDestinationError, Result};
+pub use connectorx::errors::{ArrowDestinationError, Result};
 pub use self::typesystem::ArrowTypeSystem;
 use super::{Consume, Destination, DestinationPartition};
 use connectorx::constants::RECORD_BATCH_SIZE;

@@ -1,5 +1,5 @@
 use super::errors::{ArrowDestinationError, Result};
-use crate::constants::SECONDS_IN_DAY;
+use connectorx::constants::SECONDS_IN_DAY;
 use arrow::array::{
     ArrayBuilder, BooleanBuilder, Date32Builder, Date64Builder, Float32Builder, Float64Builder,
     Int32Builder, Int64Builder, LargeBinaryBuilder, StringBuilder, Time64NanosecondBuilder,

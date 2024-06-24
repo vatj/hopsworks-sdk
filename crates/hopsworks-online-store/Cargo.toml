@@ -24,8 +24,14 @@ chrono ={ workspace = true, optional = true}
 serde_json = { workspace = true, optional = true}
 thiserror = { version = "*", optional = true}
 num_traits ={ version = "*", optional = true}
+rust_decimal ={ version = "*", optional = true}
 fehler ={ version = "*", optional = true}
 anyhow ={ version = "*", optional = true}
+sql_parser ={ version = "*", optional = true}
+
+# Used by connectorx source for mysql source
+r2d2 ={ version = "0.8", optional = true}
+r2d2_mysql = {version = "0.25", optional = true}
 
 
 
@@ -34,6 +40,6 @@ connectorx = ["dep:connectorx"]
 connectorx_explicit = ["dep:serde_json", "dep:chrono", "dep:rust_decimal", "dep:thiserror", "dep:num_traits", "dep:fehler", "dep:sql_parser", ]
 connectorx_sql_outdated = ["dep:r2d2", "dep:r2d2_mysql"]
 sql = ["sql2arrow"]
-sql2arrow = ["dep:connectorx", "dep:arrow", ]
+sql2arrow = ["connectorx", "connectorx_sql_outdated", "connectorx_explicit", "dep:arrow"]
 # sql2polars = ["dep:connectorx", "dep:polars"]
 rest2polars = ["dep:reqwest"]
