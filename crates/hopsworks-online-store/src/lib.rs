@@ -1,3 +1,4 @@
+#[cfg(feature="rest")]
 pub mod rondb_rest;
 #[cfg(feature="sql")]
 pub mod sql;

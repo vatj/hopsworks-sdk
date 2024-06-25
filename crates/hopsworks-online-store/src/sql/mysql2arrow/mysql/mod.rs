@@ -4,7 +4,6 @@ mod errors;
 mod typesystem;
 
 pub use self::errors::MySQLSourceError;
-use connectorx::constants::DB_BUFFER_SIZE;
 use connectorx::{
     data_order::DataOrder,
     errors::ConnectorXError,
@@ -26,6 +25,8 @@ use serde_json::Value;
 use sqlparser::dialect::MySqlDialect;
 use std::marker::PhantomData;
 pub use typesystem::MySQLTypeSystem;
+
+use crate::sql::mysql2arrow::constants::DB_BUFFER_SIZE;
 
 type MysqlConn = PooledConnection<MySqlConnectionManager>;
 

@@ -5,9 +5,10 @@ mod errors;
 mod funcs;
 pub mod typesystem;
 
-pub use crate::sql::mysql2arrow::arrowstream::errors::{ArrowDestinationError, Result};
+pub use self::errors::{ArrowDestinationError, Result};
 pub use self::typesystem::ArrowTypeSystem;
 use connectorx::prelude::{Consume, Destination, DestinationPartition};
+use crate::sql::mysql2arrow::constants::RECORD_BATCH_SIZE;
 use connectorx::data_order::DataOrder;
 use connectorx::typesystem::{Realize, TypeAssoc, TypeSystem};
 use anyhow::anyhow;
@@ -18,13 +19,8 @@ use funcs::{FFinishBuilder, FNewBuilder, FNewField};
 use itertools::Itertools;
 use std::{
     any::Any,
-    sync::{
-        mpsc::{channel, Receiver, Sender},
-        Arc,
-    },
+    sync::{Arc, Mutex},
 };
-
-use crate::sql::mysql2arrow::constants::RECORD_BATCH_SIZE;
 
 type Builder = Box<dyn Any + Send>;
 type Builders = Vec<Builder>;
@@ -32,22 +28,19 @@ type Builders = Vec<Builder>;
 pub struct ArrowDestination {
     schema: Vec<ArrowTypeSystem>,
     names: Vec<String>,
+    data: Arc<Mutex<Vec<RecordBatch>>>,
     arrow_schema: Arc<Schema>,
     batch_size: usize,
-    sender: Option<Sender<RecordBatch>>,
-    receiver: Receiver<RecordBatch>,
 }
 
 impl Default for ArrowDestination {
     fn default() -> Self {
-        let (tx, rx) = channel();
         ArrowDestination {
             schema: vec![],
             names: vec![],
+            data: Arc::new(Mutex::new(vec![])),
             arrow_schema: Arc::new(Schema::empty()),
             batch_size: RECORD_BATCH_SIZE,
-            sender: Some(tx),
-            receiver: rx,
         }
     }
 }
@@ -58,14 +51,12 @@ impl ArrowDestination {
     }
 
     pub fn new_with_batch_size(batch_size: usize) -> Self {
-        let (tx, rx) = channel();
         ArrowDestination {
             schema: vec![],
             names: vec![],
+            data: Arc::new(Mutex::new(vec![])),
             arrow_schema: Arc::new(Schema::empty()),
             batch_size,
-            sender: Some(tx),
-            receiver: rx,
         }
     }
 }
@@ -110,17 +101,15 @@ impl Destination for ArrowDestination {
     #[throws(ArrowDestinationError)]
     fn partition(&mut self, counts: usize) -> Vec<Self::Partition<'_>> {
         let mut partitions = vec![];
-        let sender = self.sender.take().unwrap();
         for _ in 0..counts {
             partitions.push(ArrowPartitionWriter::new(
                 self.schema.clone(),
+                Arc::clone(&self.data),
                 Arc::clone(&self.arrow_schema),
                 self.batch_size,
-                sender.clone(),
             )?);
         }
         partitions
-        // self.sender should be freed
     }
 
     fn schema(&self) -> &[ArrowTypeSystem] {
@@ -131,27 +120,18 @@ impl Destination for ArrowDestination {
 impl ArrowDestination {
     #[throws(ArrowDestinationError)]
     pub fn arrow(self) -> Vec<RecordBatch> {
-        if self.sender.is_some() {
-            // should not happen since it is dropped after partition
-            // but need to make sure here otherwise recv will be blocked forever
-            std::mem::drop(self.sender);
-        }
-        let mut data = vec![];
-        loop {
-            match self.receiver.recv() {
-                Ok(rb) => data.push(rb),
-                Err(_) => break,
-            }
-        }
-        data
+        let lock = Arc::try_unwrap(self.data).map_err(|_| anyhow!("Partitions are not freed"))?;
+        lock.into_inner()
+            .map_err(|e| anyhow!("mutex poisoned {}", e))?
     }
 
     #[throws(ArrowDestinationError)]
     pub fn record_batch(&mut self) -> Option<RecordBatch> {
-        match self.receiver.recv() {
-            Ok(rb) => Some(rb),
-            Err(_) => None,
-        }
+        let mut guard = self
+            .data
+            .lock()
+            .map_err(|e| anyhow!("mutex poisoned {}", e))?;
+        (*guard).pop()
     }
 
     pub fn empty_batch(&self) -> RecordBatch {
@@ -172,9 +152,9 @@ pub struct ArrowPartitionWriter {
     builders: Option<Builders>,
     current_row: usize,
     current_col: usize,
+    data: Arc<Mutex<Vec<RecordBatch>>>,
     arrow_schema: Arc<Schema>,
     batch_size: usize,
-    sender: Option<Sender<RecordBatch>>,
 }
 
 // unsafe impl Sync for ArrowPartitionWriter {}
@@ -183,18 +163,18 @@ impl ArrowPartitionWriter {
     #[throws(ArrowDestinationError)]
     fn new(
         schema: Vec<ArrowTypeSystem>,
+        data: Arc<Mutex<Vec<RecordBatch>>>,
         arrow_schema: Arc<Schema>,
         batch_size: usize,
-        sender: Sender<RecordBatch>,
     ) -> Self {
         let mut pw = ArrowPartitionWriter {
             schema,
             builders: None,
             current_row: 0,
             current_col: 0,
+            data,
             arrow_schema,
             batch_size,
-            sender: Some(sender),
         };
         pw.allocate()?;
         pw
@@ -222,7 +202,14 @@ impl ArrowPartitionWriter {
             .map(|(builder, &dt)| Realize::<FFinishBuilder>::realize(dt)?(builder))
             .collect::<std::result::Result<Vec<_>, connectorx::errors::ConnectorXError>>()?;
         let rb = RecordBatch::try_new(Arc::clone(&self.arrow_schema), columns)?;
-        self.sender.as_ref().unwrap().send(rb).unwrap();
+        {
+            let mut guard = self
+                .data
+                .lock()
+                .map_err(|e| anyhow!("mutex poisoned {}", e))?;
+            let inner_data = &mut *guard;
+            inner_data.push(rb);
+        }
 
         self.current_row = 0;
         self.current_col = 0;
@@ -238,8 +225,6 @@ impl<'a> DestinationPartition<'a> for ArrowPartitionWriter {
         if self.builders.is_some() {
             self.flush()?;
         }
-        // need to release the sender so receiver knows when the stream is exhasted
-        std::mem::drop(self.sender.take());
     }
 
     #[throws(ArrowDestinationError)]

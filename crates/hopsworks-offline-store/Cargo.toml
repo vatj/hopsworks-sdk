@@ -15,8 +15,8 @@ polars ={ workspace = true }
 hopsworks-core = { workspace = true }
 serde ={ workspace=true, features = ["derive"] }
 serde_json = { version = "1.0" }
-polars-arrow ={ version = "0.41.0", features = ["arrow_rs"] }
-polars-core = { version = "0.41.0"}
+polars-arrow ={ version = "0.41", features = ["arrow_rs"] }
+polars-core = { version = "0.41"}
 arrow = { workspace = true}
 arrow-flight = { version = "52"}
 tonic = { version = "0.11", features = ["transport", "tls"] }

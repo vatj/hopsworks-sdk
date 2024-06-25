@@ -27,10 +27,7 @@ pub async fn create_feature_view(
     query: &Query,
     transformation_functions: Option<HashMap<String, TransformationFunction>>,
 ) -> Result<FeatureView> {
-    let transformation_functions = match transformation_functions {
-        None => HashMap::<String, TransformationFunction>::new(),
-        Some(transformation_functions) => transformation_functions,
-    };
+    let transformation_functions = transformation_functions.unwrap_or_default();
     let (features, feature_groups) = query.features_and_feature_groups();
     let training_features =
         features_to_transformed_features(&features, &feature_groups, &transformation_functions)?;
