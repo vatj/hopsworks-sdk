@@ -16,10 +16,8 @@ use fehler::{throw, throws};
 use log::{debug, warn};
 
 use r2d2::{Pool, PooledConnection};
-use r2d2_mysql::{
-    mysql::{prelude::Queryable, Binary, Opts, OptsBuilder, QueryResult, Row, Text},
-    MySqlConnectionManager,
-};
+use mysql::{prelude::Queryable, Binary, Opts, OptsBuilder, QueryResult, Row, Text};
+use r2d2_mysql::MySqlConnectionManager;
 use rust_decimal::Decimal;
 use serde_json::Value;
 use sqlparser::dialect::MySqlDialect;

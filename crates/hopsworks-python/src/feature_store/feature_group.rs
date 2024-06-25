@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use arrow::pyarrow::ToPyArrow;
 use hopsworks_api::offline_store::read_from_offline_feature_store;
 use hopsworks_api::offline_store::read_arrow_from_offline_feature_store;
-use hopsworks_api::online_store::read_from_online_feature_store;
+use hopsworks_api::online_store::read_arrow_from_online_store_via_sql;
 use hopsworks_api::kafka::insert_polars_df_into_kafka;
 use pyo3_polars::PyDataFrame;
 use polars::prelude::DataFrame;
@@ -51,9 +51,9 @@ impl FeatureGroup {
         // Ok(table)
     }
 
-    fn read_polars_from_sql_online_store(&self) -> PyResult<PyDataFrame> {
-        let df = tokio().block_on(self.fg.read_from_online_feature_store()).unwrap();
-        Ok(PyDataFrame(df))
+    fn read_arrow_from_sql_online_store(&self, py: Python) -> PyResult<PyObject> {
+        let (batches, _) = tokio().block_on(read_arrow_from_online_store_via_sql(&self.fg))?;
+        batches.to_pyarrow(py)
     }
 
     fn insert_polars_df_into_kafka(&self, df: PyDataFrame) -> PyResult<()> {

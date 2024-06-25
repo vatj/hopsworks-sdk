@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use polars::prelude::{DataFrame, IntoLazy};
+use polars::prelude::DataFrame;
 
 use hopsworks_core::{feature_store::FeatureGroup, get_hopsworks_client};
 use hopsworks_kafka::insert::insert_in_registered_feature_group;
