@@ -52,7 +52,7 @@ except Exception as e:
 
 # %%
 polars_df = polars_df.with_columns(
-    pl.lit(2.0).alias("trans_volume_mstd"),
+    pl.lit(3.0).alias("trans_volume_mstd"),
     pl.col("datetime").dt.replace_time_zone(None).alias("datetime"),
     cc_num=pl.Series(range(0, polars_df.shape[0])),
 )
@@ -68,5 +68,13 @@ try:
 except Exception as e:
     print(e)
 
+
+# %%
+try:
+    print("Read from online feature store to arrow record batch")
+    arrow_rb = fg.read_arrow_from_sql_online_store()
+    print("arrow_rb : ", arrow_rb)
+except Exception as e:
+    print(e)
 
 # %%

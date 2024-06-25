@@ -5,6 +5,7 @@ use polars::prelude::{DataType, Schema, TimeUnit};
 
 use crate::cluster_api::feature_store::feature::payloads::NewFeaturePayload;
 
+#[cfg(feature = "polars")]
 pub fn extract_features_from_polars_schema(schema: Schema) -> Result<Vec<NewFeaturePayload>> {
     Ok(schema
         .iter_fields()
@@ -47,8 +48,8 @@ pub fn convert_polars_data_type(data_type: &DataType) -> &str {
         DataType::UInt64 => "bigint",
         DataType::Float32 => "float",
         DataType::Float64 => "double",
-        DataType::Datetime(TimeUnit::Nanoseconds, None) => "timestamp",
-        DataType::Datetime(TimeUnit::Microseconds, None) => "timestamp",
+        DataType::Datetime(TimeUnit::Nanoseconds, _) => "timestamp",
+        DataType::Datetime(TimeUnit::Microseconds, _) => "timestamp",
         DataType::Duration(TimeUnit::Nanoseconds) => "bigint",
         DataType::Duration(TimeUnit::Microseconds) => "bigint",
         DataType::Date => "date",

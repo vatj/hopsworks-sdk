@@ -104,6 +104,8 @@ pub mod online_store;
 #[cfg(feature = "insert_into_kafka")]
 pub mod kafka;
 
+pub mod core;
+
 
 pub use hopsworks_core::HopsworksClientBuilder;
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

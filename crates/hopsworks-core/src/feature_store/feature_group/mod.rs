@@ -191,7 +191,7 @@ impl FeatureGroup {
         self.feature_group_type.as_str()
     }
 
-    pub(crate) fn is_online_enabled(&self) -> bool {
+    pub fn is_online_enabled(&self) -> bool {
         self.online_enabled
     }
 
