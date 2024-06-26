@@ -99,8 +99,12 @@ pub use hopsworks_core::feature_store::{
 
 #[cfg(feature = "read_arrow_flight_offline_store")]
 pub mod offline_store;
+#[cfg(feature = "read_sql_online_store")]
+pub mod online_store;
 #[cfg(feature = "insert_into_kafka")]
 pub mod kafka;
+
+pub mod core;
 
 
 pub use hopsworks_core::HopsworksClientBuilder;

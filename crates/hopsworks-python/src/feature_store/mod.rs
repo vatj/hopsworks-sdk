@@ -32,6 +32,11 @@ impl FeatureStore {
         Ok(fg.map(feature_group::FeatureGroup::from))
     }
 
+    fn get_or_create_feature_group(&self, name: &str, version: i32, primary_key: Vec<String>,  online_enabled: bool, description: Option<&str>, event_time: Option<&str>) -> PyResult<feature_group::FeatureGroup> {
+        let fg = tokio().block_on(self.fs.get_or_create_feature_group(name, Some(version), description, primary_key.iter().map(String::as_ref).collect(), event_time, online_enabled)).unwrap();
+        Ok(feature_group::FeatureGroup::from(fg))
+    }
+
     fn get_feature_view(&self, name: &str, version: Option<i32>) -> PyResult<Option<feature_view::FeatureView>> {
         let fv = tokio().block_on(self.fs.get_feature_view(name, version)).unwrap();
         Ok(fv.map(feature_view::FeatureView::from))

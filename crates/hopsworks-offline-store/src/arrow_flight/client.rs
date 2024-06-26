@@ -170,7 +170,6 @@ impl HopsworksArrowFlightClient {
         debug!("Getting dataset with descriptor: {:#?}", descriptor);
         let flight_info = self.client.get_flight_info(descriptor).await?;
         let opt_endpoint = flight_info.endpoint.first();
-
         if let Some(endpoint) = opt_endpoint {
             debug!("Endpoint: {:#?}", endpoint);
             if let Some(ticket) = endpoint.ticket.clone() {
