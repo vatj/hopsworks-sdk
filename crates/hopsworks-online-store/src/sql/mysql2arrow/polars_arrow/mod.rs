@@ -1,5 +1,9 @@
 //! Destination implementation for PolarsArrow.
-
+//!
+//! This implementation is taken from the [connector-x](https://github.com/sfu-db/connector-x) crate.
+//! The crate itself is added to the Cargo.toml to allow using the core capabilities, but feature flags
+//! for src_mysql and dst_arrow are omitted due to the mysql and arrow dependencies being outdated. 
+//! The original crate and the source code below are under MIT Licence.
 mod arrow_assoc;
 mod errors;
 mod funcs;

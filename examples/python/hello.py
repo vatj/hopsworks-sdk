@@ -48,7 +48,6 @@ local_fg = fs.get_or_create_feature_group(
     event_time="datetime",
     online_enabled=True,
 )
-print(local_fg)
 
 # %%
 try:
@@ -87,7 +86,7 @@ except Exception as e:
 
 # %%
 polars_df = polars_df.with_columns(
-    pl.lit(3.0).alias("trans_volume_mstd"),
+    pl.lit(4.0).alias("trans_volume_mstd"),
     pl.col("datetime").dt.replace_time_zone(None).alias("datetime"),
     cc_num=pl.Series(range(0, polars_df.shape[0])),
 )
@@ -120,3 +119,14 @@ try:
     print("arrow_rb : ", arrow_rb)
 except Exception as e:
     print(e)
+
+# %%
+try:
+    print("Get the polars dataframe from the offline store")
+    polars_df = local_fg.read_polars_from_sql_online_store()
+    print("polars_df : ", polars_df.head(5))
+    print(f"shape: {polars_df.shape}")
+except Exception as e:
+    print(e)
+
+# %%
