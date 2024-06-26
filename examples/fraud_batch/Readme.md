@@ -1,5 +1,7 @@
 # <span style="font-width:bold; font-size: 3rem; color:#1EB182;"><img src="../images/icon102.png" width="38px"></img> **Hopsworks Feature Store** </span><span style="font-width:bold; font-size: 3rem; color:#333;">Quick Start - Fraud Batch Tutorial</span>
 
+> :warning: These examples are out of date and should not be used as a reference. They will be updated in the future.
+
 > :warning: **Readme based on the official [fraud batch example](https://github.com/logicalclocks/hopsworks-tutorials/master/fraud_batch) from the [Hopsworks tutorial repository](https://github.com/logicalclocks/hopsworks-tutorials)**: Despite some modifications, it is possible that some of the information below do not apply to the Rust API!
 
 <span style="font-width:bold; font-size: 1.4rem;"> This is a quick-start of the Hopsworks Feature Store; using a fraud use case you will load data into the feature store, create two feature groups from which we will make a training dataset. This is a <b>batch use case</b>, it will give you a high-level view of how to use our python APIs and the UI to navigate the feature groups, use them to create feature views and training datasets using Hopsworks Feature Store. </span>

@@ -1,8 +1,9 @@
 use color_eyre::Result;
-use arrow::{record_batch::RecordBatch, datatypes::Schema};
+use arrow::record_batch::RecordBatch;
+use polars::prelude::*;
 use connectorx::prelude::Dispatcher;
 use connectorx::sql::CXQuery;
-use std::sync::Arc;
+use polars_core::utils::accumulate_dataframes_vertical;
 
 use hopsworks_core::feature_store::query::Query;
 use hopsworks_core::controller::feature_store::query::{build_mysql_connection_url_from_storage_connector, construct_query};
@@ -13,11 +14,10 @@ use crate::sql::mysql2arrow::mysql::{MySQLSource, BinaryProtocol};
 use crate::sql::mysql2arrow::mysql_arrowstream::MySQLArrowTransport;
 
 
-
-pub async fn read_query_from_online_feature_store(
+pub async fn read_polars_from_online_feature_store(
     query: &Query,
     online_read_options: Option<OnlineReadOptions>,
-) -> Result<(Vec<RecordBatch>, Arc<Schema>)> {
+) -> Result<DataFrame> {
     let _online_read_options = online_read_options.unwrap_or_default();
     let connection_string = build_mysql_connection_url_from_storage_connector(
         query.left_feature_group().feature_store_id(),
@@ -36,9 +36,26 @@ pub async fn read_query_from_online_feature_store(
     >::new(builder, &mut destination, &queries, None);
     dispatcher.run().unwrap();
 
-    let schema = destination.arrow_schema();
-    let record_batches = destination.arrow()?;
+    let mut dfs = vec![];
+    while let Ok(Some(rb)) = destination.record_batch() {
+        dfs.push(record_batch_to_dataframe(&rb)?);
+    }
 
-    Ok((record_batches, schema))
+    match dfs.is_empty() {
+        true => Err(color_eyre::eyre::eyre!("No data returned from the query")),
+        false => Ok(accumulate_dataframes_vertical(dfs)?),
+    }
 }
 
+fn record_batch_to_dataframe(batch: &RecordBatch) -> Result<DataFrame, PolarsError> {
+    let schema = batch.schema();
+    let mut columns = Vec::with_capacity(batch.num_columns());
+    for (i, column) in batch.columns().iter().enumerate() {
+        let arrow = Box::<(dyn polars_arrow::array::Array + 'static)>::from(&**column);
+        columns.push(Series::from_arrow(
+            schema.fields().get(i).unwrap().name(),
+            arrow,
+        )?);
+    }
+    Ok(DataFrame::from_iter(columns))
+}

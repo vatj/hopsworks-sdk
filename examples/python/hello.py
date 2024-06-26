@@ -32,6 +32,41 @@ print(fg)
 print([method for method in dir(fg) if not method.startswith("_")])
 
 # %%
+trans_df = pl.read_csv(
+    "https://repo.hops.works/master/hopsworks-tutorials/data/card_fraud_data/transactions.csv",
+    try_parse_dates=True,
+)
+print(trans_df.head(5))
+
+# %%
+version = 1
+local_fg = fs.get_or_create_feature_group(
+    name="test_fg",
+    version=version,
+    description="test_fg",
+    primary_key=["cc_num"],
+    event_time="datetime",
+    online_enabled=True,
+)
+print(local_fg)
+
+# %%
+try:
+    print("Register the feature group if it does not exist")
+    local_fg.register_feature_group(trans_df)
+    print("Feature group registered")
+except Exception as e:
+    print(e)
+
+# %%
+try:
+    print("Insert a polars dataframe into the feature store")
+    local_fg.insert_polars_df_into_kafka(trans_df.head(10))
+    print("polars_df inserted into Kafka")
+except Exception as e:
+    print(e)
+
+# %%
 
 try:
     print("Get the record batch from the offline store")
@@ -72,9 +107,16 @@ except Exception as e:
 # %%
 try:
     print("Read from online feature store to arrow record batch")
-    arrow_rb = fg.read_arrow_from_sql_online_store()
-    print("arrow_rb : ", arrow_rb)
+    arrow_rb = local_fg.read_arrow_from_sql_online_store()
+    print("arrow_rb : \n", arrow_rb)
 except Exception as e:
     print(e)
 
+
 # %%
+try:
+    print("Get the record batch from the offline store")
+    arrow_rb = local_fg.read_arrow_from_offline_store()
+    print("arrow_rb : ", arrow_rb)
+except Exception as e:
+    print(e)
