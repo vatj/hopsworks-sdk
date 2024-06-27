@@ -5,7 +5,7 @@ use log::debug;
 pub mod feature_store;
 pub mod platform;
 
-use platform::project::Project;
+use platform::project::PyProject;
 use hopsworks_api::HopsworksClientBuilder;
 
 lazy_static! {
@@ -29,28 +29,13 @@ pub fn refresh_logger() {
     LOG_RESET_HANDLE.reset();
 }
 
-#[pyclass]
-#[derive(Clone)]
-pub struct HopsworksLoginOptions {
-    pub(crate) builder: HopsworksClientBuilder,
-}
-
-#[pymethods]
-impl HopsworksLoginOptions {
-    #[new]
-    fn new() -> Self {
-        Self {
-            builder: HopsworksClientBuilder::new(),
-        }
-    }
-}
-
 #[pyfunction]
-pub fn login(options: Option<HopsworksLoginOptions>) -> platform::project::Project {
-    let project = tokio().block_on(hopsworks_api::login(options.map(|o| o.builder))).unwrap();
+pub fn login(url: Option<&str>, api_key_value: Option<&str>, project_name: Option<&str>) -> platform::project::PyProject {
+    let builder = HopsworksClientBuilder::new_provided_or_from_env(api_key_value, url, project_name);
+    let project = tokio().block_on(hopsworks_api::login(Some(builder))).unwrap();
     debug!("Logged in to project: {}", project.name());
     debug!("{:#?}", project);
-    Project::from(project)
+    PyProject::from(project)
 }
 
 #[pymodule]
@@ -60,7 +45,6 @@ fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     feature_store::register_module(m)?;
     platform::register_module(m)?;
     m.add_wrapped(wrap_pyfunction!(version))?;
-    m.add_class::<HopsworksLoginOptions>()?;
     m.add_wrapped(wrap_pyfunction!(login))?;
     m.add_wrapped(wrap_pyfunction!(refresh_logger))?;
     Ok(())

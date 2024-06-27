@@ -5,9 +5,9 @@ pub mod job;
 pub mod job_execution;
 
 pub(crate) fn register_module(parent: &Bound<'_, PyModule>) -> PyResult<()> {
-    parent.add_class::<project::Project>()?;
-    parent.add_class::<job::Job>()?;
-    parent.add_class::<job_execution::JobExecution>()?;
+    parent.add_class::<project::PyProject>()?;
+    parent.add_class::<job::PyJob>()?;
+    parent.add_class::<job_execution::PyJobExecution>()?;
 
     Ok(())
 }

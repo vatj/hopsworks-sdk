@@ -1,32 +1,32 @@
 use pyo3::prelude::*;
 
-use crate::feature_store::FeatureStore;
+use crate::feature_store::PyFeatureStore;
 use crate::tokio;
 
 #[pyclass]
 #[repr(transparent)]
 #[derive(Clone)]
-pub struct Project {
+pub struct PyProject {
     pub(crate) project: hopsworks_api::Project,
 }
 
-impl From<hopsworks_api::Project> for Project {
+impl From<hopsworks_api::Project> for PyProject {
     fn from(project: hopsworks_api::Project) -> Self {
         Self { project }
     }
 }
 
-impl From<Project> for hopsworks_api::Project {
-    fn from(project: Project) -> Self {
+impl From<PyProject> for hopsworks_api::Project {
+    fn from(project: PyProject) -> Self {
         project.project
     }
 }
 
 #[pymethods]
-impl Project {
-    fn get_feature_store(&self) -> PyResult<FeatureStore> {
+impl PyProject {
+    fn get_feature_store(&self) -> PyResult<PyFeatureStore> {
         let fs = tokio().block_on(self.project.get_feature_store()).unwrap();
-        Ok(FeatureStore::from(fs))
+        Ok(PyFeatureStore::from(fs))
     }
 }
 
