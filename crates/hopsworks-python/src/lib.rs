@@ -53,23 +53,23 @@ pub fn login(options: Option<HopsworksLoginOptions>) -> platform::project::Proje
     Project::from(project)
 }
 
-#[pyfunction]
-pub fn connect_mysql_rondb(uri_database: &str) {
-    tokio().block_on(hopsworks_api::online_store::connect_to_mysql_rondb(uri_database)).unwrap();
-    debug!("Connected to MySQL/RonDB: {}", uri_database);
-}
+// #[pyfunction]
+// pub fn connect_mysql_rondb(uri_database: &str) {
+//     tokio().block_on(hopsworks_api::online_store::connect_to_mysql_rondb(uri_database)).unwrap();
+//     debug!("Connected to MySQL/RonDB: {}", uri_database);
+// }
 
-#[pyfunction]
-pub fn get_single_feature_vector(queries: Vec<String>) {
-    tokio().block_on(hopsworks_api::online_store::get_single_feature_vector(&queries)).unwrap();
-    debug!("Fetched single feature vector");
-}
+// #[pyfunction]
+// pub fn get_single_feature_vector(queries: Vec<String>) {
+//     tokio().block_on(hopsworks_api::online_store::get_single_feature_vector(&queries)).unwrap();
+//     debug!("Fetched single feature vector");
+// }
 
-#[pyfunction]
-pub fn get_multiple_feature_vectors(queries: Vec<String>) {
-    tokio().block_on(hopsworks_api::online_store::get_multiple_feature_vectors(&queries)).unwrap();
-    debug!("Fetched multiple feature vectors");
-}
+// #[pyfunction]
+// pub fn get_multiple_feature_vectors(queries: Vec<String>) {
+//     tokio().block_on(hopsworks_api::online_store::get_multiple_feature_vectors(&queries)).unwrap();
+//     debug!("Fetched multiple feature vectors");
+// }
 
 #[pymodule]
 fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -81,8 +81,8 @@ fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<HopsworksLoginOptions>()?;
     m.add_wrapped(wrap_pyfunction!(login))?;
     m.add_wrapped(wrap_pyfunction!(refresh_logger))?;
-    m.add_wrapped(wrap_pyfunction!(connect_mysql_rondb))?;
-    m.add_wrapped(wrap_pyfunction!(get_single_feature_vector))?;
-    m.add_wrapped(wrap_pyfunction!(get_multiple_feature_vectors))?;
+    // m.add_wrapped(wrap_pyfunction!(connect_mysql_rondb))?;
+    // m.add_wrapped(wrap_pyfunction!(get_single_feature_vector))?;
+    // m.add_wrapped(wrap_pyfunction!(get_multiple_feature_vectors))?;
     Ok(())
 }
