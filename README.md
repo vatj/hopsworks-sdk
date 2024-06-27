@@ -1,12 +1,10 @@
-# hopsworks
-
-Hopsworks-rs is a Rust SDK to interact with the Hopsworks Platform and Feature Store. It is intended to be used in conjunction with the [Hopsworks Feature Store](https://www.hopsworks.ai/the-ml-platform-for-batch-and-real-time-data) to build end-to-end machine learning pipelines. Using Rust and Hopsworks-rs you can put real-time data pipelines, feature engineering, model training and serving in the same system and leverage the power of its Feature Store to build and deploy AI/ML systems faster.
-
-As of now the SDK is in early development and only supports a subset of Hopsworks capabilities. The public api should not be considered stable, as it is still unclear whether it will evolve to be more idiomatic Rust or stay closer to the Python SDK for simplicity. Much of this client implementation is based on the python SDK and can therefore sometimes feel a bit unidiomatic for Rust developers. For production use-case you can checkout the [python or java SDK](https://pypi.org/project/hopsworks/).
-
-Currently, this project is driven by a single person. However there is a lot more to do than what I have time for. As such contributions are welcome. Please reach out or open an issue. This repository also contains some CLI tools to interact with the Hopsworks platform. Again these are hobby projects and receive a corresponding amount of attention and energy.
+# Hopsworks SDK
 
 Disclaimer: This project is not an official client for the Hopsworks Platform and its Feature Store, and is not maintained by the Hopsworks team. It is rather a proof of concept and a personal project to explore the capabilities of Rust in supporting end-to-end machine learning pipelines.
+
+[Hopsworks Feature Store](https://www.hopsworks.ai/the-ml-platform-for-batch-and-real-time-data) has both production-ready [python or java SDK](https://pypi.org/project/hopsworks/) to support a wide variety of use cases. This project aims to provide a *Rust SDK* as well as corresponding *python bindings* to interact with the Hopsworks platform and its Feature Store. As of now the SDK is in early development and only supports a subset of Hopsworks capabilities. The public api should not be considered stable, as it is still unclear whether it will evolve to be more idiomatic Rust or stay closer to the Python SDK for simplicity.
+
+Currently, this project is driven by a single person. However there is a lot more to do than what I have time for. As such contributions are welcome. Please reach out or open an issue. This repository also contains some CLI tools to interact with the Hopsworks platform. Again these are hobby projects and receive a corresponding amount of attention and energy.
 
 ## Quickstart
 
@@ -16,98 +14,34 @@ If you have your own Hopsworks cluster check out [this section](#connect-to-your
 
 To get started with minimal setup you can use [Hopsworks Serverless Platform](https://app.hopsworks.ai/) to register for a free account. Once you have registered you can create your project and follow the instructions to create an api key. Save it for later! From there you can head to the examples directory which has a few tutorials or follow the quickstart below to get a feel for hopsworks SDK.
 
-### Step 2: Connect to your project and start writing data to the Feature Store
+### Step 2: Install dependencies, build and compile the SDK
 
-```rust
-use color_eyre::Result;
-use polars::prelude::*;
+As of now there is no released binaries for this library, you need to compile it yourself.
 
+Get the [rye package manager](https://rye.astral.sh/guide/installation/):
 
-#[tokio::main]
-async fn main() -> Result<()> {
- // The api key will be read from the environment variable HOPSWORKS_API_KEY
- let project = hopsworks::login(None).await?;
- // Get the default feature store for the project
- let fs = project.get_feature_store().await?;
-
-
- // Read data from a local csv file into a Polars DataFrame
- let mut df = CsvReader::from_path("./examples/data/transactions.csv")?.finish()?;
-
- // Create a new feature group and ingest local data to the Feature Store
- let fg = fs.create_feature_group(
-   "my_fg",
-   1,
-   None,
-   vec!["primary_key_feature_name(s)"],
-   Some("event_time_feature_name"),
-   false
- )?;
- fg.insert(&mut df).await?;
-
- Ok(())
-}
+```bash
+curl -sSf https://rye.astral.sh/get | bash # Checkout the website for a more secure way to install
+git clone https://github.com/vatj/hopsworks-sdk
+cd hopsworks-sdk
+rye sync
+source .venv/bin/activate
+cp configs/config-template.toml configs/managed-config.toml
 ```
 
-And that's it! You have now created a Feature Group (FG) and ingested data into it. Build a query by selecting and joining features from different FGs to make a Feature View. They allow you to read data from the Feature Store directly into training datasets which allow you to start experimenting with your ML/AI models right on.
+Copy your API key in the newly created config file and set the correct project name.
 
-```rust
-use color_eyre::Result;
+### Step 3: Start playing around
 
+Look at the hello.py example in the `examples/python` directory to get started.
 
-#[tokio::main]
-async fn main() -> Result<()> {
-  // The api key will be read from the environment variable HOPSWORKS_API_KEY
-  let project = hopsworks::login(None).await?;
-  // Get the default feature store for the project
-  let fs = project.get_feature_store().await?;
+## Benefit of using Rust
 
-  // Get two feature groups
-  let fg1 = fs.get_feature_group("my_fg1").await?.expect("Feature group not found");
-  let fg2 = fs.get_feature_group("my_fg2").await?.expect("Feature group not found");
-
-  // Select and join features
-  let query = fg1.select(&["feature1", "feature2"])
-    .join(&fg2.select(&["feature3", "feature4"]), None)
-    .await?;
-
-  // Create your Feature View
-  let fv = fs.create_feature_view(
-    "my_fv",
-    1,
-    &query,
-    None,
-  );
-
-  // Read data from the Feature Store into an in memory DataFrame
-  let mut df = fv.read_from_offline_feature_store(None).await?;
-
-  // Do some ML/AI stuff with the data
-  Ok(())
-}
-```
-
-### Connect to your own Hopsworks cluster
-
-If you have your own Hopsworks cluster you can use the SDK to connect to it. You will need your api key and hopsworks domain name. Simply provide a HopsworksClientBuilder to the login function.
-
-```rust
-use color_eyre::Result;
-use hopsworks::HopsworksClientBuilder;
-
-#[tokio::main]
-async fn main() -> Result<()> {
-    // The api key will be read from the environment variable HOPSWORKS_API_KEY
-  let client_builder = HopsworksClientBuilder::default()
-                        .with_domain("www.my.hopsworks.domain.com");
-  let project = hopsworks::login(Some(client_builder)).await?;
-  // Get the default feature store for the project
-  let fs = project.get_feature_store().await?;
-
-  // Check out the examples directory or the quickstart
-  Ok(())
-}
-```
+There are several benefits to making mixed rust/python modules:
+- Performance critical part can be written in Rust and called from Python
+- Dependencies on some python packages can be avoided by hiding them in the rust binaries
+- New compute engines are being written in Rust, it will be more efficient to interface using Rust to enable performance critical code path to be efficient
+- Rust Arrow implementation is extremely complete and actively developed
 
 ## Contributing
 
