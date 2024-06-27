@@ -35,7 +35,7 @@ source .venv/bin/activate
 You can copy your API key in a config file and set the correct project name.
 
 ```bash
-cp examples/config.toml.example examples/config.toml
+cp configs/config-example.toml configs/config.toml
 ```
 
 Or simply set the environment variables:

@@ -32,7 +32,7 @@ homepage = "https://www.hopsworks.ai/"
 managed = true
 dev-dependencies = [
     "pip>=24.0",
-    "ipykernel>=6.0",
+    "ipykernel>=6.0",   
 ]
 
 [tool.rye.workspace]
