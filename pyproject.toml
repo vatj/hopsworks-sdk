@@ -11,6 +11,7 @@ dependencies = [
     "toml>=0.10.2",
     "polars>=0.20.31",
     "pyarrow>=16.1.0",
+    "hopsworks==3.7",
 ]
 name = "hopsworks-sdk"
 maintainers = [

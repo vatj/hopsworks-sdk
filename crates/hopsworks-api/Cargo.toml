@@ -32,4 +32,5 @@ tracing-subscriber = { version = "0.3", default-features = false, features = [
 read_arrow_flight_offline_store = ["hopsworks-offline-store", "polars", "arrow"]
 read_rest_online_store = ["hopsworks-online-store/rest"]
 read_sql_online_store = ["hopsworks-online-store/sql"]
+sqlx-feature-vector = ["hopsworks-online-store/sqlx-feature-vector"]
 insert_into_kafka = ["hopsworks-kafka"]

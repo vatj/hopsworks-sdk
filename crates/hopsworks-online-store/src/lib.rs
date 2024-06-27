@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 // pub mod rondb_rest;
 #[cfg(feature="sql")]
 pub mod sql;
+#[cfg(feature="sqlx-feature-vector")]
+pub mod sqlx_feature_vector;
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub struct OnlineReadOptions {
