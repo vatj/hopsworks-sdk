@@ -29,6 +29,8 @@ tracing-subscriber = { version = "0.3", default-features = false, features = [
 ] }
 
 [features]
+polars = ["dep:polars"]
+arrow = ["dep:arrow"]
 read_arrow_flight_offline_store = ["hopsworks-offline-store", "polars", "arrow"]
 read_rest_online_store = ["hopsworks-online-store/rest"]
 read_sql_online_store = ["hopsworks-online-store/sql"]

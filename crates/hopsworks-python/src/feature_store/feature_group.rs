@@ -1,14 +1,6 @@
 use log::debug;
 use pyo3::prelude::*;
-// #[cfg(feature="read_arrow_flight_offline_store")]
-// use polars::prelude::DataFrame;
-// #[cfg(feature="read_arrow_flight_offline_store")]
 use arrow::pyarrow::ToPyArrow;
-use hopsworks_api::offline_store::read_from_offline_feature_store;
-use hopsworks_api::offline_store::read_arrow_from_offline_feature_store;
-use hopsworks_api::online_store::read_arrow_from_online_store_via_sql;
-use hopsworks_api::online_store::read_polars_from_online_store_via_sql;
-use hopsworks_api::kafka::insert_polars_df_into_kafka;
 use hopsworks_api::core::register_feature_group_if_needed;
 use pyo3_polars::PyDataFrame;
 use polars::prelude::DataFrame;
@@ -49,13 +41,13 @@ impl FeatureGroup {
         Ok(())
     }
 
-    // #[cfg(feature="read_arrow_flight_offline_store")]
+    #[cfg(feature="read_arrow_flight_offline_store")]
     fn read_polars_from_offline_store(&self) -> PyResult<PyDataFrame> {
         let df = tokio().block_on(read_from_offline_feature_store(&self.fg, None))?;
         Ok(PyDataFrame(df))
     }
 
-    // #[cfg(feature="read_arrow_flight_offline_store")]
+    #[cfg(feature="read_arrow_flight_offline_store")]
     fn read_arrow_from_offline_store(&self, py: Python) -> PyResult<PyObject> {
         let batches = tokio().block_on(read_arrow_from_offline_feature_store(&self.fg , None))?;
         batches.to_pyarrow(py)
@@ -64,19 +56,22 @@ impl FeatureGroup {
         // Ok(table)
     }
 
+    #[cfg(feature="read_sql_online_store")]
     fn read_arrow_from_sql_online_store(&self, py: Python) -> PyResult<PyObject> {
-        let (batches, _) = tokio().block_on(read_arrow_from_online_store_via_sql(&self.fg))?;
+        let (batches, _) = tokio().block_on(hopsworks_api::online_store::read_arrow_from_online_store_via_sql(&self.fg))?;
         batches.to_pyarrow(py)
     }
 
+    #[cfg(feature="read_sql_online_store")]
     fn read_polars_from_sql_online_store(&self) -> PyResult<PyDataFrame> {
-        let df = tokio().block_on(read_polars_from_online_store_via_sql(&self.fg))?;
+        let df = tokio().block_on(hopsworks_api::online_store::read_polars_from_online_store_via_sql(&self.fg))?;
         Ok(PyDataFrame(df))
     }
 
+    #[cfg(feature="insert_into_kafka")]
     fn insert_polars_df_into_kafka(&mut self, df: PyDataFrame) -> PyResult<()> {
         let mut dataframe: DataFrame = df.into();
-        tokio().block_on(insert_polars_df_into_kafka(&mut dataframe, &self.fg)).unwrap();
+        tokio().block_on(hopsworks_api::kafka::insert_polars_df_into_kafka(&mut dataframe, &self.fg))?;
         Ok(())
     }
 }
