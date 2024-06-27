@@ -26,12 +26,67 @@ git clone https://github.com/vatj/hopsworks-sdk
 cd hopsworks-sdk
 rye sync
 source .venv/bin/activate
-cp configs/config-template.toml configs/managed-config.toml
 ```
 
-Copy your API key in the newly created config file and set the correct project name.
+
 
 ### Step 3: Start playing around
+
+You can copy your API key in a config file and set the correct project name.
+
+```bash
+cp examples/config.toml.example examples/config.toml
+```
+
+Or simply set the environment variables:
+
+```bash
+export HOPSWORKS_API_KEY=your_api_key
+export HOPSWORKS_PROJECT_NAME=your_project_name
+```
+
+You can use the sdk in your python files:
+
+```python
+from hopsworks_sdk import login
+import polars as pl
+
+project = login()
+fs = project.get_feature_store()
+
+# Create a feature group locally, this will not yet be registered in the feature store
+trans_fg = fs.get_or_create_feature_group("local_fg", version=1, primary_key=["tid"], event_time="datetime", online_enabled=True)
+
+# Read data from a csv file
+trans_df = pl.read_csv(
+    "https://repo.hops.works/master/hopsworks-tutorials/data/card_fraud_data/transactions.csv",
+    try_parse_dates=True,
+)
+print(trans_df.head(5))
+
+# Use the polars schema to register Feature Group metadata, in particular feature names and types
+trans_fg.register_feature_group(trans_df)
+
+# insert data into the feature store
+trans_fg.insert_polars_df_into_kafka(trans_df.head(10))
+
+# Read arrow/polars data from the online store via sql
+online_rb = trans_fg.read_arrow_from_sql_online_store()
+print("pyarrow Record Batch: \n", online_rb)
+
+# Read polars data from the online store
+online_df = trans_fg.read_polars_from_sql_online_store()
+print("Polars DataFrame: \n", online_df)
+
+# Once the materialization job is done writing your data to the Feature Store
+# Read arrow/polars data from the offline store via arrow flight
+offline_rb = trans_fg.read_arrow_from_offline_store()
+print("pyarrow Record Batch: \n", offline_rb)
+
+# Read polars data from the offline
+offline_df = trans_fg.read_polars_from_offline_store()
+print("Polars DataFrame: \n", offline_df)
+```
 
 Look at the hello.py example in the `examples/python` directory to get started.
 
