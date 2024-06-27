@@ -47,7 +47,9 @@ impl HopsworksLoginOptions {
 
 #[pyfunction]
 pub fn login(options: Option<HopsworksLoginOptions>) -> platform::project::Project {
-    let project = tokio().block_on(hopsworks_api::login(options.map(|o| o.builder))).unwrap();
+    let rt = tokio();
+    let _guard = rt.enter();
+    let project = rt.block_on(hopsworks_api::login(options.map(|o| o.builder))).unwrap();
     debug!("Logged in to project: {}", project.name());
     debug!("{:#?}", project);
     Project::from(project)

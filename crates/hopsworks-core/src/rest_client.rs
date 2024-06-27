@@ -261,23 +261,26 @@ impl HopsworksClient {
             .client
             .request(method, self.endpoint_url(url, with_project_id).await?);
         if with_authorization {
-            Ok(
+            let builder = 
                 request_builder
-                    .header("authorization", self.get_authorization_header_value().await),
-            )
+                    .header("authorization", self.get_authorization_header_value().await);
+            debug!("HopsworksClient: Set authorization header.");
+            Ok(builder)
         } else {
             Ok(request_builder)
         }
     }
 
     async fn get_authorization_header_value(&self) -> HeaderValue {
+        debug!("HopsworksClient: Getting authorization header value.");
         if self.get_api_key().lock().await.is_some() {
-            self.get_api_key()
+            let header_value = self.get_api_key()
                 .lock()
-                .await
-                .as_ref()
+                .await.as_ref()
                 .unwrap_or(&HeaderValue::from_static(""))
-                .clone()
+                .clone();
+            debug!("HopsworksClient: Authorization header value: {:?}", header_value);
+            header_value
         } else {
             HeaderValue::from_static("")
         }

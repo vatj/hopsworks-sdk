@@ -8,13 +8,14 @@ repository = { workspace = true }
 
 [dependencies]
 hopsworks-api = { workspace = true, features = [
-    "read_arrow_flight_offline_store", 
-    "insert_into_kafka", 
-    "read_sql_online_store", 
-    # "sqlx-feature-vector"
+    # "read_arrow_flight_offline_store", 
+    # "insert_into_kafka", 
+    # "read_sql_online_store", 
+    "polars",
+    "sqlx-feature-vector"
     ]}
 lazy_static = { version = "1.4" }
-tokio = { version = "1.0", features = ["full"] }
+tokio = { workspace = true, features = ["full"] }
 pyo3 = { version = "0.21", features = ["extension-module", "experimental-async", "eyre", "abi3-py38"] }
 pyo3-log = { version = "0.10" }
 pyo3-polars = { version = "0.15.0"}
@@ -28,3 +29,28 @@ arrow = { workspace = true, features = ["pyarrow"]}
 [lib]
 crate-type = ["cdylib"]
 name = "hopsworks_sdk"
+
+[features]
+read_arrow_flight_offline_store = ["hopsworks-api/read_arrow_flight_offline_store"]
+insert_into_kafka = ["hopsworks-api/insert_into_kafka"]
+read_sql_online_store = ["hopsworks-api/read_sql_online_store"]
+sqlx-feature-vector = ["hopsworks-api/sqlx-feature-vector"]
+
+# [profile.release]
+# opt-level = 3
+# lto = true
+# codegen-units = 1
+# incremental = true
+# debug = false
+# debug-assertions = false
+# overflow-checks = true
+# rpath = false
+
+
+# [profile.dev]
+# opt-level = 0
+# incremental = true
+# lto = false
+# debug = true
+# overflow-checks = true
+# rpath = false

@@ -11,7 +11,7 @@ color-eyre = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
-reqwest = { workspace = true, optional = true }
+# reqwest = { workspace = true, optional = true }
 serde = { workspace = true }
 
 hopsworks-core = { workspace = true }
@@ -44,7 +44,9 @@ polars-core = { version = "0.41", optional = true}
 polars-arrow = { version = "0.41", features = ["arrow_rs"], optional = true}
 
 # Used by mysql-async
-sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-native-tls", "chrono", "mysql" ], optional = true}
+sqlx = { version = "0.7", default-features = false, features = [ 
+    "runtime-tokio", "tls-rustls", "mysql", "chrono"
+    ], optional = true}
 
 
 [features]
@@ -55,5 +57,5 @@ connectorx_arrow = ["dep:arrow", "dep:fehler", "dep:anyhow", "dep:itertools"]
 sql = ["sql2arrow", "sql2polars"]
 sql2arrow = ["connectorx", "connectorx_sql_outdated", "connectorx_explicit", "connectorx_arrow"]
 sql2polars = ["sql2arrow", "dep:polars", "dep:polars-core", "dep:polars-arrow"]
-rest = ["dep:reqwest"]
+rest = []
 sqlx-feature-vector = ["dep:sqlx"]
