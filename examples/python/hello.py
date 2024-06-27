@@ -90,7 +90,6 @@ polars_df = polars_df.with_columns(
     pl.col("datetime").dt.replace_time_zone(None).alias("datetime"),
     cc_num=pl.Series(range(0, polars_df.shape[0])),
 )
-
 print(polars_df.head(5))
 
 # %%

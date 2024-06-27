@@ -7,7 +7,7 @@ license = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-hopsworks-api = { workspace = true }
+hopsworks-api = { workspace = true, features = ["polars"]}
 lazy_static = { version = "1.4" }
 tokio = { version = "1.0", features = ["full"] }
 pyo3 = { version = "0.21", features = ["extension-module", "experimental-async", "eyre", "abi3-py38"] }
