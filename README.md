@@ -65,26 +65,26 @@ trans_df = pl.read_csv(
 print(trans_df.head(5))
 
 # Use the polars schema to register Feature Group metadata, in particular feature names and types
-trans_fg.register_feature_group(trans_df)
+trans_fg.save(trans_df)
 
 # insert data into the feature store
-trans_fg.insert_polars_df_into_kafka(trans_df.head(10))
+trans_fg.insert(trans_df.head(10))
 
 # Read arrow/polars data from the online store via sql
-online_rb = trans_fg.read_arrow_from_sql_online_store()
+online_rb = trans_fg.read_from_online_store(return_type="pyarrow")
 print("pyarrow Record Batch: \n", online_rb)
 
 # Read polars data from the online store
-online_df = trans_fg.read_polars_from_sql_online_store()
+online_df = trans_fg.read_from_online_store(return_type="polars")
 print("Polars DataFrame: \n", online_df)
 
 # Once the materialization job is done writing your data to the Feature Store
 # Read arrow/polars data from the offline store via arrow flight
-offline_rb = trans_fg.read_arrow_from_offline_store()
+offline_rb = trans_fg.read_from_offline_store(return_type="pyarrow")
 print("pyarrow Record Batch: \n", offline_rb)
 
 # Read polars data from the offline
-offline_df = trans_fg.read_polars_from_offline_store()
+offline_df = trans_fg.read_from_offline_store(return_type="polars")
 print("Polars DataFrame: \n", offline_df)
 ```
 
