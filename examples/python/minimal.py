@@ -15,9 +15,11 @@ print(config)
 os.environ["HOPSWORKS_API_KEY"] = config["env"]["HOPSWORKS_API_KEY"]
 
 if config["env"].get("RUST_LOG", None):
-    FORMAT = '%(levelname)s %(name)s %(asctime)-15s %(filename)s:%(lineno)d %(message)s'
+    FORMAT = "%(levelname)s %(name)s %(asctime)-15s %(filename)s:%(lineno)d %(message)s"
     logging.basicConfig(format=FORMAT)
-    logging.getLogger().setLevel(logging.DEBUG if config["env"]["RUST_LOG"] else logging.INFO)
+    logging.getLogger().setLevel(
+        logging.DEBUG if config["env"]["RUST_LOG"] else logging.INFO
+    )
     logging.info("RUST_LOG set to %s", config["env"]["RUST_LOG"])
 
 project = login()
@@ -30,7 +32,6 @@ fg = fs.get_feature_group("transactions_4h_aggs_fraud_batch_fg_5_rust", 1)
 
 print(fg)
 print([method for method in dir(fg) if not method.startswith("_")])
-print([method for method in dir(fg._fg) if not method.startswith("_")])
 
 # %%
 trans_df = pl.read_csv(
@@ -53,7 +54,7 @@ local_fg = fs.get_or_create_feature_group(
 # %%
 try:
     print("Register the feature group if it does not exist")
-    local_fg.register_feature_group(trans_df)
+    local_fg.save(trans_df)
     print("Feature group registered")
 except Exception as e:
     print(e)
@@ -61,7 +62,7 @@ except Exception as e:
 # %%
 try:
     print("Insert a polars dataframe into the feature store")
-    local_fg.insert_polars_df_into_kafka(trans_df.head(10))
+    local_fg.insert(trans_df.head(10))
     print("polars_df inserted into Kafka")
 except Exception as e:
     print(e)
@@ -70,7 +71,7 @@ except Exception as e:
 
 try:
     print("Get the record batch from the offline store")
-    arrow_rb = fg.read_arrow_from_offline_store()
+    arrow_rb = fg.read_from_offline_store(return_type="pyarrow")
     print("arrow_rb : ", arrow_rb)
 except Exception as e:
     print(e)
@@ -79,7 +80,7 @@ except Exception as e:
 
 try:
     print("Get the polars dataframe from the offline store")
-    polars_df = fg.read_polars_from_offline_store()
+    polars_df = fg.read_from_offline_store(return_type="polars")
     print("polars_df : ", polars_df.head(5))
     print(f"shape: {polars_df.shape}")
 except Exception as e:
@@ -97,7 +98,7 @@ print(polars_df.head(5))
 
 try:
     print("Insert a polars dataframe into the feature store")
-    fg.insert_polars_df_into_kafka(polars_df)
+    fg.insert(polars_df)
     print("polars_df inserted into Kafka")
 except Exception as e:
     print(e)
@@ -106,7 +107,7 @@ except Exception as e:
 # %%
 try:
     print("Read from online feature store to arrow record batch")
-    arrow_rb = local_fg.read_arrow_from_sql_online_store()
+    arrow_rb = local_fg.read_from_online_store(return_type="pyarrow")
     print("arrow_rb : \n", arrow_rb)
 except Exception as e:
     print(e)
@@ -115,7 +116,7 @@ except Exception as e:
 # %%
 try:
     print("Get the record batch from the offline store")
-    arrow_rb = local_fg.read_arrow_from_offline_store()
+    arrow_rb = local_fg.read_from_offline_store(return_type="pyarrow")
     print("arrow_rb : ", arrow_rb)
 except Exception as e:
     print(e)
@@ -123,7 +124,7 @@ except Exception as e:
 # %%
 try:
     print("Get the polars dataframe from the offline store")
-    polars_df = local_fg.read_polars_from_sql_online_store()
+    polars_df = local_fg.read_from_online_store(return_type="polars")
     print("polars_df : ", polars_df.head(5))
     print(f"shape: {polars_df.shape}")
 except Exception as e:

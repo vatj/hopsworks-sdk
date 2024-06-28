@@ -79,7 +79,7 @@ impl HopsworksClientBuilder {
         url: Option<&str>,
         project_name: Option<&str>,
     ) -> Self {
-        let api_key = api_key_value.map(|s| s.to_string()).unwrap_or(std::env::var(DEFAULT_ENV_HOPSWORKS_URL).ok().unwrap_or_else(|| {
+        let api_key = api_key_value.map(|s| s.to_string()).unwrap_or(std::env::var(DEFAULT_ENV_HOPSWORKS_API_KEY).ok().unwrap_or_else(|| {
             panic!("No API key provided. Provide an API key using the {} environment variable or the with_api_key() method of the HopsworksClientBuilder.", DEFAULT_ENV_HOPSWORKS_API_KEY)}));
         
         let url = url.map(|s| s.to_string()).unwrap_or(std::env::var(DEFAULT_ENV_HOPSWORKS_URL)

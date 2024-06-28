@@ -1,3 +1,13 @@
-from hopsworks_sdk.hopsworks_rs import login, version
+from hopsworks_sdk import hopsworks_rs
+from typing import Optional
 
-__all__ = ["login", "version"]
+
+from hopsworks_sdk import project
+
+
+def login(api_key_value: Optional[str] = None, project_name: Optional[str] = None, url: Optional[str] = None) -> project.Project:
+    return project.Project._from_pyproj(hopsworks_rs.login(api_key_value=api_key_value, project_name=project_name, url=url))
+
+def version():
+    hopsworks_rs.version()
+

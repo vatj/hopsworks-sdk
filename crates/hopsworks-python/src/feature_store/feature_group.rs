@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 use arrow::pyarrow::ToPyArrow;
 use hopsworks_api::core::register_feature_group_if_needed;
 use pyo3_polars::PyDataFrame;
+use polars::prelude::DataFrame;
 use pyo3::types::PyDict;
 
 use crate::tokio;

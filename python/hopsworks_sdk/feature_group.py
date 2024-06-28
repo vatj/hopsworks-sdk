@@ -1,11 +1,11 @@
-from hopsworks_sdk.hopsworks_rs import PyFeatureGroup
-
+from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, Union
+
+from hopsworks_sdk.hopsworks_rs import PyFeatureGroup
 
 if TYPE_CHECKING:
     import polars as pl
     import pyarrow as pa
-
 
 
 class FeatureGroup:
@@ -14,8 +14,14 @@ class FeatureGroup:
     def __init__(self):
         raise NotImplementedError("Feature Group cannot be instantiated via init method.")
     
-    def save(self) -> None:
-        self._fg.register_feature_group_if_needed()
+    @classmethod
+    def _from_pyfg(cls, fg: PyFeatureGroup) -> FeatureGroup:
+        fg_obj = FeatureGroup.__new__(FeatureGroup)
+        fg_obj._fg = fg
+        return fg_obj
+    
+    def save(self, dataframe: pl.DataFrame) -> None:
+        self._fg.register_feature_group(dataframe)
 
     def read_from_offline_store(self, return_type: Literal["polars", "pyarrow"] = "polars") -> Union[pl.DataFrame, pa.RecordBatch]:
         if return_type.lower() == "polars":
@@ -41,5 +47,5 @@ class FeatureGroup:
         return df
     
     def insert(self, dataframe: pl.DataFrame) -> None:
-        self._fg.insert_into_kafka(dataframe)
+        self._fg.insert_polars_df_into_kafka(dataframe)
 
