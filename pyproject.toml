@@ -40,7 +40,7 @@ dev-dependencies = [
 members = ["python"]
 
 [tool.maturin]
-python-source = "python"
+python-source = "crates/py-hopsworks"
 module-name = "hopsworks_sdk.hopsworks_rs"
 features = ["pyo3/extension-module"]
-manifest-path = "crates/hopsworks-python/Cargo.toml"
+manifest-path = "crates/py-hopsworks/Cargo.toml"

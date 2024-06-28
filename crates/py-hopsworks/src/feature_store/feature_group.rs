@@ -43,13 +43,17 @@ impl PyFeatureGroup {
 
     #[cfg(feature="read_arrow_flight_offline_store")]
     fn read_polars_from_offline_store(&self) -> PyResult<PyDataFrame> {
+        let before = std::time::Instant::now();
         let df = tokio().block_on(hopsworks_api::offline_store::read_from_offline_feature_store(&self.fg, None))?;
+        debug!("Reading from offline store took: {:?}", before.elapsed());
         Ok(PyDataFrame(df))
     }
 
     #[cfg(feature="read_arrow_flight_offline_store")]
     fn read_arrow_from_offline_store(&self, py: Python) -> PyResult<PyObject> {
+        let before = std::time::Instant::now();
         let batches = tokio().block_on(hopsworks_api::offline_store::read_arrow_from_offline_feature_store(&self.fg , None))?;
+        debug!("Reading from offline store took: {:?}", before.elapsed());
         batches.to_pyarrow(py)
         // let schema = batches.first().unwrap().schema().to_pyarrow(py);
         // let table: PyObject = py.import_bound("pyarrow")?.getattr("Table")?.call_method1("from_batches", (batches.to_pyarrow(py).iter(), schema))?.into();
@@ -58,20 +62,26 @@ impl PyFeatureGroup {
 
     #[cfg(feature="read_sql_online_store")]
     fn read_arrow_from_sql_online_store(&self, py: Python) -> PyResult<PyObject> {
+        let before = std::time::Instant::now();
         let (batches, _) = tokio().block_on(hopsworks_api::online_store::read_arrow_from_online_store_via_sql(&self.fg))?;
+        debug!("Reading from online store took: {:?}", before.elapsed());
         batches.to_pyarrow(py)
     }
 
     #[cfg(feature="read_sql_online_store")]
     fn read_polars_from_sql_online_store(&self) -> PyResult<PyDataFrame> {
+        let before = std::time::Instant::now();
         let df = tokio().block_on(hopsworks_api::online_store::read_polars_from_online_store_via_sql(&self.fg))?;
+        debug!("Reading from online store took: {:?}", before.elapsed());
         Ok(PyDataFrame(df))
     }
 
     #[cfg(feature="insert_into_kafka")]
     fn insert_polars_df_into_kafka(&mut self, df: PyDataFrame) -> PyResult<()> {
+        let before = std::time::Instant::now();
         let mut dataframe: DataFrame = df.into();
         tokio().block_on(hopsworks_api::kafka::insert_polars_df_into_kafka(&mut dataframe, &self.fg))?;
+        debug!("Inserting into Kafka took: {:?}", before.elapsed());
         Ok(())
     }
 }
