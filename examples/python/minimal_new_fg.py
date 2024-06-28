@@ -25,14 +25,6 @@ if config["env"].get("RUST_LOG", None):
 project = login()
 fs = project.get_feature_store()
 
-print(fs)
-print([method for method in dir(fs) if not method.startswith("_")])
-
-fg = fs.get_feature_group("transactions_4h_aggs_fraud_batch_fg_5_rust", 1)
-
-print(fg)
-print([method for method in dir(fg) if not method.startswith("_")])
-
 # %%
 trans_df = pl.read_csv(
     "https://repo.hops.works/master/hopsworks-tutorials/data/card_fraud_data/transactions.csv",
@@ -66,43 +58,6 @@ try:
     print("polars_df inserted into Kafka")
 except Exception as e:
     print(e)
-
-# %%
-
-try:
-    print("Get the record batch from the offline store")
-    arrow_rb = fg.read_from_offline_store(return_type="pyarrow")
-    print("arrow_rb : ", arrow_rb)
-except Exception as e:
-    print(e)
-
-# %%
-
-try:
-    print("Get the polars dataframe from the offline store")
-    polars_df = fg.read_from_offline_store(return_type="polars")
-    print("polars_df : ", polars_df.head(5))
-    print(f"shape: {polars_df.shape}")
-except Exception as e:
-    print(e)
-
-# %%
-polars_df = polars_df.with_columns(
-    pl.lit(4.0).alias("trans_volume_mstd"),
-    pl.col("datetime").dt.replace_time_zone(None).alias("datetime"),
-    cc_num=pl.Series(range(0, polars_df.shape[0])),
-)
-print(polars_df.head(5))
-
-# %%
-
-try:
-    print("Insert a polars dataframe into the feature store")
-    fg.insert(polars_df)
-    print("polars_df inserted into Kafka")
-except Exception as e:
-    print(e)
-
 
 # %%
 try:

@@ -88,7 +88,7 @@ offline_df = trans_fg.read_from_offline_store(return_type="polars")
 print("Polars DataFrame: \n", offline_df)
 ```
 
-Look at the hello.py example in the `examples/python` directory to get started.
+Look at the examples in the `examples/python` directory to get started.
 
 ## Benefit of using Rust
 
