@@ -36,9 +36,13 @@ jupyter-client==8.6.2
 jupyter-core==5.7.2
     # via ipykernel
     # via jupyter-client
+markdown-it-py==3.0.0
+    # via rich
 matplotlib-inline==0.1.7
     # via ipykernel
     # via ipython
+mdurl==0.1.2
+    # via markdown-it-py
 nest-asyncio==1.6.0
     # via ipykernel
 numpy==1.24.4
@@ -68,11 +72,14 @@ pyarrow==16.1.0
     # via hopsworks-sdk
 pygments==2.18.0
     # via ipython
+    # via rich
 python-dateutil==2.9.0.post0
     # via jupyter-client
 pyzmq==26.0.3
     # via ipykernel
     # via jupyter-client
+rich==13.7.1
+    # via hopsworks-sdk
 six==1.16.0
     # via asttokens
     # via python-dateutil
@@ -92,6 +99,7 @@ traitlets==5.14.3
     # via matplotlib-inline
 typing-extensions==4.12.2
     # via ipython
+    # via rich
 wcwidth==0.2.13
     # via prompt-toolkit
 zipp==3.19.2

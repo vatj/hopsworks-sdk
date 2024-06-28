@@ -9,11 +9,21 @@
 #   generate-hashes: false
 
 -e file:.
+markdown-it-py==3.0.0
+    # via rich
+mdurl==0.1.2
+    # via markdown-it-py
 numpy==1.24.4
     # via pyarrow
 polars==0.20.31
     # via hopsworks-sdk
 pyarrow==16.1.0
     # via hopsworks-sdk
+pygments==2.18.0
+    # via rich
+rich==13.7.1
+    # via hopsworks-sdk
 toml==0.10.2
     # via hopsworks-sdk
+typing-extensions==4.12.2
+    # via rich

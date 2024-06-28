@@ -3,19 +3,19 @@ use pyo3::prelude::*;
 #[pyclass]
 #[repr(transparent)]
 #[derive(Clone)]
-pub struct FeatureView {
+pub struct PyFeatureView {
     pub(crate) fv: hopsworks_api::FeatureView,
 }
 
 
-impl From<hopsworks_api::FeatureView> for FeatureView {
+impl From<hopsworks_api::FeatureView> for PyFeatureView {
     fn from(fv: hopsworks_api::FeatureView) -> Self {
         Self { fv }
     }
 }
 
-impl From<FeatureView> for hopsworks_api::FeatureView {
-    fn from(fv: FeatureView) -> Self {
+impl From<PyFeatureView> for hopsworks_api::FeatureView {
+    fn from(fv: PyFeatureView) -> Self {
         fv.fv
     }
 }
