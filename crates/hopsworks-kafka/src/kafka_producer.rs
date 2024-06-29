@@ -12,6 +12,10 @@ pub async fn setup_future_producer(
 ) -> Result<FutureProducer> {
     let bootstrap_servers =
         std::env::var("HOPSWORKS_KAFKA_BROKERS").unwrap_or(kafka_connector.bootstrap_servers().to_string());
+
+    // Experiment with different configurations
+    let linger_ms = std::env::var("HOPSWORKS_KAFKA_PRODUCER_LINGER_MS").unwrap_or("50".to_string());
+
     Ok(ClientConfig::new()
         .set("bootstrap.servers", bootstrap_servers)
         .set("message.timeout.ms", "300000")
@@ -23,6 +27,8 @@ pub async fn setup_future_producer(
             format!("{cert_dir}/client_cert.pem"),
         )
         .set("ssl.key.location", format!("{cert_dir}/client_key.pem"))
+        .set("linger.ms", linger_ms.as_str())
+        // .set()
         // jks truststore not supported by rdkafka, get cert key from Hopsworks client
         // .set("debug", "all")
         .create()

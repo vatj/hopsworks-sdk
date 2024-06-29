@@ -78,7 +78,7 @@ except Exception as e:
 
 # %%
 try:
-    print("Get the polars dataframe from the offline store")
+    print("Get the polars dataframe from the online store")
     polars_df = local_fg.read_from_online_store(return_type="polars")
     print("polars_df : ", polars_df.head(5))
     print(f"shape: {polars_df.shape}")

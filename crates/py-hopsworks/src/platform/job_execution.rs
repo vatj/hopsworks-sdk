@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use crate::tokio;
 
 #[pyclass]
 #[repr(transparent)]
@@ -16,5 +17,13 @@ impl From<hopsworks_api::JobExecution> for PyJobExecution {
 impl From<PyJobExecution> for hopsworks_api::JobExecution {
     fn from(job_execution: PyJobExecution) -> Self {
         job_execution.job_execution
+    }
+}
+
+#[pymethods]
+impl PyJobExecution {
+    fn await_termination(&self) -> PyResult<()> {
+        tokio().block_on(self.job_execution.await_termination())?;
+        Ok(())
     }
 }
