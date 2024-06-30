@@ -88,4 +88,8 @@ pub async fn save_feature_group_metadata(
     Ok(feature_group_dto)
 }
 
+pub async fn delete_feature_group(feature_store_id: i32, feature_group_id: i32) -> Result<()> {
+    feature_group::service::delete_feature_group(feature_store_id, feature_group_id).await
+}
+
 

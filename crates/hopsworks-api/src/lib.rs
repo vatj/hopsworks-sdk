@@ -104,7 +104,7 @@ pub mod online_store;
 #[cfg(feature = "insert_into_kafka")]
 pub mod kafka;
 
-pub mod core;
+pub mod minimal;
 
 
 pub use hopsworks_core::HopsworksClientBuilder;

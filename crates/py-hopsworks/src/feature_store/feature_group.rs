@@ -1,7 +1,6 @@
 use log::debug;
 use pyo3::prelude::*;
 use arrow::pyarrow::ToPyArrow;
-use hopsworks_api::core::register_feature_group_if_needed;
 use pyo3_polars::PyDataFrame;
 use polars::prelude::DataFrame;
 use crate::platform::job_execution::PyJobExecution;
@@ -33,12 +32,23 @@ impl From<PyFeatureGroup> for hopsworks_api::FeatureGroup {
 impl PyFeatureGroup {
     fn register_feature_group(&mut self, df: PyDataFrame) -> PyResult<()> {
         let schema = df.0.schema();
-        let registered_fg = tokio().block_on(register_feature_group_if_needed(&self.fg, schema))?;
+        let registered_fg = tokio().block_on(
+            hopsworks_api::minimal::feature_group::register_feature_group_if_needed(&self.fg, schema))?;
         if let Some(fg) = registered_fg {
             self.fg = fg;
             debug!("Registered Feature Group: {:?}", self.fg);
         }
         Ok(())
+    }
+
+    fn delete(&self) -> PyResult<()> {
+        tokio().block_on(self.fg.delete())?;
+        Ok(())
+    }
+
+    #[getter]
+    fn name(&self) -> PyResult<&str> {
+        Ok(self.fg.name())
     }
 
     #[cfg(feature="read_arrow_flight_offline_store")]

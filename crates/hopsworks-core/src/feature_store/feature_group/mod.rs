@@ -377,6 +377,15 @@ impl FeatureGroup {
         Err(color_eyre::eyre::eyre!("Feature Group already registered."))
     }
     }
+
+    pub async fn delete(&self) -> Result<()> {
+        if self.id().is_none() {
+            Err(color_eyre::eyre::eyre!("Feature Group not registered."))
+        } else {
+            feature_group::delete_feature_group(self.feature_store_id(), self.id().unwrap()).await
+        }
+        
+    }
     
 }
 

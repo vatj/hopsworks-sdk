@@ -115,3 +115,26 @@ pub async fn create_feature_group(
         )),
     }
 }
+
+ pub async fn delete_feature_group(feature_store_id: i32, feature_group_id: i32) -> Result<()> {
+    let response = get_hopsworks_client()
+        .await
+        .request(
+            Method::DELETE,
+            format!("featurestores/{feature_store_id}/featuregroups/{feature_group_id}").as_str(),
+            true,
+            true,
+        )
+        .await?
+        .send()
+        .await?;
+
+    match response.status() {
+        StatusCode::NO_CONTENT => Ok(()),
+        _ => Err(color_eyre::eyre::eyre!(
+            "delete_feature_group failed with status : {:?}, here is the response :\n{:?}",
+            response.status(),
+            response.text_with_charset("utf-8").await?
+        )),
+    }
+}

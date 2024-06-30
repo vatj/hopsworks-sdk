@@ -69,3 +69,7 @@ print(taxi_df.shape)
 #     "Took {} seconds for materialization job to complete".format(time.time() - before)
 # )
 # # %%
+
+# print("Delete feature group {local_fg.name}_v{local_fg.version}")
+# local_fg.delete()
+# print("Feature group deleted")
