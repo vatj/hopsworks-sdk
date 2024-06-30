@@ -14,6 +14,12 @@ config = toml.load(config_path)
 print(config)
 
 os.environ["HOPSWORKS_API_KEY"] = config["env"]["HOPSWORKS_API_KEY"]
+os.environ["HOPOSWORKS_KAFKA_PRODUCER_LOG_DEBUG"] = "producer,queue"
+os.environ["HOPSWORKS_KAFKA_PRODUCER_LINGER_MS"] = "10"
+os.environ["HOPSWORKS_KAFKA_PRODUCER_QUEUE_BUFFERING_MAX_MS"] = "1000"
+os.environ["HOPSWORKS_KAFKA_PRODUCER_BATCH_NUM_MESSAGES"] = "10000"
+os.environ["HOPSWORKS_KAFKA_PRODUCER_QUEUE_BUFFERING_MAX_MESSAGES"] = "100000"
+os.environ["HOPSWORKS_KAFKA_PRODUCER_QUEUE_BUFFERING_MAX_KBYTES"] = "1048576"
 
 project = login()
 fs = project.get_feature_store()
@@ -53,67 +59,70 @@ try:
     print("Insert a polars dataframe into the feature store")
     job_execution = local_fg.insert(trans_df)
     print("polars_df inserted {} rows into Kafka in {} seconds".format(trans_df.shape[0], time.time() - before))
+    job_execution.await_termination()
+    print("Took {} seconds for materialization job to complete".format(time.time()))
 except Exception as e:
     print(e)
 
 # %%
-before = time.time()
-job_execution.await_termination()
-print("Took {} seconds for materialization job to complete".format(time.time() - before))
+
 # %%
-try:
-    before = time.time()
-    print("Read from online feature store to arrow record batch")
-    arrow_rb = local_fg.read_from_online_store(return_type="pyarrow")
-    print(
-        "Took {} seconds to read {} rows from online store".format(
-            time.time() - before, arrow_rb.shape[0]
-        )
-    )
-    print("arrow_rb : \n", arrow_rb.head(5))
+# try:
+#     before = time.time()
+#     print("Read from online feature store to arrow record batch")
+#     arrow_rb = local_fg.read_from_online_store(return_type="pyarrow")
+#     print(
+#         "Took {} seconds to read {} rows from online store".format(
+#             time.time() - before, arrow_rb.shape[0]
+#         )
+#     )
+#     print("arrow_rb : \n", arrow_rb.head(5))
     
-except Exception as e:
-    print(e)
+# except Exception as e:
+#     print(e)
+
+# # %%
+# try:
+#     before = time.time()
+#     print("Read from online feature store to polars dataframe")
+#     polars_df = local_fg.read_from_online_store(return_type="polars")
+#     print(
+#         "Took {} seconds to read {} rows".format(
+#             time.time() - before, polars_df.shape[0]
+#         )
+#     )
+# except Exception as e:
+#     print(e)
+
+
+# # %%
+# try:
+#     before = time.time()
+#     print("Get the record batch from the offline store")
+#     arrow_rb = local_fg.read_from_offline_store(return_type="pyarrow")
+#     print(
+#         "Took {} seconds to read {} rows".format(
+#             time.time() - before, arrow_rb.shape[0]
+#         )
+#     )
+#     print("arrow_rb : ", arrow_rb.head(5))
+# except Exception as e:
+#     print(e)
+
+# # %%
+# try:
+#     before = time.time()
+#     print("Get the polars dataframe from the offline store")
+#     polars_df = local_fg.read_from_offline_store(return_type="polars")
+#     print(
+#         "Took {} seconds to read {} rows".format(
+#             time.time() - before, polars_df.shape[0]
+#         )
+#     )
+# except Exception as e:
+#     print(e)
 
 # %%
-try:
-    before = time.time()
-    print("Read from online feature store to polars dataframe")
-    polars_df = local_fg.read_from_online_store(return_type="polars")
-    print(
-        "Took {} seconds to read {} rows".format(
-            time.time() - before, polars_df.shape[0]
-        )
-    )
-except Exception as e:
-    print(e)
-
-
-# %%
-try:
-    before = time.time()
-    print("Get the record batch from the offline store")
-    arrow_rb = local_fg.read_from_offline_store(return_type="pyarrow")
-    print(
-        "Took {} seconds to read {} rows".format(
-            time.time() - before, arrow_rb.shape[0]
-        )
-    )
-    print("arrow_rb : ", arrow_rb.head(5))
-except Exception as e:
-    print(e)
-
-# %%
-try:
-    before = time.time()
-    print("Get the polars dataframe from the offline store")
-    polars_df = local_fg.read_from_offline_store(return_type="polars")
-    print(
-        "Took {} seconds to read {} rows".format(
-            time.time() - before, polars_df.shape[0]
-        )
-    )
-except Exception as e:
-    print(e)
-
-# %%
+print("Delete feature group {local_fg.name}_v{local_fg.version}")
+local_fg.delete()
+print("Feature group deleted")

@@ -49,4 +49,7 @@ class FeatureGroup:
     
     def insert(self, dataframe: pl.DataFrame) -> job_execution.JobExecution:
         return job_execution.JobExecution._from_pyjobexec(self._fg.insert_polars_df_into_kafka(dataframe))
+    
+    def delete(self) -> None:
+        self._fg.delete()
 

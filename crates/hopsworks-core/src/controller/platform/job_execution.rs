@@ -1,4 +1,5 @@
 use color_eyre::Result;
+use log::debug;
 
 use crate::cluster_api::platform::job_execution::{self, JobExecutionDTO};
 
@@ -63,11 +64,13 @@ pub async fn delete_job_execution(job_name: &str, job_execution_id: i32) -> Resu
 }
 
 pub async fn await_termination(job_name: &str, job_execution_id: i32) -> Result<()> {
+
     while {
-        let job_execution = get_job_execution_by_id(job_name, job_execution_id).await?;
-        job_execution.state == "TERMINATED"
+        let state = get_job_execution_by_id(job_name, job_execution_id).await?.state.to_lowercase();
+        debug!("Job execution state: {}", state);
+        state != "terminated" && state != "failed" && state != "killed"
     } {
-        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
     }
     Ok(())
 }
