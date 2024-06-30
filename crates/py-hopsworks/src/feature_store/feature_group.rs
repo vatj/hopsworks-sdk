@@ -3,13 +3,16 @@ use pyo3::prelude::*;
 use arrow::pyarrow::ToPyArrow;
 use pyo3_polars::PyDataFrame;
 use polars::prelude::DataFrame;
+use serde::{Deserialize, Serialize};
 use crate::platform::job_execution::PyJobExecution;
 
 use crate::tokio;
 
+use super::query::PyQuery;
+
 #[pyclass]
 #[repr(transparent)]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct PyFeatureGroup {
     pub(crate) fg: hopsworks_api::FeatureGroup,
 }
@@ -30,6 +33,31 @@ impl From<PyFeatureGroup> for hopsworks_api::FeatureGroup {
 
 #[pymethods]
 impl PyFeatureGroup {
+    fn name(&self) -> PyResult<String> {
+        Ok(self.fg.name().to_string())
+    }
+
+    fn version(&self) -> PyResult<i32> {
+        Ok(self.fg.version())
+    }
+
+    fn description(&self) -> PyResult<Option<String>> {
+        Ok(self.fg.description().map(|s| s.to_string()))
+    }
+
+    fn primary_key(&self) -> PyResult<Vec<String>> {
+        Ok(self.fg.primary_keys()?.iter().map(|s| s.to_string()).collect())
+    }
+
+    fn event_time(&self) -> PyResult<Option<String>> {
+        Ok(self.fg.event_time().map(|s| s.to_string()))
+    }
+
+    fn select(&self, features: Vec<String>) -> PyResult<PyQuery> {
+        let features: Vec<&str> = features.iter().map(|s| s.as_str()).collect();
+        Ok(self.fg.select(&features)?.into())
+    }
+
     fn register_feature_group(&mut self, df: PyDataFrame) -> PyResult<()> {
         let schema = df.0.schema();
         let registered_fg = tokio().block_on(
@@ -44,11 +72,6 @@ impl PyFeatureGroup {
     fn delete(&self) -> PyResult<()> {
         tokio().block_on(self.fg.delete())?;
         Ok(())
-    }
-
-    #[getter]
-    fn name(&self) -> PyResult<&str> {
-        Ok(self.fg.name())
     }
 
     #[cfg(feature="read_arrow_flight_offline_store")]

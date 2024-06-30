@@ -1,10 +1,18 @@
 use pyo3::prelude::*;
+use serde::{Serialize, Deserialize};
 
 #[pyclass]
 #[repr(transparent)]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct PyJob {
     pub(crate) job: hopsworks_api::Job,
+}
+
+#[pymethods]
+impl PyJob {
+    fn name(&self) -> PyResult<String> {
+        Ok(self.job.name().to_string())
+    }
 }
 
 

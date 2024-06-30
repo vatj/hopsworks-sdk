@@ -24,6 +24,14 @@ impl From<PyProject> for hopsworks_api::Project {
 
 #[pymethods]
 impl PyProject {
+    fn name(&self) -> PyResult<String> {
+        Ok(self.project.name().to_string())
+    }
+
+    fn id(&self) -> PyResult<i32> {
+        Ok(self.project.id())
+    }
+
     fn get_feature_store(&self) -> PyResult<PyFeatureStore> {
         let fs = tokio().block_on(self.project.get_feature_store()).unwrap();
         Ok(PyFeatureStore::from(fs))
