@@ -67,60 +67,60 @@ except Exception as e:
 # %%
 
 # %%
-# try:
-#     before = time.time()
-#     print("Read from online feature store to arrow record batch")
-#     arrow_rb = local_fg.read_from_online_store(return_type="pyarrow")
-#     print(
-#         "Took {} seconds to read {} rows from online store".format(
-#             time.time() - before, arrow_rb.shape[0]
-#         )
-#     )
-#     print("arrow_rb : \n", arrow_rb.head(5))
+try:
+    before = time.time()
+    print("Read from online feature store to arrow record batch")
+    arrow_rb = local_fg.read_from_online_store(return_type="pyarrow")
+    print(
+        "Took {} seconds to read {} rows from online store".format(
+            time.time() - before, arrow_rb.shape[0]
+        )
+    )
+    print("arrow_rb : \n", arrow_rb.head(5))
     
-# except Exception as e:
-#     print(e)
+except Exception as e:
+    print(e)
 
-# # %%
-# try:
-#     before = time.time()
-#     print("Read from online feature store to polars dataframe")
-#     polars_df = local_fg.read_from_online_store(return_type="polars")
-#     print(
-#         "Took {} seconds to read {} rows".format(
-#             time.time() - before, polars_df.shape[0]
-#         )
-#     )
-# except Exception as e:
-#     print(e)
+# %%
+try:
+    before = time.time()
+    print("Read from online feature store to polars dataframe")
+    polars_df = local_fg.read_from_online_store(return_type="polars")
+    print(
+        "Took {} seconds to read {} rows".format(
+            time.time() - before, polars_df.shape[0]
+        )
+    )
+except Exception as e:
+    print(e)
 
 
-# # %%
-# try:
-#     before = time.time()
-#     print("Get the record batch from the offline store")
-#     arrow_rb = local_fg.read_from_offline_store(return_type="pyarrow")
-#     print(
-#         "Took {} seconds to read {} rows".format(
-#             time.time() - before, arrow_rb.shape[0]
-#         )
-#     )
-#     print("arrow_rb : ", arrow_rb.head(5))
-# except Exception as e:
-#     print(e)
+# %%
+try:
+    before = time.time()
+    print("Get the record batch from the offline store")
+    arrow_rb = local_fg.read_from_offline_store(return_type="pyarrow")
+    print(
+        "Took {} seconds to read {} rows".format(
+            time.time() - before, arrow_rb.shape[0]
+        )
+    )
+    print("arrow_rb : ", arrow_rb.head(5))
+except Exception as e:
+    print(e)
 
-# # %%
-# try:
-#     before = time.time()
-#     print("Get the polars dataframe from the offline store")
-#     polars_df = local_fg.read_from_offline_store(return_type="polars")
-#     print(
-#         "Took {} seconds to read {} rows".format(
-#             time.time() - before, polars_df.shape[0]
-#         )
-#     )
-# except Exception as e:
-#     print(e)
+# %%
+try:
+    before = time.time()
+    print("Get the polars dataframe from the offline store")
+    polars_df = local_fg.read_from_offline_store(return_type="polars")
+    print(
+        "Took {} seconds to read {} rows".format(
+            time.time() - before, polars_df.shape[0]
+        )
+    )
+except Exception as e:
+    print(e)
 
 # %%
 print("Delete feature group {local_fg.name}_v{local_fg.version}")
