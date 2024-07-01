@@ -130,7 +130,7 @@ pub async fn create_feature_group(
         .await?;
 
     match response.status() {
-        StatusCode::NO_CONTENT => Ok(()),
+        StatusCode::OK => Ok(()),
         _ => Err(color_eyre::eyre::eyre!(
             "delete_feature_group failed with status : {:?}, here is the response :\n{:?}",
             response.status(),

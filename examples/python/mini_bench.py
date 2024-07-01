@@ -14,7 +14,7 @@ config = toml.load(config_path)
 print(config)
 
 os.environ["HOPSWORKS_API_KEY"] = config["env"]["HOPSWORKS_API_KEY"]
-os.environ["HOPOSWORKS_KAFKA_PRODUCER_LOG_DEBUG"] = "producer,queue"
+os.environ["HOPOSWORKS_KAFKA_PRODUCER_LOG_DEBUG"] = "broker,topic,msg,queue"
 os.environ["HOPSWORKS_KAFKA_PRODUCER_LINGER_MS"] = "10"
 os.environ["HOPSWORKS_KAFKA_PRODUCER_QUEUE_BUFFERING_MAX_MS"] = "1000"
 os.environ["HOPSWORKS_KAFKA_PRODUCER_BATCH_NUM_MESSAGES"] = "10000"

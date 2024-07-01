@@ -41,3 +41,6 @@ examples/data
 
 # Ignore compiled shared object files
 *.so
+
+# Ignore logs
+logs/*
