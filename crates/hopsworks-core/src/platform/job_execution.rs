@@ -1,3 +1,5 @@
+use core::fmt;
+
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
@@ -211,6 +213,12 @@ impl JobExecution {
         )
     }
 
+    /// Get the id of the [`JobExecution`].
+    /// The id is unique for each job execution and is used to identify the job execution on the hopsworks cluster.
+    pub fn id(&self) -> i32 {
+        self.id
+    }
+
     /// Get the state of the [`JobExecution`], one of [`JobExecutionState`].
     /// Note that this is the state at the time where the execution object was fetched.
     /// Use [`get_current_state`] to get the current state of the job execution from the hopsworks cluster.
@@ -255,6 +263,17 @@ impl From<String> for JobExecutionState {
             "TERMINATED" => Self::Terminated,
             "FAILED" => Self::Failed,
             _ => panic!("Invalid job execution state: {}", state),
+        }
+    }
+}
+
+impl fmt::Display for JobExecutionState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Initializing => write!(f, "Initializing"),
+            Self::Running => write!(f, "Running"),
+            Self::Terminated => write!(f, "Terminated"),
+            Self::Failed => write!(f, "Failed"),
         }
     }
 }

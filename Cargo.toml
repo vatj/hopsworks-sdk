@@ -38,4 +38,19 @@ hopsworks-cli ={ path = "crates/hopsworks-cli" }
 hopsworks-offline-store = { path = "crates/hopsworks-offline-store" }
 hopsworks-online-store ={ path = "crates/hopsworks-online-store" }
 hopsworks-kafka ={ path = "crates/hopsworks-kafka" }
-hopsworks-python ={ path = "crates/hopsworks-python" }
+py-hopsworks ={ path = "crates/py-hopsworks" }
+
+[profile.opt-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.debug-release]
+inherits = "release"
+debug = true
+incremental = true
+codegen-units = 16
+lto = "thin"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
