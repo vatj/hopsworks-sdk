@@ -6,14 +6,14 @@ use polars::prelude::*;
 
 pub(crate) fn convert_df_row_to_avro_record<'a>(
     avro_schema: &'a Schema,
-    column_names: &'a Vec<String>,
-    primary_keys: &'a Vec<String>,
+    column_names: &'a [String],
+    primary_keys: &'a [String],
     row: &Row<'a>,
 ) -> Result<(Record<'a>, String)> {
     let mut composite_key: Vec<String> = vec![];
     let mut record = Record::new(avro_schema).unwrap();
 
-    for (value, col_name) in row.0.iter().zip(column_names.into_iter()) {
+    for (value, col_name) in row.0.iter().zip(column_names.iter()) {
         match value.dtype() {
             DataType::Boolean => {
                 record.put(col_name, Some(value.try_extract::<i8>()? != 0))
@@ -85,7 +85,7 @@ pub(crate) fn convert_df_row_to_avro_record<'a>(
             _ => todo!(),
         }
 
-        if primary_keys.contains(&col_name) {
+        if primary_keys.contains(col_name) {
             composite_key.push(value.to_string())
         }
     }
@@ -131,7 +131,7 @@ mod tests {
             "i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "f32", "f64", "utf8", "bool",
             "date", "time", "datetime", "duration",
         ];
-        let primary_keys = vec!["i64", "utf8"];
+        let primary_keys = vec!["i64".to_string(), "utf8".to_string()];
         // Create a sample Polars DataFrame row
         let mut df = DataFrame::new(vec![
             Series::new(col_names[0], &[1i8]),
@@ -162,6 +162,7 @@ mod tests {
         .unwrap();
 
         df.as_single_chunk();
+        let col_names = df.get_column_names().iter().map(|s| s.to_string()).collect::<Vec<String>>();
 
         let row = df.get_row(0).unwrap();
         let result = convert_df_row_to_avro_record(&avro_schema, &col_names, &primary_keys, &row);

@@ -1,6 +1,5 @@
 use color_eyre::Result;
 use polars::prelude::*;
-use apache_avro::Schema;
 use std::sync::Arc;
 
 use hopsworks_core::controller::feature_store::storage_connector;
@@ -49,7 +48,6 @@ pub async fn insert_in_registered_feature_group(
         headers,
         topic_name,
         primary_keys.to_vec(),
-        Schema::parse_str(subject.schema())?,
         &future_producer,
         dataframe,
     )
