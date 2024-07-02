@@ -6,57 +6,57 @@ use polars::prelude::*;
 
 pub(crate) fn convert_df_row_to_avro_record<'a>(
     avro_schema: &'a Schema,
-    column_names: &[&str],
-    primary_keys: &[&str],
-    row: &Row<'_>,
+    column_names: &'a Vec<String>,
+    primary_keys: &'a Vec<String>,
+    row: &Row<'a>,
 ) -> Result<(Record<'a>, String)> {
     let mut composite_key: Vec<String> = vec![];
     let mut record = Record::new(avro_schema).unwrap();
 
-    for (jdx, value) in row.0.iter().enumerate() {
+    for (value, col_name) in row.0.iter().zip(column_names.into_iter()) {
         match value.dtype() {
             DataType::Boolean => {
-                record.put(column_names[jdx], Some(value.try_extract::<i8>()? != 0))
+                record.put(col_name, Some(value.try_extract::<i8>()? != 0))
             }
-            DataType::Int8 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
-            DataType::Int16 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
-            DataType::Int32 => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
-            DataType::Int64 => record.put(column_names[jdx], Some(value.try_extract::<i64>()?)),
+            DataType::Int8 => record.put(col_name, Some(value.try_extract::<i32>()?)),
+            DataType::Int16 => record.put(col_name, Some(value.try_extract::<i32>()?)),
+            DataType::Int32 => record.put(col_name, Some(value.try_extract::<i32>()?)),
+            DataType::Int64 => record.put(col_name, Some(value.try_extract::<i64>()?)),
             DataType::UInt8 => {
-                record.put(column_names[jdx], Some(value.try_extract::<u8>()? as usize))
+                record.put(col_name, Some(value.try_extract::<u8>()? as usize))
             }
             DataType::UInt16 => record.put(
-                column_names[jdx],
+                col_name,
                 Some(value.try_extract::<u16>()? as usize),
             ),
             DataType::UInt32 => record.put(
-                column_names[jdx],
+                col_name,
                 Some(value.try_extract::<u32>()? as usize),
             ),
             DataType::UInt64 => record.put(
-                column_names[jdx],
+                col_name,
                 Some(value.try_extract::<u64>()? as usize),
             ),
             DataType::Duration(TimeUnit::Nanoseconds) => {
-                record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
+                record.put(col_name, Some(value.try_extract::<i64>()?))
             }
             DataType::Duration(TimeUnit::Microseconds) => {
-                record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
+                record.put(col_name, Some(value.try_extract::<i64>()?))
             }
             DataType::Duration(TimeUnit::Milliseconds) => {
-                record.put(column_names[jdx], Some(value.try_extract::<i32>()?))
+                record.put(col_name, Some(value.try_extract::<i32>()?))
             }
-            DataType::Float32 => record.put(column_names[jdx], Some(value.try_extract::<f32>()?)),
-            DataType::Float64 => record.put(column_names[jdx], Some(value.try_extract::<f64>()?)),
-            DataType::String => record.put(column_names[jdx], Some(value.to_string())),
+            DataType::Float32 => record.put(col_name, Some(value.try_extract::<f32>()?)),
+            DataType::Float64 => record.put(col_name, Some(value.try_extract::<f64>()?)),
+            DataType::String => record.put(col_name, Some(value.to_string())),
             DataType::Datetime(TimeUnit::Microseconds, None) => {
-                record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
+                record.put(col_name, Some(value.try_extract::<i64>()?))
             }
             DataType::Datetime(TimeUnit::Nanoseconds, None) => {
-                record.put(column_names[jdx], Some(value.try_extract::<i64>()?))
+                record.put(col_name, Some(value.try_extract::<i64>()?))
             }
             DataType::Datetime(TimeUnit::Milliseconds, None) => {
-                record.put(column_names[jdx], Some(value.try_extract::<i32>()?))
+                record.put(col_name, Some(value.try_extract::<i32>()?))
             }
             DataType::Datetime(TimeUnit::Microseconds, Some(_)) => {
                 return Err(color_eyre::Report::msg(
@@ -73,9 +73,9 @@ pub(crate) fn convert_df_row_to_avro_record<'a>(
                     "Datetime with timezone not supported",
                 ));
             }
-            DataType::Date => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
-            DataType::Time => record.put(column_names[jdx], Some(value.try_extract::<i32>()?)),
-            DataType::Null => record.put(column_names[jdx], None::<()>),
+            DataType::Date => record.put(col_name, Some(value.try_extract::<i32>()?)),
+            DataType::Time => record.put(col_name, Some(value.try_extract::<i32>()?)),
+            DataType::Null => record.put(col_name, None::<()>),
             DataType::Decimal(_, _) => todo!(),
             DataType::Binary => todo!(),
             DataType::Array(_, _) => todo!(),
@@ -85,7 +85,7 @@ pub(crate) fn convert_df_row_to_avro_record<'a>(
             _ => todo!(),
         }
 
-        if primary_keys.contains(&column_names[jdx]) {
+        if primary_keys.contains(&col_name) {
             composite_key.push(value.to_string())
         }
     }
@@ -173,7 +173,7 @@ mod tests {
         assert_eq!(composite_key, "1_\"test\"");
 
         // Assert specific values in the Avro record based on your expectations
-        for name in col_names {
+        for name in df.get_column_names() {
             assert!(avro_record.fields.iter().any(|field| field.0 == name));
         }
     }

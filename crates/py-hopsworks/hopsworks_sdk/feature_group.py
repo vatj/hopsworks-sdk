@@ -53,3 +53,11 @@ class FeatureGroup:
     def delete(self) -> None:
         self._fg.delete()
 
+    @property
+    def name(self) -> str:
+        return self._fg.name
+    
+    @property
+    def version(self) -> int:
+        return self._fg.version
+

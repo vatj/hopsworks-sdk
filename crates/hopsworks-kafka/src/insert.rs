@@ -48,7 +48,7 @@ pub async fn insert_in_registered_feature_group(
     produce_df(
         headers,
         topic_name,
-        primary_keys,
+        primary_keys.to_vec(),
         Schema::parse_str(subject.schema())?,
         &future_producer,
         dataframe,
