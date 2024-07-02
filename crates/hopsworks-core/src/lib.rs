@@ -90,6 +90,7 @@
 use color_eyre::Result;
 use log::debug;
 use tokio::sync::OnceCell;
+use std::sync::{Arc, OnceLock};
 
 pub(crate) mod cluster_api;
 pub mod controller;
@@ -104,7 +105,72 @@ pub use rest_client::HopsworksClientBuilder;
 use rest_client::HopsworksClient;
 
 
-static HOPSWORKS_CLIENT: OnceCell<HopsworksClient> = OnceCell::const_new();
+static NUM_LOGICAL_CPUS: OnceCell<usize> = OnceCell::const_new();
+static THREADED_RUNTIME_NUM_WORKER_THREADS: OnceCell<usize> = tokio::sync::OnceCell::const_new();
+static THREADED_RUNTIME: OnceLock<Arc<tokio::runtime::Runtime>> = OnceLock::new();
+static SINGLE_THREADED_RUNTIME: OnceLock<Arc<tokio::runtime::Runtime>> = OnceLock::new();
+static HOPSWORKS_CLIENT: OnceLock<HopsworksClient> = OnceLock::new();
+
+pub fn get_logical_cpus() -> usize {
+    if NUM_LOGICAL_CPUS.initialized() {
+        *NUM_LOGICAL_CPUS.get().unwrap()
+    } else {
+        let num_logical_cpus = std::thread::available_parallelism().unwrap().get();
+        NUM_LOGICAL_CPUS.set(num_logical_cpus).unwrap();
+        num_logical_cpus
+    }
+}
+
+pub fn get_threaded_runtime_num_worker_threads() -> usize {
+    if THREADED_RUNTIME_NUM_WORKER_THREADS.initialized() {
+        *THREADED_RUNTIME_NUM_WORKER_THREADS.get().unwrap()
+    } else {
+        let num_worker_threads = get_logical_cpus();
+        THREADED_RUNTIME_NUM_WORKER_THREADS.set(num_worker_threads).unwrap();
+        num_worker_threads
+    }
+}
+
+pub fn get_threaded_runtime() -> &'static Arc<tokio::runtime::Runtime> {
+    if THREADED_RUNTIME.get().is_some() {
+        THREADED_RUNTIME.get().unwrap()
+    } else {
+        let num_worker_threads = get_threaded_runtime_num_worker_threads();
+        THREADED_RUNTIME.set(
+            Arc::new(
+                tokio::runtime::Builder::new_multi_thread()
+                .worker_threads(num_worker_threads)
+                .enable_all()
+                .build()
+                .unwrap()
+            )).unwrap();
+        THREADED_RUNTIME.get().unwrap()
+    }
+}
+
+pub fn get_single_threaded_runtime() -> &'static Arc<tokio::runtime::Runtime> {
+    if SINGLE_THREADED_RUNTIME.get().is_some() {
+        SINGLE_THREADED_RUNTIME.get().unwrap()
+    } else {
+        SINGLE_THREADED_RUNTIME.set(
+            Arc::new(
+                tokio::runtime::Builder::new_multi_thread()
+                .worker_threads(1)
+                .enable_all()
+                .build()
+                .unwrap()
+            )).unwrap();
+        SINGLE_THREADED_RUNTIME.get().unwrap()
+    }
+}
+
+pub fn get_hopsworks_runtime(multithreaded: bool) -> &'static Arc<tokio::runtime::Runtime> {
+    if multithreaded {
+        get_threaded_runtime()
+    } else {
+        get_single_threaded_runtime()
+    }
+}
 
 pub async fn get_hopsworks_client() -> &'static HopsworksClient {
     debug!("Access global Hopsworks Client");
@@ -116,10 +182,17 @@ pub async fn get_hopsworks_client() -> &'static HopsworksClient {
     }
 }
 
-pub async fn login(client_builder: Option<HopsworksClientBuilder>) -> Result<Project> {
-    Ok(Project::from(&HOPSWORKS_CLIENT
-        .get_or_try_init(|| async { client_builder.unwrap_or_default().build().await })
-        .await?
-        .login()
-        .await?))
+pub async fn login(client_builder: Option<HopsworksClientBuilder>, multithreaded: bool) -> Result<Project> {
+    if HOPSWORKS_CLIENT.get().is_some() {
+        Err(color_eyre::eyre::eyre!("Hopsworks client already initialized"))
+    }
+    else {
+        let rt = get_hopsworks_runtime(multithreaded).clone();
+        let _guard = rt.enter();
+
+        let client = client_builder.unwrap_or_default().build().await?;
+        let init_client = HOPSWORKS_CLIENT.get_or_init(|| client);
+        let project_dto = init_client.login().await?;
+        Ok(Project::from(&project_dto))
+    } 
 }
