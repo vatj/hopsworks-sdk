@@ -23,6 +23,8 @@ tokio = { version = "1.38", features = ["full"] }
 chrono = { version = "0.4" }
 polars = { version = "0.41", features = [
     "default",
+    "simd",
+    "performant",
     "lazy",
     "strings",
     "dtype-full",

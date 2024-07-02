@@ -115,7 +115,10 @@ pub fn get_logical_cpus() -> usize {
     if NUM_LOGICAL_CPUS.initialized() {
         *NUM_LOGICAL_CPUS.get().unwrap()
     } else {
-        let num_logical_cpus = std::thread::available_parallelism().unwrap().get();
+        let env_requested_threads = std::env::var("HOPSWORKS_NUM_THREADS")
+            .ok()
+            .and_then(|s| s.parse::<usize>().ok());
+        let num_logical_cpus = env_requested_threads.unwrap_or(std::thread::available_parallelism().unwrap().get());
         debug!("Detected {} logical CPUs", num_logical_cpus);
         NUM_LOGICAL_CPUS.set(num_logical_cpus).unwrap();
         num_logical_cpus
