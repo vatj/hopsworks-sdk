@@ -1,7 +1,6 @@
 use pyo3::prelude::*;
 
 use crate::feature_store::PyFeatureStore;
-use crate::tokio;
 
 #[pyclass]
 #[repr(transparent)]
@@ -33,7 +32,8 @@ impl PyProject {
     }
 
     fn get_feature_store(&self) -> PyResult<PyFeatureStore> {
-        let fs = tokio().block_on(self.project.get_feature_store()).unwrap();
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        let fs = hopsworks_api::blocking::project::get_feature_store_blocking(&self.project, multithreaded)?;
         Ok(PyFeatureStore::from(fs))
     }
 }

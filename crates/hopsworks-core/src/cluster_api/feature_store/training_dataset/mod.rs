@@ -13,11 +13,11 @@ pub mod service;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum TrainingDatasetDataFormat {
-    CSV,
-    TSV,
+    Csv,
+    Tsv,
     Parquet,
     Avro,
-    ORC,
+    Orc,
     TFRecord,
 }
 

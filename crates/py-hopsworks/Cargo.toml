@@ -10,9 +10,9 @@ repository = { workspace = true }
 serde = { version = "1.0", features = ["derive"] }
 hopsworks-api = { workspace = true, features = ["polars"]}
 lazy_static = { version = "1.4" }
-tokio = { version = "1.0", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
 pyo3 = { version = "0.21", features = ["extension-module", "experimental-async", "eyre", "abi3-py38"] }
-pyo3-log = { version = "0.10" }
+pyo3-log = { version = "0.11" }
 pyo3-polars = { version = "0.15.0"}
 log = {workspace = true}
 color-eyre = {workspace = true}
@@ -26,7 +26,7 @@ crate-type = ["cdylib"]
 name = "hopsworks_sdk"
 
 [features]
-default = ["read_arrow_flight_offline_store", "insert_into_kafka", "read_sql_online_store"]
+default = ["hopsworks-api/blocking", "read_arrow_flight_offline_store", "insert_into_kafka", "read_sql_online_store"]
 read_arrow_flight_offline_store = ["hopsworks-api/read_arrow_flight_offline_store"]
 insert_into_kafka = ["hopsworks-api/insert_into_kafka"]
 read_sql_online_store = ["hopsworks-api/read_sql_online_store"]

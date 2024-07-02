@@ -1,5 +1,4 @@
 use pyo3::prelude::*;
-use crate::tokio;
 use serde::{Serialize, Deserialize};
 
 #[pyclass]
@@ -28,26 +27,31 @@ impl PyJobExecution {
     }
 
     fn get_current_state(&self) -> PyResult<String> {
-        Ok(tokio().block_on(self.job_execution.get_current_state())?.to_string())
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        Ok(hopsworks_api::blocking::job_execution::get_current_state_blocking(&self.job_execution, multithreaded)?.to_string())
     }
 
     fn download_logs(&self, local_dir: Option<String>) -> PyResult<()> {
-        tokio().block_on(self.job_execution.download_logs(local_dir.as_deref()))?;
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        hopsworks_api::blocking::job_execution::download_logs_blocking(&self.job_execution, local_dir.as_deref(), multithreaded)?;
         Ok(())
     }
 
     fn delete(&self) -> PyResult<()> {
-        tokio().block_on(self.job_execution.delete())?;
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        hopsworks_api::blocking::job_execution::delete_blocking(&self.job_execution, multithreaded)?;
         Ok(())
     }
 
     fn stop(&self) -> PyResult<()> {
-        tokio().block_on(self.job_execution.stop())?;
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        hopsworks_api::blocking::job_execution::stop_blocking(&self.job_execution, multithreaded)?;
         Ok(())
     }
 
     fn await_termination(&self) -> PyResult<()> {
-        tokio().block_on(self.job_execution.await_termination())?;
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        hopsworks_api::blocking::job_execution::await_termination_blocking(&self.job_execution, multithreaded)?;
         Ok(())
     }
 }

@@ -46,4 +46,4 @@ examples/data
 logs/*
 
 # Ignore dev examples
-examples/python_dev/*
+examples/dev_python/*

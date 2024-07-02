@@ -6,8 +6,6 @@ use polars::prelude::DataFrame;
 use serde::{Deserialize, Serialize};
 use crate::platform::job_execution::PyJobExecution;
 
-use crate::tokio;
-
 use super::query::PyQuery;
 
 #[pyclass]
@@ -59,9 +57,9 @@ impl PyFeatureGroup {
     }
 
     fn register_feature_group(&mut self, df: PyDataFrame) -> PyResult<()> {
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
         let schema = df.0.schema();
-        let registered_fg = tokio().block_on(
-            hopsworks_api::minimal::feature_group::register_feature_group_if_needed(&self.fg, schema))?;
+        let registered_fg = hopsworks_api::blocking::feature_group::register_feature_group_if_needed_blocking(&self.fg, schema, multithreaded)?;
         if let Some(fg) = registered_fg {
             self.fg = fg;
             debug!("Registered Feature Group: {:?}", self.fg);
@@ -70,14 +68,16 @@ impl PyFeatureGroup {
     }
 
     fn delete(&self) -> PyResult<()> {
-        tokio().block_on(self.fg.delete())?;
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        hopsworks_api::blocking::feature_group::delete_blocking(&self.fg, multithreaded)?;
         Ok(())
     }
 
     #[cfg(feature="read_arrow_flight_offline_store")]
     fn read_polars_from_offline_store(&self) -> PyResult<PyDataFrame> {
         let before = std::time::Instant::now();
-        let df = tokio().block_on(hopsworks_api::offline_store::read_from_offline_feature_store(&self.fg, None))?;
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        let df = hopsworks_api::offline_store::read_polars_from_offline_feature_store_blocking(&self.fg, None, multithreaded)?;
         debug!("Reading from offline store via rust took: {:?}", before.elapsed());
         Ok(PyDataFrame(df))
     }
@@ -85,7 +85,8 @@ impl PyFeatureGroup {
     #[cfg(feature="read_arrow_flight_offline_store")]
     fn read_arrow_from_offline_store(&self, py: Python) -> PyResult<PyObject> {
         let before = std::time::Instant::now();
-        let batches = tokio().block_on(hopsworks_api::offline_store::read_arrow_from_offline_feature_store(&self.fg , None))?;
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        let batches = hopsworks_api::offline_store::read_arrow_from_offline_feature_store_blocking(&self.fg , None, multithreaded)?;
         debug!("Reading from offline store via rust took: {:?}", before.elapsed());
         batches.to_pyarrow(py)
         // let schema = batches.first().unwrap().schema().to_pyarrow(py);
@@ -96,7 +97,8 @@ impl PyFeatureGroup {
     #[cfg(feature="read_sql_online_store")]
     fn read_arrow_from_sql_online_store(&self, py: Python) -> PyResult<PyObject> {
         let before = std::time::Instant::now();
-        let (batches, _) = tokio().block_on(hopsworks_api::online_store::read_arrow_from_online_store_via_sql(&self.fg))?;
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        let (batches, _) = hopsworks_api::online_store::read_arrow_from_online_store_via_sql_blocking(&self.fg, multithreaded)?;
         debug!("Reading from online store via rust took: {:?}", before.elapsed());
         batches.to_pyarrow(py)
     }
@@ -104,7 +106,8 @@ impl PyFeatureGroup {
     #[cfg(feature="read_sql_online_store")]
     fn read_polars_from_sql_online_store(&self) -> PyResult<PyDataFrame> {
         let before = std::time::Instant::now();
-        let df = tokio().block_on(hopsworks_api::online_store::read_polars_from_online_store_via_sql(&self.fg))?;
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        let df = hopsworks_api::online_store::read_polars_from_online_store_via_sql_blocking(&self.fg, multithreaded)?;
         debug!("Reading from online store via rust took: {:?}", before.elapsed());
         Ok(PyDataFrame(df))
     }
@@ -112,8 +115,9 @@ impl PyFeatureGroup {
     #[cfg(feature="insert_into_kafka")]
     fn insert_polars_df_into_kafka(&mut self, df: PyDataFrame) -> PyResult<PyJobExecution> {
         let before = std::time::Instant::now();
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
         let mut dataframe: DataFrame = df.into();
-        let job_execution = tokio().block_on(hopsworks_api::kafka::insert_polars_df_into_kafka(&mut dataframe, &self.fg))?;
+        let job_execution = hopsworks_api::kafka::insert_polars_df_into_kafka_blocking(&mut dataframe, &self.fg, multithreaded)?;
         debug!("Inserting into Kafka via rust took: {:?}", before.elapsed());
         Ok(PyJobExecution::from(job_execution))
     }

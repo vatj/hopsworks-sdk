@@ -3,9 +3,6 @@ use pyo3::prelude::*;
 pub mod feature_group;
 pub mod feature_view;
 pub mod query;
-
-use crate::tokio;
-
 #[pyclass]
 #[repr(transparent)]
 #[derive(Clone)]
@@ -28,17 +25,29 @@ impl From<PyFeatureStore> for hopsworks_api::FeatureStore {
 #[pymethods]
 impl PyFeatureStore {
     fn get_feature_group(&self, name: &str, version: Option<i32>) -> PyResult<Option<feature_group::PyFeatureGroup>> {
-        let fg = tokio().block_on(self.fs.get_feature_group(name, version)).unwrap();
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        let fg = hopsworks_api::blocking::feature_store::get_feature_group_blocking(&self.fs, name, version, multithreaded)?;
         Ok(fg.map(feature_group::PyFeatureGroup::from))
     }
 
     fn get_or_create_feature_group(&self, name: &str, version: i32, primary_key: Vec<String>,  online_enabled: bool, description: Option<&str>, event_time: Option<&str>) -> PyResult<feature_group::PyFeatureGroup> {
-        let fg = tokio().block_on(self.fs.get_or_create_feature_group(name, Some(version), description, primary_key.iter().map(String::as_ref).collect(), event_time, online_enabled)).unwrap();
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        let fg = hopsworks_api::blocking::feature_store::get_or_create_feature_group_blocking(
+            &self.fs, 
+            name, 
+            Some(version), 
+            description, 
+            primary_key.iter().map(|s| s.as_str()).collect(), 
+            event_time, 
+            online_enabled, 
+            multithreaded,
+        )?;
         Ok(feature_group::PyFeatureGroup::from(fg))
     }
 
     fn get_feature_view(&self, name: &str, version: Option<i32>) -> PyResult<Option<feature_view::PyFeatureView>> {
-        let fv = tokio().block_on(self.fs.get_feature_view(name, version)).unwrap();
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        let fv = hopsworks_api::blocking::feature_store::get_feature_view_blocking(&self.fs, name, version, multithreaded)?;
         Ok(fv.map(feature_view::PyFeatureView::from))
     }
 }

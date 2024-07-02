@@ -19,3 +19,11 @@ pub async fn insert_polars_df_into_kafka(dataframe: &mut DataFrame, fg: &Feature
     )
     .await
 }
+
+#[cfg(feature="blocking")]
+pub fn insert_polars_df_into_kafka_blocking(dataframe: &mut DataFrame, fg: &FeatureGroup, multithreaded: bool) -> Result<JobExecution> {
+    let rt = hopsworks_core::get_hopsworks_runtime(multithreaded).clone();
+    let _guard = rt.enter();
+
+    rt.block_on(insert_polars_df_into_kafka(dataframe, fg))
+}
