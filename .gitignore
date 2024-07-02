@@ -44,3 +44,6 @@ examples/data
 
 # Ignore logs
 logs/*
+
+# Ignore dev examples
+examples/dev_python/*

@@ -104,7 +104,8 @@ pub mod online_store;
 #[cfg(feature = "insert_into_kafka")]
 pub mod kafka;
 
-pub mod minimal;
+#[cfg(feature = "blocking")]
+pub mod blocking;
 
 
 pub use hopsworks_core::HopsworksClientBuilder;
@@ -151,6 +152,14 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// # Panics
 /// If no API key is provided via the `HOPSWORKS_API_KEY` environment variable or via the `api_key` field in the client builder.
-pub async fn login(client_builder: Option<HopsworksClientBuilder>) -> Result<Project> {
-    hopsworks_core::login(client_builder).await
+pub async fn login(client_builder: Option<HopsworksClientBuilder>, multithreaded: bool) -> Result<Project> {
+    hopsworks_core::login(client_builder, multithreaded).await
+}
+
+#[cfg(feature = "blocking")]
+pub fn login_blocking(client_builder: Option<HopsworksClientBuilder>, multithreaded: bool) -> Result<Project> {
+    let rt = hopsworks_core::get_hopsworks_runtime(multithreaded);
+    let _guard = rt.enter();
+
+    rt.block_on(hopsworks_core::login(client_builder, multithreaded))
 }

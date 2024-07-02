@@ -21,5 +21,20 @@ pub async fn read_polars_from_online_store_via_sql(fg: &FeatureGroup) -> Result<
     read_polars_from_online_feature_store(&query, None).await
 }
 
+#[cfg(feature="blocking")]
+pub fn read_arrow_from_online_store_via_sql_blocking(fg: &FeatureGroup, multithreaded: bool) -> Result<(Vec<RecordBatch>, Arc<Schema>)> {
+    let rt = hopsworks_core::get_hopsworks_runtime(multithreaded).clone();
+    let _guard = rt.enter();
+    
+    rt.block_on(read_arrow_from_online_store_via_sql(fg))
+}
+
+#[cfg(feature="blocking")]
+pub fn read_polars_from_online_store_via_sql_blocking(fg: &FeatureGroup, multithreaded: bool) -> Result<DataFrame> {
+    let rt = hopsworks_core::get_hopsworks_runtime(multithreaded).clone();
+    let _guard = rt.enter();
+    
+    rt.block_on(read_polars_from_online_store_via_sql(fg))
+}
 
 

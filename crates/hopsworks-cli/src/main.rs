@@ -52,7 +52,8 @@ async fn main() -> Result<()> {
             hopsworks_client_builder.with_project_name(args.project.unwrap().as_str());
     }
 
-    let current_project = hopsworks_core::login(Some(hopsworks_client_builder)).await?;
+    let multithreaded = false;
+    let current_project = hopsworks_core::login(Some(hopsworks_client_builder), multithreaded).await?;
 
     match args.command {
         HopsworksCliSubCommands::Project { command } => match command {
