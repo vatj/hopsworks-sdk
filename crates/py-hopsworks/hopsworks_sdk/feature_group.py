@@ -55,9 +55,9 @@ class FeatureGroup:
 
     @property
     def name(self) -> str:
-        return self._fg.name
+        return self._fg.name()
     
     @property
     def version(self) -> int:
-        return self._fg.version
+        return self._fg.version()
 

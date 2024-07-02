@@ -18,6 +18,7 @@ pub async fn produce_df(
     df: &mut polars::prelude::DataFrame,
 ) -> Result<()> {
     df.as_single_chunk_par();
+    
     let mut join_set = tokio::task::JoinSet::new();
     let schema = df.schema().to_arrow(false);
     let record = polars_arrow::io::avro::write::to_record(&schema, "".to_string())?;
@@ -27,6 +28,7 @@ pub async fn produce_df(
     let mut pk_iter = pk_df.column("hopsworks_pk")?.str()?.iter();
 
     for chunk in df.iter_chunks(false, true) {
+        debug!("Rayon threadpool: {:?}", rayon::current_num_threads());
         let mut serializers = chunk
             .iter()
             .zip(record.fields.iter())
@@ -72,7 +74,7 @@ pub async fn produce_df(
         progress_bar.inc(1);
     }
 
-    producer.flush(Duration::from_secs(1))?;
+    producer.flush(Duration::from_secs(5))?;
 
     Ok(())
 }

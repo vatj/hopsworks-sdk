@@ -11,12 +11,14 @@ color-eyre = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true, features = ["full"]}
-polars = { workspace = true }
+polars = { workspace = true}
+
 
 hopsworks-core = { workspace = true }
 
 polars-arrow = {version = "*", features = ["io_avro"]}
+rayon = { version = "*" }
 
 rdkafka = { version = "0.36.2", features = ["tokio", "libz", "ssl"] }
-apache-avro = { version = "0.16", features = ["derive"] }
+# apache-avro = { version = "0.16", features = ["derive"] }
 indicatif = { version = "0.17" }
