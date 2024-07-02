@@ -243,7 +243,7 @@ impl JobExecution {
 ///
 /// * Initializing
 /// * Running
-/// * Terminated
+/// * Finished
 /// * Failed
 ///
 /// The state of a job execution is represented by a string.
@@ -251,7 +251,7 @@ impl JobExecution {
 pub enum JobExecutionState {
     Initializing,
     Running,
-    Terminated,
+    Finished,
     Failed,
 }
 
@@ -260,7 +260,7 @@ impl From<String> for JobExecutionState {
         match state.as_str() {
             "INITIALIZING" => Self::Initializing,
             "RUNNING" => Self::Running,
-            "TERMINATED" => Self::Terminated,
+            "FINISHED" => Self::Finished,
             "FAILED" => Self::Failed,
             _ => panic!("Invalid job execution state: {}", state),
         }
@@ -272,7 +272,7 @@ impl fmt::Display for JobExecutionState {
         match self {
             Self::Initializing => write!(f, "Initializing"),
             Self::Running => write!(f, "Running"),
-            Self::Terminated => write!(f, "Terminated"),
+            Self::Finished => write!(f, "Finished"),
             Self::Failed => write!(f, "Failed"),
         }
     }

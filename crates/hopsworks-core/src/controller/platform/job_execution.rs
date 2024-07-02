@@ -68,7 +68,7 @@ pub async fn await_termination(job_name: &str, job_execution_id: i32) -> Result<
     while {
         let state = get_job_execution_by_id(job_name, job_execution_id).await?.state.to_lowercase();
         debug!("Job execution state: {}", state);
-        state != "terminated" && state != "failed" && state != "killed"
+        state != "finished" && state != "failed" && state != "killed"
     } {
         tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
     }
