@@ -4,6 +4,7 @@ use polars::lazy::dsl::Expr;
 use polars::prelude::*;
 use rdkafka::producer::{FutureProducer, Producer};
 use indicatif::ProgressBar;
+use tokio::task::JoinSet;
 use std::sync::Arc;
 use std::time::Duration;
 use std::vec;
@@ -19,44 +20,59 @@ pub async fn produce_df(
 ) -> Result<()> {
     df.as_single_chunk_par();
     
-    let mut join_set = tokio::task::JoinSet::new();
+    // let mut join_set = tokio::task::JoinSet::new();
     let schema = df.schema().to_arrow(false);
     let record = polars_arrow::io::avro::write::to_record(&schema, "".to_string())?;
-    
-    let pk_series_expr = pk_series_lazy_expr(schema, primary_keys)?;
-    let pk_df = df.clone().lazy().select(&[pk_series_expr]).collect()?;
-    let mut pk_iter = pk_df.column("hopsworks_pk")?.str()?.iter();
 
-    for chunk in df.iter_chunks(false, true) {
-        debug!("Rayon threadpool: {:?}", rayon::current_num_threads());
-        let mut serializers = chunk
+    // let pk_series_expr = pk_series_lazy_expr(schema, primary_keys)?;
+    // let pk_df = chunk.clone().lazy().select(&[pk_series_expr]).collect()?;
+    // let mut pk_iter = pk_df.column("hopsworks_pk")?.str()?.iter();
+    
+    let mut tasks: JoinSet<Result<()>> = tokio::task::JoinSet::new();
+    let progress_bar = Arc::new(ProgressBar::new(df.height() as u64));
+
+    for (idx, chunk) in  df.iter_chunks(false, true).enumerate() {
+        debug!("Processing chunk: {}", idx);
+        let progress_bar = progress_bar.clone();
+        let producer = producer.clone();
+        let topic_name = topic_name.clone();
+        let headers = headers.clone();
+        let record = record.clone();
+
+        tasks.spawn(async move {
+            let mut join_set = tokio::task::JoinSet::new();
+
+            let mut serializers = chunk
             .iter()
             .zip(record.fields.iter())
             .map(|(array, field)| polars_arrow::io::avro::write::new_serializer(array.as_ref(), &field.schema))
             .collect::<Vec<_>>();
 
-        for _ in 0..chunk.len() {
-            let mut data: Vec<u8> = vec![];
-            let composite_key = pk_iter.next().unwrap().unwrap().to_string();
-            for serializer in &mut *serializers {
-                let item_data = serializer.next().unwrap();
-                data.extend(item_data);
-            }
 
-            // Need to clone the values to move them into the spawned thread
-            // Thanks to Arc no data should be copied
-            let producer = producer.clone();
-            let topic_name = topic_name.clone();
-            let headers = headers.clone();
+            for _ in 0..chunk.len() {
+                let mut data: Vec<u8> = vec![];
+                // let composite_key = pk_iter.next().unwrap().unwrap().to_string();
+                let composite_key = "bob";
+                for serializer in &mut *serializers {
+                    let item_data = serializer.next().unwrap();
+                    data.extend(item_data);
+                }
 
-            join_set.spawn(async move {
+                // Need to clone the values to move them into the spawned thread
+                // Thanks to Arc no data should be copied
+                let producer = producer.clone();
+                let topic_name = topic_name.clone();
+                let headers = headers.clone();
+
+                join_set.spawn(async move {
+            
                 let produce_future = producer.send(
-                    make_future_record_from_encoded(
-                        &composite_key,
+                make_future_record_from_encoded(
+                        composite_key,
                         &data,
                         &topic_name,
                         headers,
-                    )?,
+                    ),
                     Duration::from_secs(5),
                 );
 
@@ -64,14 +80,23 @@ pub async fn produce_df(
                     Ok(_delivery) => Ok(()),
                     Err((e, _)) => Err(color_eyre::Report::msg(e.to_string())),
                 }
-            });
+            });            
         }
-    }
 
-    let progress_bar = ProgressBar::new(df.height() as u64);
-    while let Some(res) = join_set.join_next().await {
+        while let Some(res) = join_set.join_next().await {
+            res??;
+            progress_bar.inc(1);
+        }
+
+        Ok(())
+        
+        });
+    }
+    let mut count = 0;
+    while let Some(res) = tasks.join_next().await {
         res??;
-        progress_bar.inc(1);
+        count += 1;
+        debug!("Chunk processed : {}", count);
     }
 
     producer.flush(Duration::from_secs(5))?;
