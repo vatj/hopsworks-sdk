@@ -1,68 +1,103 @@
 use color_eyre::Result;
+use log::debug;
+use polars::lazy::dsl::Expr;
+use polars::prelude::*;
 use rdkafka::producer::{FutureProducer, Producer};
 use indicatif::ProgressBar;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::task::JoinHandle;
-use apache_avro::Schema;
+use std::vec;
 
 use crate::helper::make_future_record_from_encoded;
-use crate::polars_row_to_avro::convert_df_row_to_avro_record;
 
 pub async fn produce_df(
     headers: rdkafka::message::OwnedHeaders,
     topic_name: Arc<String>,
-    primary_keys: &[&str],
-    avro_schema: Schema,
+    primary_keys: Vec<&str>,
     producer: &FutureProducer,
     df: &mut polars::prelude::DataFrame,
 ) -> Result<()> {
     df.as_single_chunk_par();
+    
+    let mut join_set = tokio::task::JoinSet::new();
+    let schema = df.schema().to_arrow(false);
+    let record = polars_arrow::io::avro::write::to_record(&schema, "".to_string())?;
+    
+    let pk_series_expr = pk_series_lazy_expr(schema, primary_keys)?;
+    let pk_df = df.clone().lazy().select(&[pk_series_expr]).collect()?;
+    let mut pk_iter = pk_df.column("hopsworks_pk")?.str()?.iter();
 
-    let column_names: Vec<&str> = df.get_column_names();
-    let mut row = df.get_row(0)?;
+    for chunk in df.iter_chunks(false, true) {
+        debug!("Rayon threadpool: {:?}", rayon::current_num_threads());
+        let mut serializers = chunk
+            .iter()
+            .zip(record.fields.iter())
+            .map(|(array, field)| polars_arrow::io::avro::write::new_serializer(array.as_ref(), &field.schema))
+            .collect::<Vec<_>>();
 
-    let mut handles: Vec<JoinHandle<Result<()>>> = Vec::new();
-
-    for idx in 0..df.height() {
-        df.get_row_amortized(idx, &mut row)?;
-        let (record, composite_key) =
-            convert_df_row_to_avro_record(&avro_schema, &column_names, primary_keys, &row)?;
-        let encoded_payload = apache_avro::to_avro_datum(&avro_schema, record)?;
-
-        // // Need to clone the values to move them into the spawned thread
-        // // Thanks to Arc no data should be copied
-        let producer = producer.clone();
-        let topic_name = topic_name.clone();
-        let headers = headers.clone();
-
-        let handle = tokio::spawn(async move {
-            let produce_future = producer.send(
-                make_future_record_from_encoded(
-                    &composite_key,
-                    &encoded_payload,
-                    &topic_name,
-                    headers,
-                )?,
-                Duration::from_secs(5),
-            );
-
-            match produce_future.await {
-                Ok(_delivery) => Ok(()),
-                Err((e, _)) => Err(color_eyre::Report::msg(e.to_string())),
+        for _ in 0..chunk.len() {
+            let mut data: Vec<u8> = vec![];
+            let composite_key = pk_iter.next().unwrap().unwrap().to_string();
+            for serializer in &mut *serializers {
+                let item_data = serializer.next().unwrap();
+                data.extend(item_data);
             }
-        });
 
-        handles.push(handle);
+            // Need to clone the values to move them into the spawned thread
+            // Thanks to Arc no data should be copied
+            let producer = producer.clone();
+            let topic_name = topic_name.clone();
+            let headers = headers.clone();
+
+            join_set.spawn(async move {
+                let produce_future = producer.send(
+                    make_future_record_from_encoded(
+                        &composite_key,
+                        &data,
+                        &topic_name,
+                        headers,
+                    )?,
+                    Duration::from_secs(5),
+                );
+
+                match produce_future.await {
+                    Ok(_delivery) => Ok(()),
+                    Err((e, _)) => Err(color_eyre::Report::msg(e.to_string())),
+                }
+            });
+        }
     }
 
     let progress_bar = ProgressBar::new(df.height() as u64);
-    for handle in handles {
+    while let Some(res) = join_set.join_next().await {
+        res??;
         progress_bar.inc(1);
-        handle.await??;
     }
 
-    producer.flush(Duration::from_secs(1))?;
+    producer.flush(Duration::from_secs(5))?;
 
     Ok(())
+}
+
+use std::ops::Add;
+
+fn pk_series_lazy_expr(schema: ArrowSchema, primary_keys: Vec<&str>) -> Result<Expr> {
+    let mut polars_expr: Vec<Expr> = schema.fields
+        .iter()
+        .filter(|field| primary_keys.contains(&field.name.as_str()))
+        .map(|field| match field.data_type() {
+            ArrowDataType::LargeUtf8 => col(&field.name),
+            ArrowDataType::Utf8 => col(&field.name),
+            ArrowDataType::Utf8View => col(&field.name),
+            _ => col(&field.name).cast(DataType::String),
+        })
+        .collect::<Vec<_>>();
+
+    debug!("polars_expr: {:?}", polars_expr);
+    
+    let mut sum_expr: Expr = polars_expr.pop().unwrap();
+    while let Some(col_expr) = polars_expr.pop() {
+        sum_expr = sum_expr.add(col_expr);
+    }
+    Ok(sum_expr.alias("hopsworks_pk"))
 }

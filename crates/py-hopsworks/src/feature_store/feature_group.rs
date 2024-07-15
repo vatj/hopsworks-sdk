@@ -113,12 +113,15 @@ impl PyFeatureGroup {
     }
 
     #[cfg(feature="insert_into_kafka")]
-    fn insert_polars_df_into_kafka(&mut self, df: PyDataFrame) -> PyResult<PyJobExecution> {
+    fn insert_polars_df_into_kafka(&mut self, py: Python<'_>, df: PyDataFrame) -> PyResult<PyJobExecution> {
         let before = std::time::Instant::now();
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
         let mut dataframe: DataFrame = df.into();
-        let job_execution = hopsworks_api::kafka::insert_polars_df_into_kafka_blocking(&mut dataframe, &self.fg, multithreaded)?;
-        debug!("Inserting into Kafka via rust took: {:?}", before.elapsed());
-        Ok(PyJobExecution::from(job_execution))
+        let job_execution = py.allow_threads(move || {
+            hopsworks_api::kafka::insert_polars_df_into_kafka_blocking(&mut dataframe, &self.fg, multithreaded)
+        });
+        debug!("Inserting into Kafka via rust took: {:?}", before.elapsed()); 
+        Ok(PyJobExecution::from(job_execution?))
+        
     }
 }

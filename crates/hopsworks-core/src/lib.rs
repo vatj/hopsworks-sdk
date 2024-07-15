@@ -115,7 +115,11 @@ pub fn get_logical_cpus() -> usize {
     if NUM_LOGICAL_CPUS.initialized() {
         *NUM_LOGICAL_CPUS.get().unwrap()
     } else {
-        let num_logical_cpus = std::thread::available_parallelism().unwrap().get();
+        let env_requested_threads = std::env::var("HOPSWORKS_NUM_THREADS")
+            .ok()
+            .and_then(|s| s.parse::<usize>().ok());
+        let num_logical_cpus = env_requested_threads.unwrap_or(std::thread::available_parallelism().unwrap().get());
+        debug!("Detected {} logical CPUs", num_logical_cpus);
         NUM_LOGICAL_CPUS.set(num_logical_cpus).unwrap();
         num_logical_cpus
     }
@@ -126,7 +130,7 @@ pub fn get_threaded_runtime_num_worker_threads() -> usize {
         *THREADED_RUNTIME_NUM_WORKER_THREADS.get().unwrap()
     } else {
         let num_worker_threads = get_logical_cpus();
-        THREADED_RUNTIME_NUM_WORKER_THREADS.set(num_worker_threads).unwrap();
+        THREADED_RUNTIME_NUM_WORKER_THREADS.set(2 * num_worker_threads).unwrap();
         num_worker_threads
     }
 }
@@ -144,6 +148,7 @@ pub fn get_threaded_runtime() -> &'static Arc<tokio::runtime::Runtime> {
                 .build()
                 .unwrap()
             )).unwrap();
+        debug!("Initialized multi-threaded runtime with {} worker threads", num_worker_threads);
         THREADED_RUNTIME.get().unwrap()
     }
 }
