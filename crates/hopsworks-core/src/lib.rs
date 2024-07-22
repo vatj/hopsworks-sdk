@@ -130,7 +130,7 @@ pub fn get_threaded_runtime_num_worker_threads() -> usize {
         *THREADED_RUNTIME_NUM_WORKER_THREADS.get().unwrap()
     } else {
         let num_worker_threads = get_logical_cpus();
-        THREADED_RUNTIME_NUM_WORKER_THREADS.set(2 * num_worker_threads).unwrap();
+        THREADED_RUNTIME_NUM_WORKER_THREADS.set(num_worker_threads).unwrap();
         num_worker_threads
     }
 }

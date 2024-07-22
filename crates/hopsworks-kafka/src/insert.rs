@@ -51,7 +51,7 @@ pub async fn insert_in_registered_feature_group(
         headers,
         topic_name,
         primary_keys.to_vec(),
-        &future_producer,
+        future_producer,
         dataframe,
     )
     .await?;

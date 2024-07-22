@@ -1,5 +1,4 @@
 use color_eyre::Result;
-use rdkafka::producer::FutureProducer;
 use rdkafka::ClientConfig;
 
 use hopsworks_core::feature_store::storage_connector::FeatureStoreKafkaConnector;
@@ -8,7 +7,7 @@ use hopsworks_core::feature_store::storage_connector::FeatureStoreKafkaConnector
 pub async fn setup_future_producer(
     kafka_connector: FeatureStoreKafkaConnector,
     cert_dir: &str,
-) -> Result<FutureProducer> {
+) -> Result<ClientConfig> {
     let bootstrap_servers =
         std::env::var("HOPSWORKS_KAFKA_BROKERS").unwrap_or(kafka_connector.bootstrap_servers().to_string());
 
@@ -48,7 +47,7 @@ pub async fn setup_future_producer(
     tracing::info!("Setting up Hopsworks Kafka producer");
     tracing::debug!("Kafka producer config: {:#?}", config);
 
-    Ok(config.create()?)
+    Ok(config)
 }
 
 

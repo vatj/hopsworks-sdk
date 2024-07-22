@@ -13,6 +13,7 @@ env_logger = { workspace = true }
 tokio = { workspace = true, features = ["full", "tracing"]}
 polars = { workspace = true}
 tracing = { workspace = true }
+futures = { version = "0.3"}
 
 
 hopsworks-core = { workspace = true }

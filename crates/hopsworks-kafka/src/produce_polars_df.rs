@@ -1,82 +1,113 @@
 use color_eyre::Result;
+use hopsworks_core::get_threaded_runtime_num_worker_threads;
 use log::debug;
 use polars::lazy::dsl::Expr;
 use polars::prelude::*;
-use rdkafka::producer::{FutureProducer, Producer};
-use indicatif::ProgressBar;
+use rdkafka::producer::{FutureProducer, FutureRecord, Producer};
+use rdkafka::ClientConfig;
 use std::sync::Arc;
 use std::time::Duration;
 use std::vec;
-
-use crate::helper::make_future_record_from_encoded;
 
 pub async fn produce_df(
     headers: rdkafka::message::OwnedHeaders,
     topic_name: Arc<String>,
     primary_keys: Vec<&str>,
-    producer: &FutureProducer,
+    producer: ClientConfig,
     df: &mut polars::prelude::DataFrame,
 ) -> Result<()> {
+    tracing::debug!("Rechunks to a single chunk");
     df.as_single_chunk_par();
     
-    let mut join_set = tokio::task::JoinSet::new();
+    let mut join_set: tokio::task::JoinSet<Result<_>> = tokio::task::JoinSet::new();
     let schema = df.schema().to_arrow(false);
-    let record = polars_arrow::io::avro::write::to_record(&schema, "".to_string())?;
+    let record = Arc::new(polars_arrow::io::avro::write::to_record(&schema, "".to_string())?);
     
     let pk_series_expr = pk_series_lazy_expr(schema, primary_keys)?;
-    let pk_df = df.clone().lazy().select(&[pk_series_expr]).collect()?;
-    let mut pk_iter = pk_df.column("hopsworks_pk")?.str()?.iter();
+    let dfs = df
+        .clone()
+        .lazy()
+        .with_column(pk_series_expr)
+        .collect()?
+        .split_chunks_by_n(get_threaded_runtime_num_worker_threads(), true);
 
-    for (idx, chunk) in df.iter_chunks(false, true).enumerate() {
-        tracing::debug!("Processing chunk: {}", idx);
-        let start_time = std::time::Instant::now();
-        let mut serializers = chunk
-            .iter()
-            .zip(record.fields.iter())
-            .map(|(array, field)| polars_arrow::io::avro::write::new_serializer(array.as_ref(), &field.schema))
-            .collect::<Vec<_>>();
+    for (idx, frame) in dfs.iter().enumerate() {
+        let producer_config = producer.clone();
+        let topic_name = topic_name.clone();
+        let headers = headers.clone();
+        let record = record.clone();
 
-        for _ in 0..chunk.len() {
-            let mut data: Vec<u8> = vec![];
-            let composite_key = pk_iter.next().unwrap().unwrap().to_string();
-            for serializer in &mut *serializers {
-                let item_data = serializer.next().unwrap();
-                data.extend(item_data);
-            }
+        let (tx, rx) = tokio::sync::oneshot::channel::<DataFrame>();
+        tx.send(frame.clone()).unwrap();
+        
+        join_set.build_task().name(format!("insert_chunk_{idx}").as_str()).spawn(async move {
+            tracing::debug!("Processing chunk: {}", idx);
+            let producer: FutureProducer = producer_config.create()?;
+            tracing::debug!("Producer created");
+            let start_time = std::time::Instant::now();
+            let mut produced_handles = tokio::task::JoinSet::new();
+            let frame: DataFrame = rx.await?;
+            let chunk = frame
+                .select(
+                    frame
+                    .get_column_names()
+                    .into_iter()
+                    .filter(|name| name.eq(&"hopsworks_pk"))
+                )
+                .unwrap()
+                .iter_chunks(false, true)
+                .next()
+                .unwrap();
+            
+            let mut serializers = chunk
+                .iter()
+                .zip(record.fields.iter())
+                .map(|(array, field)| polars_arrow::io::avro::write::new_serializer(array.as_ref(), &field.schema))
+                .collect::<Vec<_>>();
+            let mut pk_iter = frame.column("hopsworks_pk")?.str()?.iter();
 
-            // Need to clone the values to move them into the spawned thread
-            // Thanks to Arc no data should be copied
-            let producer = producer.clone();
-            let topic_name = topic_name.clone();
-            let headers = headers.clone();
+            for _ in 0..chunk.len() {
+                let mut data: Vec<u8> = vec![];
+                let composite_key = pk_iter.next().unwrap().unwrap().to_string();
+                for serializer in &mut *serializers {
+                    let item_data = serializer.next().unwrap();
+                    data.extend(item_data);
+                }
 
-            join_set.spawn(async move {
-                let produce_future = producer.send(
-                    make_future_record_from_encoded(
-                        &composite_key,
-                        &data,
-                        &topic_name,
-                        headers,
-                    )?,
+                // Need to clone the values to move them into the spawned thread
+                // Thanks to Arc no data should be copied
+                let topic_name = topic_name.clone();
+                let headers = headers.clone();
+                let producer = producer.clone();
+
+                produced_handles.spawn(async move {
+                    let produce_future = producer.send(
+                    FutureRecord::to(topic_name.as_str())
+                        .payload(&data)
+                        .key(&composite_key)
+                        .headers(headers),
                     Duration::from_secs(5),
-                );
+                    );
 
                 match produce_future.await {
                     Ok(_delivery) => Ok(()),
                     Err((e, _)) => Err(color_eyre::Report::msg(e.to_string())),
                 }
-            });
-        }
-        tracing::debug!("Processed chunk {} with {} in {:?}sec", idx,  chunk.len(), start_time.elapsed());
+                });
+            }
+            while let Some(res) = produced_handles.join_next().await {
+                res??;
+            }
+            producer.flush(Duration::from_secs(5))?;
+            tracing::debug!("Processed chunk {} with {} in {:?}sec", idx,  chunk.len(), start_time.elapsed());
+            Ok(())
+        })?;
+        
     }
-
-    let progress_bar = ProgressBar::new(df.height() as u64);
+    
     while let Some(res) = join_set.join_next().await {
         res??;
-        progress_bar.inc(1);
     }
-
-    producer.flush(Duration::from_secs(5))?;
 
     Ok(())
 }
