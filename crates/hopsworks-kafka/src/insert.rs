@@ -12,6 +12,9 @@ use crate::kafka_producer::setup_future_producer;
 use crate::helper::make_custom_headers;
 use crate::produce_polars_df::produce_df;
 
+#[tracing::instrument(
+    skip(dataframe),
+    fields(df_rows = dataframe.height(), df_columns = dataframe.width()))]
 pub async fn insert_in_registered_feature_group(
     dataframe: &mut DataFrame,
     feature_store_id: i32,

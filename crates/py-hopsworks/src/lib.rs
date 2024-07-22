@@ -43,6 +43,12 @@ pub fn login(url: Option<&str>, api_key_value: Option<&str>, project_name: Optio
     Ok(PyProject::from(project))
 }
 
+#[pyfunction]
+pub fn init_subscriber() {
+    console_subscriber::init();
+    tracing::info!("Initialized subscriber");
+}
+
 #[pymodule]
 fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     refresh_logger();
@@ -53,5 +59,6 @@ fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(version))?;
     m.add_wrapped(wrap_pyfunction!(login))?;
     m.add_wrapped(wrap_pyfunction!(refresh_logger))?;
+    m.add_wrapped(wrap_pyfunction!(init_subscriber))?;
     Ok(())
 }

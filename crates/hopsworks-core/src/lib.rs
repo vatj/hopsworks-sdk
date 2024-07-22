@@ -119,7 +119,7 @@ pub fn get_logical_cpus() -> usize {
             .ok()
             .and_then(|s| s.parse::<usize>().ok());
         let num_logical_cpus = env_requested_threads.unwrap_or(std::thread::available_parallelism().unwrap().get());
-        debug!("Detected {} logical CPUs", num_logical_cpus);
+        tracing::debug!("Detected {} logical CPUs", num_logical_cpus);
         NUM_LOGICAL_CPUS.set(num_logical_cpus).unwrap();
         num_logical_cpus
     }
@@ -148,7 +148,7 @@ pub fn get_threaded_runtime() -> &'static Arc<tokio::runtime::Runtime> {
                 .build()
                 .unwrap()
             )).unwrap();
-        debug!("Initialized multi-threaded runtime with {} worker threads", num_worker_threads);
+        tracing::debug!("Initialized multi-threaded runtime with {} worker threads", num_worker_threads);
         THREADED_RUNTIME.get().unwrap()
     }
 }

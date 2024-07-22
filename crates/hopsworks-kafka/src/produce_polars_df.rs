@@ -27,8 +27,9 @@ pub async fn produce_df(
     let pk_df = df.clone().lazy().select(&[pk_series_expr]).collect()?;
     let mut pk_iter = pk_df.column("hopsworks_pk")?.str()?.iter();
 
-    for chunk in df.iter_chunks(false, true) {
-        debug!("Rayon threadpool: {:?}", rayon::current_num_threads());
+    for (idx, chunk) in df.iter_chunks(false, true).enumerate() {
+        tracing::debug!("Processing chunk: {}", idx);
+        let start_time = std::time::Instant::now();
         let mut serializers = chunk
             .iter()
             .zip(record.fields.iter())
@@ -66,6 +67,7 @@ pub async fn produce_df(
                 }
             });
         }
+        tracing::debug!("Processed chunk {} with {} in {:?}sec", idx,  chunk.len(), start_time.elapsed());
     }
 
     let progress_bar = ProgressBar::new(df.height() as u64);

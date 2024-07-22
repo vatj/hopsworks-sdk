@@ -4,6 +4,7 @@ use rdkafka::ClientConfig;
 
 use hopsworks_core::feature_store::storage_connector::FeatureStoreKafkaConnector;
 
+#[tracing::instrument]
 pub async fn setup_future_producer(
     kafka_connector: FeatureStoreKafkaConnector,
     cert_dir: &str,
@@ -44,6 +45,8 @@ pub async fn setup_future_producer(
             config.set_log_level(rdkafka::config::RDKafkaLogLevel::Debug);
         }
     }
+    tracing::info!("Setting up Hopsworks Kafka producer");
+    tracing::debug!("Kafka producer config: {:#?}", config);
 
     Ok(config.create()?)
 }
