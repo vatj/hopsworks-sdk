@@ -3,7 +3,7 @@ use hopsworks_core::get_threaded_runtime_num_worker_threads;
 use log::debug;
 use polars::lazy::dsl::Expr;
 use polars::prelude::*;
-use rdkafka::producer::{self, FutureProducer, FutureRecord, Producer};
+use rdkafka::producer::{FutureProducer, FutureRecord, Producer};
 use rdkafka::ClientConfig;
 use std::sync::Arc;
 use std::time::Duration;
@@ -40,7 +40,7 @@ pub async fn produce_df(
         let mut produced_handles = tokio::task::JoinSet::new();
         let mut counter = 0;
         // necessary to wait for the serializer to start
-        tokio::time::sleep(Duration::from_millis(100)).await;
+        tokio::time::sleep(Duration::from_millis(3000)).await;
         let start_time = std::time::Instant::now();
 
         while let Some((composite_key, data)) = recx.recv().await {
@@ -68,7 +68,7 @@ pub async fn produce_df(
             res??;
         }
         tracing::debug!("Flushing producer after {:?}", start_time.elapsed());
-        producer.flush(Duration::from_secs(20))?;
+        producer.flush(Duration::from_secs(120))?;
         tracing::debug!("Produced {} rows {:?} ", counter, start_time.elapsed());
 
         Ok(())
@@ -115,14 +115,15 @@ pub async fn produce_df(
                 trx.blocking_send((composite_key, data))?;
             }
             drop(trx);
-            tracing::debug!("Serialized chunk {} with {} in {:?}sec", idx,  chunk.len(), start_time.elapsed());
+            tracing::debug!("Serialized chunk {} with {} in {:?}", idx,  chunk.len(), start_time.elapsed());
             Ok(idx)
         })?;
     }
     while let Some(res) = join_set_serializer.join_next().await {
         let idx = res??;
-        tracing::debug!("Closing serializer thread {} in {:?}secs", idx, the_start_time.elapsed());
+        tracing::debug!("Closing serializer thread {} in {:?}", idx, the_start_time.elapsed());
     }
+    drop(trx);
     handle.await??;
     tracing::debug!("Closing producer after {:?}", the_start_time.elapsed());
 
