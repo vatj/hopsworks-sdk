@@ -4,7 +4,7 @@ use rdkafka::ClientConfig;
 use hopsworks_core::feature_store::storage_connector::FeatureStoreKafkaConnector;
 
 #[tracing::instrument]
-pub async fn setup_future_producer(
+pub fn setup_kafka_configuration(
     kafka_connector: FeatureStoreKafkaConnector,
     cert_dir: &str,
 ) -> Result<ClientConfig> {
@@ -62,7 +62,7 @@ mod tests {
         let cert_dir = "test_cert_dir";
 
         // Act
-        let result = setup_future_producer(kafka_connector, cert_dir).await;
+        let result = setup_kafka_configuration(kafka_connector, cert_dir);
 
         // Assert
         assert!(result.is_ok());

@@ -8,7 +8,7 @@ use hopsworks_core::controller::platform::job_execution;
 use hopsworks_core::controller::platform::kafka::get_kafka_topic_subject;
 use hopsworks_core::get_hopsworks_client;
 
-use crate::kafka_producer::setup_future_producer;
+use crate::kafka_producer::setup_kafka_configuration;
 use crate::helper::make_custom_headers;
 use crate::produce_polars_df::produce_df;
 
@@ -27,7 +27,7 @@ pub async fn insert_in_registered_feature_group(
 ) -> Result<JobExecution> {
     let kafka_connector =
         storage_connector::get_feature_store_kafka_connector(feature_store_id, true).await?;
-    let future_producer = setup_future_producer(kafka_connector, cert_dir).await?;
+    let future_producer = setup_kafka_configuration(kafka_connector, cert_dir).await?;
 
     let subject = get_kafka_topic_subject(format!("{}_{}", feature_group_name, feature_group_version).as_str(), None).await?;
     let project_id = get_hopsworks_client()
