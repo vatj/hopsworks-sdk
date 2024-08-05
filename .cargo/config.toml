@@ -1,3 +1,5 @@
 [env]
 HOPSWORKS_API_KEY = "YOUR_API_KEY"
 
+[build]
+rustflags = ["--cfg", "tokio_unstable"]
