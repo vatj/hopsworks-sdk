@@ -27,7 +27,7 @@ pub async fn insert_in_registered_feature_group(
 ) -> Result<JobExecution> {
     let kafka_connector =
         storage_connector::get_feature_store_kafka_connector(feature_store_id, true).await?;
-    let future_producer = setup_kafka_configuration(kafka_connector, cert_dir).await?;
+    let producer_config = setup_kafka_configuration(kafka_connector, cert_dir)?;
 
     let subject = get_kafka_topic_subject(format!("{}_{}", feature_group_name, feature_group_version).as_str(), None).await?;
     let project_id = get_hopsworks_client()
@@ -51,7 +51,7 @@ pub async fn insert_in_registered_feature_group(
         headers,
         topic_name,
         primary_keys.to_vec(),
-        future_producer,
+        producer_config,
         dataframe,
     )
     .await?;
