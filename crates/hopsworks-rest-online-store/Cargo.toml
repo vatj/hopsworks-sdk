@@ -1,0 +1,16 @@
+[package]
+name = "hopsworks-rest-online-store"
+edition = { workspace = true }
+version = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+color-eyre = { workspace = true }
+tokio = { workspace = true, features = ["full", "tracing"] }
+tracing = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+hopsworks-core = { workspace = true }
+polars = { workspace = true}

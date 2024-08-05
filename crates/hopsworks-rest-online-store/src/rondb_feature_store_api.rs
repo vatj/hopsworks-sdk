@@ -1,7 +1,7 @@
 use color_eyre::Result;
 use reqwest::Method;
 
-use crate::rondb_rest::get_rondb_rest_client;
+use crate::get_rondb_rest_client;
 use super::{entities::{BatchFeatureVectors, SingleFeatureVector}, payload::{BatchEntriesPayload, SingleEntryPayload}};
 
 pub async fn ping_rondb_rest_server() -> Result<()> {
