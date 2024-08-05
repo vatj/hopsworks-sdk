@@ -14,3 +14,7 @@ reqwest = { workspace = true }
 serde = { workspace = true }
 hopsworks-core = { workspace = true }
 polars = { workspace = true}
+
+typed-builder = { version = "0.19" }
+serde_json = { version = "1" }
+strum = { version = "0.26", features = ["derive"] }
