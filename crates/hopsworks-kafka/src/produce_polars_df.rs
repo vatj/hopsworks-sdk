@@ -97,7 +97,7 @@ async fn serialize_and_produce_chunk(
     headers: rdkafka::message::OwnedHeaders,
 ) -> Result<usize> {
     tracing::debug!("Processing chunk: {}", idx);
-    let frame: DataFrame = rx.blocking_recv()?;
+    let frame: DataFrame = rx.await?;
     let mut produced_handles = tokio::task::JoinSet::new();
     let start_time = std::time::Instant::now();
     let chunk = frame
