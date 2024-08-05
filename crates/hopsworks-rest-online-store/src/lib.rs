@@ -5,6 +5,7 @@ use tokio::sync::OnceCell;
 mod client;
 mod rondb_feature_store_api;
 mod entities;
+mod payload;
 
 use client::{OnlineStoreRestClient, OnlineStoreRestClientBuilder};
 
