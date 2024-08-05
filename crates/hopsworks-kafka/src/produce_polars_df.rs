@@ -31,60 +31,23 @@ pub async fn produce_df(
         .with_column(pk_series_expr)
         .collect()?
         .split_chunks_by_n(get_threaded_runtime_num_worker_threads(), true);
-
-    let (trx, mut recx) = tokio::sync::mpsc::channel::<(String,Vec<u8>)>(1000000);
-    
-    let handle: tokio::task::JoinHandle<Result<()>> = tokio::task::Builder::new().name("producer thread").spawn(async move {
-        let producer: FutureProducer = producer.create()?;
-        tracing::debug!("Producer created");
-        let mut produced_handles = tokio::task::JoinSet::new();
-        let mut counter = 0;
-        // necessary to wait for the serializer to start
-        tokio::time::sleep(Duration::from_millis(3000)).await;
-        let start_time = std::time::Instant::now();
-
-        while let Some((composite_key, data)) = recx.recv().await {
-            let producer = producer.clone();
-            let topic_name = topic_name.clone();
-            let headers = headers.clone();
-
-            produced_handles.spawn(async move {
-                let produce_future = producer.send(
-                    FutureRecord::to(topic_name.as_str())
-                        .payload(&data)
-                        .key(&composite_key)
-                        .headers(headers),
-                    Duration::from_secs(5),
-                );
-
-                match produce_future.await {
-                    Ok(_delivery) => Ok(()),
-                    Err((e, _)) => Err(color_eyre::Report::msg(e.to_string())),
-                }
-            });
-            counter += 1;
-        }
-        while let Some(res) = produced_handles.join_next().await {
-            res??;
-        }
-        tracing::debug!("Flushing producer after {:?}", start_time.elapsed());
-        producer.flush(Duration::from_secs(120))?;
-        tracing::debug!("Produced {} rows {:?} ", counter, start_time.elapsed());
-
-        Ok(())
-    })?;
-   
+    let producer: FutureProducer = producer.create()?;
+    tracing::debug!("Producer created");
+       
 
     for (idx, frame) in dfs.iter().enumerate() {
         let record = record.clone();
-        let trx = trx.clone();
 
         let (tx, rx) = tokio::sync::oneshot::channel::<DataFrame>();
         tx.send(frame.clone()).unwrap();
+        let producer = producer.clone();
+        let topic_name = topic_name.clone();
+        let headers = headers.clone();
         
-        join_set_serializer.build_task().name(format!("serialize_chunk_{idx}").as_str()).spawn_blocking(move || {
+        join_set_serializer.build_task().name(format!("serialize_chunk_{idx}").as_str()).spawn(async move {
             tracing::debug!("Processing chunk: {}", idx);
-            let frame: DataFrame = rx.blocking_recv()?;
+            let mut produced_handles = tokio::task::JoinSet::new();
+            let frame: DataFrame = rx.await?;
             let start_time = std::time::Instant::now();
             let chunk = frame
                 .select(
@@ -112,10 +75,34 @@ pub async fn produce_df(
                     let item_data = serializer.next().unwrap();
                     data.extend(item_data);
                 }
-                trx.blocking_send((composite_key, data))?;
+
+                let producer = producer.clone();
+                let topic_name = topic_name.clone();
+                let headers = headers.clone();
+
+                produced_handles.spawn(async move {
+                let produce_future = producer.send(
+                    FutureRecord::to(topic_name.as_str())
+                        .payload(&data)
+                        .key(&composite_key)
+                        .headers(headers),
+                    Duration::from_secs(5),
+                );
+
+                match produce_future.await {
+                    Ok(_delivery) => Ok(()),
+                    Err((e, _)) => Err(color_eyre::Report::msg(e.to_string())),
+                }
+                });
             }
-            drop(trx);
+            while let Some(res) = produced_handles.join_next().await {
+                res??;
+            }
             tracing::debug!("Serialized chunk {} with {} in {:?}", idx,  chunk.len(), start_time.elapsed());
+            tracing::debug!("Flushing producer after {:?}", start_time.elapsed());
+            producer.flush(Duration::from_secs(120))?;
+            tracing::debug!("Produced {} rows {:?} ", chunk.len(), start_time.elapsed());
+            
             Ok(idx)
         })?;
     }
@@ -123,8 +110,6 @@ pub async fn produce_df(
         let idx = res??;
         tracing::debug!("Closing serializer thread {} in {:?}", idx, the_start_time.elapsed());
     }
-    drop(trx);
-    handle.await??;
     tracing::debug!("Closing producer after {:?}", the_start_time.elapsed());
 
     Ok(())
