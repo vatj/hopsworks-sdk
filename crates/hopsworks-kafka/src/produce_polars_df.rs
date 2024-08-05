@@ -3,7 +3,9 @@ use hopsworks_core::get_threaded_runtime_num_worker_threads;
 use log::debug;
 use polars::lazy::dsl::Expr;
 use polars::prelude::*;
-use rdkafka::producer::{FutureProducer, FutureRecord, Producer};
+use rdkafka::error::KafkaError;
+use rdkafka::producer::{BaseProducer, BaseRecord, Producer};
+use rdkafka::types::RDKafkaErrorCode;
 use rdkafka::ClientConfig;
 use std::sync::Arc;
 use std::time::Duration;
@@ -81,38 +83,39 @@ pub async fn produce_df(
         })?;
 
         join_set_producer.build_task().name(format!("insert_chunk_{idx}").as_str()).spawn(async move {
-            let producer: FutureProducer = producer_config.create()?;
+            let producer: BaseProducer = producer_config.create()?;
             tracing::debug!("Producer created");
-            let mut produced_handles = tokio::task::JoinSet::new();
+
             let start_time = std::time::Instant::now();
 
             while let Some((composite_key, data)) = recx.recv().await {
-                let producer = producer.clone();
-                let topic_name = topic_name.clone();
-                let headers = headers.clone();
-
-                produced_handles.spawn(async move {
-                    let produce_future = producer.send(
-                        FutureRecord::to(topic_name.as_str())
-                            .payload(&data)
-                            .key(&composite_key)
-                            .headers(headers),
-                        Duration::from_secs(5),
-                    );
-
-                    match produce_future.await {
-                        Ok(_delivery) => Ok(()),
-                        Err((e, _)) => Err(color_eyre::Report::msg(e.to_string())),
-                    }
-                });
+                loop {
+                    match producer.send(
+                            BaseRecord::to(topic_name.as_str())
+                                .payload(&data)
+                                .key(&composite_key)
+                                .headers(headers.clone()),
+                        ) {
+                        Err((KafkaError::MessageProduction(RDKafkaErrorCode::QueueFull), _)) => {
+                            tracing::warn!("Queue full, retrying");
+                            producer.poll(Duration::from_millis(100));
+                            continue;
+                        }
+                        Err((e, _)) => {
+                            tracing::error!("Error {:?}", e);
+                            color_eyre::eyre::bail!("Error {:?}", e);
+                        }
+                        Ok(_) => {
+                            producer.poll(Duration::from_secs(0));
+                            break;
+                        },
+                    };
+                }
 
                 
             }
-            while let Some(res) = produced_handles.join_next().await {
-                res??;
-            }
             tracing::debug!("Flushing producer after {:?}", start_time.elapsed());
-            producer.flush(Duration::from_secs(20))?;
+            producer.flush(Duration::from_secs(120))?;
             tracing::debug!("Produced chunk {} in {:?} ", idx, start_time.elapsed());
 
             Ok(idx)
