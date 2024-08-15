@@ -6,6 +6,6 @@ pub async fn get_flyingduck_enabled() -> Result<bool> {
     service::get_flyingduck_enabled().await
 }
 
-pub async fn get_loadbalancer_external_domain() -> Result<String> {
-    service::get_loadbalancer_external_domain().await
+pub async fn get_loadbalancer_external_domain(service_name: &str) -> Result<String> {
+    service::get_loadbalancer_external_domain(service_name).await
 }
