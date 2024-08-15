@@ -8,7 +8,7 @@ use hopsworks_core::controller::platform::job_execution;
 use hopsworks_core::controller::platform::kafka::get_kafka_topic_subject;
 use hopsworks_core::get_hopsworks_client;
 
-use crate::kafka_producer::setup_kafka_configuration;
+use crate::kafka_configuration::setup_kafka_configuration;
 use crate::helper::make_custom_headers;
 use crate::produce_polars_df::produce_df;
 
