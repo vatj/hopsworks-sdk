@@ -27,7 +27,7 @@ pub async fn insert_in_registered_feature_group(
 ) -> Result<JobExecution> {
     let kafka_connector =
         storage_connector::get_feature_store_kafka_connector(feature_store_id, true).await?;
-    let producer_config = setup_kafka_configuration(kafka_connector, cert_dir)?;
+    let kafka_config = setup_kafka_configuration(kafka_connector, cert_dir)?;
 
     let subject = get_kafka_topic_subject(format!("{}_{}", feature_group_name, feature_group_version).as_str(), None).await?;
     let project_id = get_hopsworks_client()
@@ -51,17 +51,20 @@ pub async fn insert_in_registered_feature_group(
         headers,
         topic_name,
         primary_keys.to_vec(),
-        producer_config,
+        kafka_config.clone(),
         dataframe,
     )
     .await?;
+
+    let kafka_offsets = get_kafka_offsets(kafka_config, topic_name.as_str(), true)?;
 
     let job_name = format!(
         "{}_{}_offline_fg_materialization",
         feature_group_name, feature_group_version
     );
+    let job_args = format!(" -initialCheckpointString {topic_name}{kafka_offsets}", topic_name = topic_name, kafka_offsets = kafka_offsets);
 
     Ok(JobExecution::from(
-        job_execution::start_new_execution_for_named_job(job_name.as_str(), None).await?,
+        job_execution::start_new_execution_for_named_job(job_name.as_str(), Some(&job_args)).await?,
     ))
 }
