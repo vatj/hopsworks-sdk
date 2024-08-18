@@ -9,7 +9,7 @@ use hopsworks_core::controller::platform::kafka::get_kafka_topic_subject;
 use hopsworks_core::get_hopsworks_client;
 
 use crate::kafka_configuration::setup_kafka_configuration;
-use crate::helper::make_custom_headers;
+use crate::helper::{get_kafka_offsets, make_custom_headers};
 use crate::produce_polars_df::produce_df;
 
 #[tracing::instrument(
@@ -49,7 +49,7 @@ pub async fn insert_in_registered_feature_group(
 
     produce_df(
         headers,
-        topic_name,
+        topic_name.clone(),
         primary_keys.to_vec(),
         kafka_config.clone(),
         dataframe,
@@ -62,7 +62,7 @@ pub async fn insert_in_registered_feature_group(
         "{}_{}_offline_fg_materialization",
         feature_group_name, feature_group_version
     );
-    let job_args = format!(" -initialCheckpointString {topic_name}{kafka_offsets}", topic_name = topic_name, kafka_offsets = kafka_offsets);
+    let job_args = format!(" -initialCheckpointString {topic_name}{kafka_offsets}");
 
     Ok(JobExecution::from(
         job_execution::start_new_execution_for_named_job(job_name.as_str(), Some(&job_args)).await?,
