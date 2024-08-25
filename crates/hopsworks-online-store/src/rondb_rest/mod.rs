@@ -3,6 +3,7 @@ pub mod entities;
 mod client;
 mod rondb_feature_store_api;
 mod payload;
+pub mod rest_read_options;
 
 use color_eyre::Result;
 use reqwest::header::HeaderValue;
