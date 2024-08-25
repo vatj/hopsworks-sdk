@@ -8,31 +8,25 @@ repository = { workspace = true }
 
 [dependencies]
 color-eyre = { workspace = true }
-log = { workspace = true }
-env_logger = { workspace = true }
+tracing = { workspace = true }
 tokio = { workspace = true }
+hopsworks-core ={ workspace = true }
+
 polars = { workspace = true , optional = true}
 arrow = { workspace = true , optional = true}
+reqwest = { workspace = true, optional = true }
 
-hopsworks-core ={ workspace = true }
+
 hopsworks-kafka ={ workspace = true, optional = true}
 hopsworks-offline-store = { workspace = true, optional = true}
 hopsworks-online-store = { workspace = true, optional = true}
 
-# Debug and Error handling related dependencies
-anyhow = { version = "1.0" }
-tracing-log = { version = "0.2" }
-tracing-subscriber = { version = "0.3", default-features = false, features = [
-    "ansi",
-    "env-filter",
-    "fmt",
-] }
 
 [features]
 polars = ["dep:polars"]
 arrow = ["dep:arrow"]
 read_arrow_flight_offline_store = ["hopsworks-offline-store", "polars", "arrow"]
-read_rest_online_store = ["hopsworks-online-store/rest"]
+read_rest_online_store = ["hopsworks-online-store/rest", "reqwest"]
 read_sql_online_store = ["hopsworks-online-store/sql"]
 insert_into_kafka = ["hopsworks-kafka"]
 blocking = []

@@ -17,9 +17,8 @@ serde = { version = "1", features = ["derive", "rc"] }
 serde_json = { version = "1.0" }
 color-eyre = { version = "0.6" }
 log = { version = "0.4" }
-env_logger = { version = "0.11" }
 tokio = { version = "1.38", features = ["full", "tracing"] }
-console-subscriber = { version = "0.3" }
+console-subscriber = { version = "0.4" }
 tracing = { version = "0.1" }
 
 chrono = { version = "0.4" }
