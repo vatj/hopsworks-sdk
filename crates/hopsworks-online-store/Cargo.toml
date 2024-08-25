@@ -24,6 +24,7 @@ arrow = { workspace = true, optional = true}
 # Used in the rest api
 tracing = { version = "0.1", optional = true}
 # serde_json = { workspace = true, optional = true}
+typed-builder = { version = "0.20", optional = true}
 
 
 # Used by connectorx source code
@@ -58,4 +59,4 @@ connectorx_arrow = ["dep:arrow", "dep:fehler", "dep:anyhow", "dep:itertools"]
 sql = ["sql2arrow", "sql2polars"]
 sql2arrow = ["connectorx", "connectorx_sql_outdated", "connectorx_explicit", "connectorx_arrow"]
 sql2polars = ["sql2arrow", "dep:polars", "dep:polars-core", "dep:polars-arrow"]
-rest = ["dep:reqwest", "dep:tracing", "dep:serde_json"]
+rest = ["dep:reqwest", "dep:tracing", "dep:serde_json", "dep:typed-builder"]
