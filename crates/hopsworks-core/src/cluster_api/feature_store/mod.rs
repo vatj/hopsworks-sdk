@@ -27,7 +27,5 @@ pub(crate) struct FeatureStoreDTO {
     pub(crate) inode_id: Option<i32>,
     pub(crate) online_featurestore_name: String,
     pub(crate) online_featurestore_size: Option<f64>,
-    pub(crate) hive_endpoint: String,
-    pub(crate) mysql_server_endpoint: String,
     pub(crate) online_enabled: bool,
 }
