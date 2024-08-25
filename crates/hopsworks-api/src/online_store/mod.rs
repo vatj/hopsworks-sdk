@@ -11,6 +11,9 @@ use hopsworks_online_store::sql::{
 };
 use polars::frame::DataFrame;
 
+#[cfg(feature="read_rest_online_store")]
+use read_rest;
+
 pub async fn read_arrow_from_online_store_via_sql(fg: &FeatureGroup) -> Result<(Vec<RecordBatch>, Arc<Schema>)> {
     let query = fg.select_all();
     read_query_from_online_feature_store(&query, None).await

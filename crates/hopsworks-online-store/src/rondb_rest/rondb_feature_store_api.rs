@@ -10,19 +10,19 @@ pub async fn ping_rondb_rest_server() -> Result<()> {
 }
 
 pub async fn get_single_feature_vector(payload: SingleEntryPayload) -> Result<SingleFeatureVector> {
-    let resp = get_rondb_rest_client().await.request(Method::POST, "feature_store").await?.send();
+    let resp = get_rondb_rest_client().await.request(Method::POST, "feature_store").await?.send().await?;
 
-    match resp {
-        Ok(_) => Ok(SingleFeatureVector {}),
+    match resp.status {
+        Ok(reqwest::StatusCode::ACCEPTED) => Ok(resp.json::<SingleFeatureVector>().await?),
         _ => todo!()
     }
 }
 
 pub async fn get_batch_feature_vectors(payload: BatchEntriesPayload) -> Result<BatchFeatureVectors> {
-    let resp = get_rondb_rest_client().await.request(Method::POST, "batch_feature_vector").json().await?.send();
+    let resp = get_rondb_rest_client().await.request(Method::POST, "batch_feature_vector").json().await?.send().await?;
 
-    match resp {
-        Ok(_) => Ok(BatchFeatureVectors {}),
+    match resp.status() {
+        Ok(reqwest::StatusCode::ACCEPTED) => Ok(resp.json::<BatchFeatureVectors>().await?),
         _ => todo!()
     }
 }

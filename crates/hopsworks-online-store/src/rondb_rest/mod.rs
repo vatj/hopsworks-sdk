@@ -5,7 +5,7 @@ mod rondb_feature_store_api;
 mod payload;
 
 use color_eyre::Result;
-use log::debug;
+use tracing::debug;
 use tokio::sync::OnceCell;
 
 static RONDB_REST_CLIENT: OnceCell<RonDBClient> = OnceCell::const_new();

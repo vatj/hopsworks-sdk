@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use log::{debug, info, warn};
+use tracing::{debug, info, warn};
 use reqwest::{header::HeaderValue, Method};
 use std::{path::Path, sync::Arc};
 use tokio::sync::Mutex;
