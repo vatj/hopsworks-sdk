@@ -12,7 +12,7 @@ use hopsworks_online_store::sql::{
 use polars::frame::DataFrame;
 
 #[cfg(feature="read_rest_online_store")]
-mod rest_read;
+pub mod rest_read;
 
 pub async fn read_arrow_from_online_store_via_sql(fg: &FeatureGroup) -> Result<(Vec<RecordBatch>, Arc<Schema>)> {
     let query = fg.select_all();
