@@ -54,13 +54,8 @@ impl HopsworksArrowFlightClientBuilder {
     }
 
     async fn get_arrow_flight_url(&self) -> Result<String> {
-        let load_balancer_url = variables::get_loadbalancer_external_domain().await?;
-        debug!("Load balancer url: {}", load_balancer_url);
-        let load_balancer_url_from_env = std::env::var("HOPSWORKS_EXTERNAL_LOADBALANCER_URL");
-        let arrow_flight_url = format!(
-            "https://{}:5005",
-            load_balancer_url_from_env.unwrap_or(load_balancer_url)
-        );
+        let feature_query_hostname = variables::get_loadbalancer_external_domain("feature_query").await?;
+        let arrow_flight_url = format!("https://{}:5005", feature_query_hostname);
         debug!("Arrow flight url: {}", arrow_flight_url);
         Ok(arrow_flight_url)
     }

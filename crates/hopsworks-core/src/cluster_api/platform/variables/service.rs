@@ -17,12 +17,13 @@ pub async fn get_flyingduck_enabled() -> Result<bool> {
         == "true")
 }
 
-pub async fn get_loadbalancer_external_domain() -> Result<String> {
+pub async fn get_loadbalancer_external_domain(service: &str) -> Result<String> {
+    let path = format!("variables/loadbalancer_external_domain_{}", service);
     Ok(get_hopsworks_client()
         .await
         .request(
             Method::GET,
-            "variables/loadbalancer_external_domain",
+            &path,
             true,
             false,
         )

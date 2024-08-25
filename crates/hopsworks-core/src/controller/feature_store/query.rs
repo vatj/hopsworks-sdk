@@ -40,10 +40,7 @@ pub async fn build_mysql_connection_url_from_storage_connector(
         .connection_string()
         .replace("jdbc:", "");
     let end_range = connection_string[8..].find(':').unwrap();
-    let mut host = get_loadbalancer_external_domain().await?;
-    if host.is_empty() {
-        host = std::env::var("HOPSWORKS_EXTERNAL_HOST").unwrap();
-    }
+    let host = get_loadbalancer_external_domain("mysqld").await?;
     connection_string.replace_range(8..(end_range + 8), &host);
     connection_string = connection_string
         .replace(
