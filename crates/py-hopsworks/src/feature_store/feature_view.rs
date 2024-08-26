@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use pyo3::types::PyDict;
 use serde::{Deserialize, Serialize};
 
 #[pyclass]
@@ -29,13 +30,15 @@ impl PyFeatureView {
     }
 
     #[cfg(feature = "read_rest_online_store")]
-    pub fn get_feature_vector(&self, entry: serde_json::Value, passed_values: Option<serde_json::Value>, rest_read_options: Option<PyDict>) -> PyResult<hopsworks_api::online_store::rest_read::SingleFeatureVector> {
-        let entry = entry;
+    // #[pyo3(signature=(entry, passed_values=None, rest_read_options=None))]
+    pub fn get_feature_vector(&self, entry: &Bound<'_, PyDict>, passed_values: Option<&Bound<'_, PyDict>>, rest_read_options: Option<&Bound<'_, PyDict>>) -> PyResult<()> {
+        let entry = serde_json::Value(entry);
         let passed_values = passed_values;
         let rest_read_options = rest_read_options;
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
         let sfv = hopsworks_api::online_store::rest_read::get_feature_vector_blocking(self.fv.clone().into(), entry, passed_values, rest_read_options, multithreaded)?;
-        Ok(sfv)
+        tracing::info!("{:?}", sfv);
+        Ok(())
     }
 }
 
