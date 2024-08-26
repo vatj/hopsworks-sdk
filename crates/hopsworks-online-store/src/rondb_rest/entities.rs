@@ -1,10 +1,12 @@
+
 use serde::{Serialize, Deserialize};
 
+type FeatureValues = Vec<serde_json::Value>;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SingleFeatureVector {
-    features: serde_json::Value,
-    passed_values: Option<serde_json::Value>,
+    features: FeatureValues,
+    passed_values: Option<FeatureValues>,
     status: FeatureVectorStatus,
     metadata: Option<Vec<MetadataFeatureVector>>,
     detailed_status: Option<Vec<DetailedStatus>>,
@@ -12,8 +14,8 @@ pub struct SingleFeatureVector {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BatchFeatureVectors {
-    features: Vec<serde_json::Value>,
-    passed_values: Option<Vec<serde_json::Value>>,
+    features: Vec<FeatureValues>,
+    passed_values: Option<Vec<FeatureValues>>,
     status: Vec<FeatureVectorStatus>,
     metadata: Option<Vec<MetadataFeatureVector>>,
     detailed_status: Option<Vec<DetailedStatus>>,

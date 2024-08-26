@@ -5,6 +5,7 @@ use hopsworks_core::{controller::platform::variables::get_loadbalancer_external_
 use hopsworks_online_store::rondb_rest::controller;
 
 pub use hopsworks_online_store::rondb_rest::entities::{BatchFeatureVectors, SingleFeatureVector};
+pub use hopsworks_online_store::rondb_rest::{EntryValuesPayload, PassedValuesPayload};
 pub use hopsworks_online_store::rondb_rest::rest_read_options::FeatureVectorRestReadOptions;
 
 
@@ -15,11 +16,11 @@ pub async fn init_online_store_rest_client(api_key: &str, api_version: &str, req
     hopsworks_online_store::rondb_rest::init_online_store_rest_client(&url, header_value, api_version, reqwest_client)
 }
 
-pub async fn get_feature_vector(fview_obj: FeatureView, entry: serde_json::Value, passed_values: Option<serde_json::Value>, rest_read_options: Option<FeatureVectorRestReadOptions>) -> Result<SingleFeatureVector> {
+pub async fn get_feature_vector(fview_obj: FeatureView, entry: EntryValuePayload, passed_values: Option<Vec<serde_json::Value>>, rest_read_options: Option<FeatureVectorRestReadOptions>) -> Result<SingleFeatureVector> {
     controller::get_feature_vector(fview_obj.feature_store_id(), fview_obj.name(), fview_obj.version(), entry, passed_values, rest_read_options.unwrap_or_default()).await
 }
 
-pub async fn get_feature_vectors(fview_obj: FeatureView, entries: Vec<serde_json::Value>, passed_values: Option<Vec<serde_json::Value>>, rest_read_options: Option<FeatureVectorRestReadOptions>) -> Result<BatchFeatureVectors> {
+pub async fn get_feature_vectors(fview_obj: FeatureView, entries: Vec<EntryValuePayload>, passed_values: Option<Vec<PassedValuesPayload>>, rest_read_options: Option<FeatureVectorRestReadOptions>) -> Result<BatchFeatureVectors> {
     controller::get_feature_vectors(fview_obj.feature_store_id(), fview_obj.name(), fview_obj.version(), entries, passed_values, rest_read_options.unwrap_or_default()).await
 }
 
@@ -30,7 +31,7 @@ pub fn init_online_store_rest_client_blocking(api_key: &str, api_version: &str, 
 }
 
 #[cfg(feature = "blocking")]
-pub fn get_feature_vector_blocking(fview_obj: FeatureView, entry: serde_json::Value, passed_values: Option<serde_json::Value>, rest_read_options: Option<FeatureVectorRestReadOptions>, multithreaded: bool) -> Result<SingleFeatureVector> {
+pub fn get_feature_vector_blocking(fview_obj: FeatureView, entry: EntryValuesPayload, passed_values: Option<PassedValuesPayload>, rest_read_options: Option<FeatureVectorRestReadOptions>, multithreaded: bool) -> Result<SingleFeatureVector> {
     let rt = hopsworks_core::get_hopsworks_runtime(multithreaded);
     let _guard = rt.enter();
 
@@ -38,7 +39,7 @@ pub fn get_feature_vector_blocking(fview_obj: FeatureView, entry: serde_json::Va
 }
 
 #[cfg(feature = "blocking")]
-pub fn get_feature_vectors_blocking(fview_obj: FeatureView, entries: Vec<serde_json::Value>, passed_values: Option<Vec<serde_json::Value>>, rest_read_options: Option<FeatureVectorRestReadOptions>, multithreaded: bool) -> Result<BatchFeatureVectors> {
+pub fn get_feature_vectors_blocking(fview_obj: FeatureView, entries: Vec<EntryValuesPayload>, passed_values: Option<Vec<PassedValuesPayload>>, rest_read_options: Option<FeatureVectorRestReadOptions>, multithreaded: bool) -> Result<BatchFeatureVectors> {
     let rt = hopsworks_core::get_hopsworks_runtime(multithreaded);
     let _guard = rt.enter();
 

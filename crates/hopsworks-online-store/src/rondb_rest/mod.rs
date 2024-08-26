@@ -30,4 +30,8 @@ pub fn init_online_store_rest_client(url: &str, api_key: HeaderValue, api_versio
     Ok(())
 }
 
+// Type aliases for the entry payload
+pub type EntryValuesPayload = indexmap::IndexMap<String, serde_json::Value>;
+pub type PassedValuesPayload = indexmap::IndexMap<String, serde_json::Value>;
+
 

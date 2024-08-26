@@ -16,7 +16,7 @@ serde = { workspace = true }
 polars = { workspace = true , optional = true}
 arrow = { workspace = true , optional = true}
 reqwest = { workspace = true, optional = true }
-serde_json = { workspace = true, optional = true}
+indexmap = { workspace = true, optional = true}
 
 hopsworks-kafka ={ workspace = true, optional = true}
 hopsworks-offline-store = { workspace = true, optional = true}
@@ -27,7 +27,7 @@ hopsworks-online-store = { workspace = true, optional = true}
 polars = ["dep:polars"]
 arrow = ["dep:arrow"]
 read_arrow_flight_offline_store = ["hopsworks-offline-store", "polars", "arrow"]
-read_rest_online_store = ["hopsworks-online-store/rest", "reqwest", "serde_json"]
+read_rest_online_store = ["hopsworks-online-store/rest", "reqwest", "indexmap"]
 read_sql_online_store = ["hopsworks-online-store/sql"]
 insert_into_kafka = ["hopsworks-kafka"]
 blocking = []
