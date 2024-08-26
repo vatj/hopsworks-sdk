@@ -11,12 +11,13 @@ serde = { version = "1.0", features = ["derive"] }
 hopsworks-api = { workspace = true, features = ["polars"]}
 pyo3 = { version = "0.21", features = ["extension-module", "experimental-async", "eyre", "abi3-py38", "indexmap"] }
 pyo3-log = { version = "0.11" }
-pyo3-polars = { version = "0.15.0"}
+pyo3-polars = { version = "0.15"}
 tracing = { workspace = true }
 console-subscriber = { workspace = true }
 log = {workspace = true}
 color-eyre = {workspace = true}
 serde_json = {workspace = true}
+indexmap = {workspace = true, optional = true}
 
 # Maker optional with feature flags
 polars = { workspace = true }
@@ -31,4 +32,4 @@ default = ["hopsworks-api/blocking", "read_arrow_flight_offline_store", "insert_
 read_arrow_flight_offline_store = ["hopsworks-api/read_arrow_flight_offline_store"]
 insert_into_kafka = ["hopsworks-api/insert_into_kafka"]
 read_sql_online_store = ["hopsworks-api/read_sql_online_store"]
-read_rest_online_store = ["hopsworks-api/read_rest_online_store"]
+read_rest_online_store = ["hopsworks-api/read_rest_online_store", "indexmap"]

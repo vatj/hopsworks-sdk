@@ -1,5 +1,5 @@
 
-use rdkafka::{consumer::{BaseConsumer, Consumer}, message::{Header, OwnedHeaders}, metadata, ClientConfig};
+use rdkafka::{consumer::{BaseConsumer, Consumer}, message::{Header, OwnedHeaders}, ClientConfig};
 use color_eyre::Result;
 
 pub(crate) fn make_custom_headers(
