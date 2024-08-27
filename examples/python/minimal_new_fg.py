@@ -86,6 +86,6 @@ except Exception as e:
     print(e)
 
 # %%
-print("Delete feature group {local_fg.name}_v{local_fg.version}")
+print(f"Delete feature group {local_fg.name}_v{local_fg.version}")
 local_fg.delete()
 print("Feature group deleted")

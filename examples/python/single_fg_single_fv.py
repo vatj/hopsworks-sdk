@@ -1,5 +1,6 @@
 # %%
 from hopsworks_sdk import login
+from hopsworks_sdk.hopsworks_rs import init_subscriber
 import pathlib
 import os
 import toml
@@ -22,7 +23,12 @@ if config["env"].get("RUST_LOG", None):
     )
     logging.info("RUST_LOG set to %s", config["env"]["RUST_LOG"])
 
-project = login()
+init_subscriber()
+project = login(
+    api_key_value=os.environ["HOPSWORKS_API_KEY"],
+    url=config["env"]["HOPSWORKS_URL"],
+    project_name=config["env"]["HOPSWORKS_PROJECT_NAME"],
+)
 fs = project.get_feature_store()
 
 # %%
@@ -99,11 +105,11 @@ except Exception as e:
 
 
 # %%
-print("Delete feature group {local_fg.name}_v{local_fg.version}")
+print(f"Delete feature group {local_fg.name}_v{local_fg.version}")
 local_fg.delete()
 print("Feature group deleted")
 
 # %%
-print("Delete feature view {simple_fv.name}_v{simple_fv.version}")
+print(f"Delete feature view {simple_fv.name}_v{simple_fv.version}")
 simple_fv.delete()
 print("Feature view deleted")

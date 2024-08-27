@@ -59,7 +59,7 @@ class FeatureStore:
             self._fs.create_feature_view(
                 name=name,
                 version=version,
-                query=query,
+                query=query._pyquery,
                 description=description,
             )
         )
