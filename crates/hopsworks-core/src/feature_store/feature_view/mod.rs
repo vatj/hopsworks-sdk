@@ -177,6 +177,11 @@ impl FeatureView {
         &mut self.transformation_functions
     }
 
+    pub async fn delete(&self) -> Result<()> {
+        crate::controller::feature_store::feature_view::delete(self).await?;
+        Ok(())
+    }
+
     pub async fn get_batch_query_string(
         &self,
         batch_query_options: &BatchQueryOptions,
@@ -222,4 +227,6 @@ impl FeatureView {
         create_training_dataset_attached_to_feature_view(self).await?;
         Ok(())
     }
+
+
 }

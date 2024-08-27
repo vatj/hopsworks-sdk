@@ -32,7 +32,7 @@ polars = { version = "0.41", features = [
     "rows",
     "timezones",
 ] }
-arrow = { version = "52.2.0"}
+arrow = { version = "52" }
 reqwest = { version = "0.12", features = ["json", "native-tls", "stream"] }
 indexmap = { version = "2.4" }
 

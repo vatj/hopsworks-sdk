@@ -21,6 +21,12 @@ impl PyFeatureView {
         Ok(self.fv.version())
     }
 
+    fn delete(&self) -> PyResult<()> {
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        hopsworks_api::blocking::feature_view::delete_blocking(&self.fv, multithreaded)?;
+        Ok(())
+    }
+
     #[cfg(feature = "read_rest_online_store")]
     pub fn init_online_store_rest_client(&self, api_key: String, api_version: String) -> PyResult<()> {
         let api_key = api_key.as_str();

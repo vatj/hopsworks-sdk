@@ -19,6 +19,8 @@ use crate::cluster_api::feature_store::{
         transformation_function::TransformationFunctionDTO,
     };
 
+use super::feature;
+
 pub async fn create_feature_view(
     feature_store_id: i32,
     feature_store_name: &str,
@@ -114,4 +116,12 @@ pub fn features_to_transformed_features(
             )
         })
         .collect())
+}
+
+pub async fn delete(feature_view: &FeatureView) -> Result<()> {
+    feature_view::service::delete_feature_view_by_name_and_version(
+        feature_view.feature_store_id(), 
+        feature_view.name(), 
+        feature_view.version()
+    ).await
 }
