@@ -11,9 +11,9 @@ repository = { workspace = true }
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
 color-eyre = { workspace = true }
-log = { workspace = true }
 tokio = { workspace = true }
 env_logger = { version = "0.11" }
+tracing = { workspace = true }
 
 hopsworks-core = { workspace = true}
 

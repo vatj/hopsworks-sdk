@@ -17,7 +17,7 @@ os.environ["HOPSWORKS_API_KEY"] = config["env"]["HOPSWORKS_API_KEY"]
 
 
 if config["env"].get("RUST_LOG", None):
-    FORMAT = "%(levelname)s %(name)s %(asctime)-15s %(filename)s:%(lineno)d %(message)s"
+    FORMAT = "Python %(levelname)s %(name)s %(asctime)-15s %(filename)s:%(lineno)d %(message)s"
     logging.basicConfig(format=FORMAT)
     logging.getLogger().setLevel(
         logging.DEBUG if config["env"]["RUST_LOG"] else logging.INFO
@@ -33,7 +33,6 @@ project = login(
 fs = project.get_feature_store()
 
 # %%
-
 trans_df = pl.read_csv(
     "https://repo.hops.works/master/hopsworks-tutorials/data/card_fraud_data/transactions.csv",
     try_parse_dates=True,
