@@ -26,3 +26,11 @@ pub fn get_feature_view_blocking(fs: &FeatureStore, name: &str, version: Option<
 
     rt.block_on(fs.get_feature_view(name, version))
 }
+
+#[cfg(feature = "blocking")]
+pub fn create_feature_view_blocking(fs: &FeatureStore, name: &str, version: i32, query: String, description: Option<&str>, multithreaded: bool) -> Result<FeatureView> {
+    let rt = get_hopsworks_runtime(multithreaded).clone();
+    let _guard = rt.enter();
+
+    rt.block_on(fs.create_feature_view(name, version, query, None, description))
+}

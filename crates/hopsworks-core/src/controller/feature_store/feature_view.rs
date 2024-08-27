@@ -19,8 +19,6 @@ use crate::cluster_api::feature_store::{
         transformation_function::TransformationFunctionDTO,
     };
 
-use super::feature;
-
 pub async fn create_feature_view(
     feature_store_id: i32,
     feature_store_name: &str,
@@ -28,6 +26,7 @@ pub async fn create_feature_view(
     version: i32,
     query: &Query,
     transformation_functions: Option<HashMap<String, TransformationFunction>>,
+    description: Option<&str>,
 ) -> Result<FeatureView> {
     let transformation_functions = transformation_functions.unwrap_or_default();
     let (features, feature_groups) = query.features_and_feature_groups();
@@ -46,6 +45,7 @@ pub async fn create_feature_view(
                 QueryDTO::from(query),
                 Some(&query_string),
                 training_features,
+                description,
             ),
         )
         .await?,

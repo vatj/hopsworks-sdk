@@ -53,7 +53,8 @@ impl PyFeatureGroup {
 
     fn select(&self, features: Vec<String>) -> PyResult<PyQuery> {
         let features: Vec<&str> = features.iter().map(|s| s.as_str()).collect();
-        Ok(self.fg.select(&features)?.into())
+        let query = self.fg.select(&features)?;
+        Ok(PyQuery::from(query))
     }
 
     fn register_feature_group(&mut self, df: PyDataFrame) -> PyResult<()> {

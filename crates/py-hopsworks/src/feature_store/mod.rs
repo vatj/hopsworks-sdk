@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use query::PyQuery;
 
 pub mod feature_group;
 pub mod feature_view;
@@ -49,6 +50,19 @@ impl PyFeatureStore {
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
         let fv = hopsworks_api::blocking::feature_store::get_feature_view_blocking(&self.fs, name, version, multithreaded)?;
         Ok(fv.map(feature_view::PyFeatureView::from))
+    }
+
+    fn create_feature_view(&self, name: &str, version: i32, query: PyQuery, description: Option<&str>) -> PyResult<feature_view::PyFeatureView> {
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        let fv = hopsworks_api::blocking::feature_store::create_feature_view_blocking(
+            &self.fs, 
+            name, 
+            version, 
+            query.into(), 
+            description, 
+            multithreaded,
+        )?;
+        Ok(feature_view::PyFeatureView::from(fv))
     }
 }
 
