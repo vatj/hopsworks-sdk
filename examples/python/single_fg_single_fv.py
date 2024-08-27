@@ -15,6 +15,7 @@ print(config)
 
 os.environ["HOPSWORKS_API_KEY"] = config["env"]["HOPSWORKS_API_KEY"]
 
+
 if config["env"].get("RUST_LOG", None):
     FORMAT = "%(levelname)s %(name)s %(asctime)-15s %(filename)s:%(lineno)d %(message)s"
     logging.basicConfig(format=FORMAT)
@@ -98,7 +99,7 @@ except Exception as e:
 # %%
 try:
     print("Fetch real-time feature values for a given primary key entry")
-    feature_vector = simple_fv.get_feature_vector(entries={"cc_num": 4817626088411704})
+    feature_vector = simple_fv.get_feature_vector(entry={"cc_num": 4817626088411704})
     print("Got feature vector: ", feature_vector)
 except Exception as e:
     print(e)

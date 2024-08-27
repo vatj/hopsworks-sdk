@@ -279,6 +279,7 @@ impl HopsworksClient {
         }
     }
 
+    #[tracing::instrument]
     pub async fn request(
         &self,
         method: Method,

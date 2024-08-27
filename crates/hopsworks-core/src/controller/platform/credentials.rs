@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use log::debug;
+use tracing::debug;
 use std::path::Path;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;

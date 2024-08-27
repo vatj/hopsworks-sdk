@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use pyo3::prelude::*;
 use arrow::pyarrow::ToPyArrow;
 use pyo3_polars::PyDataFrame;

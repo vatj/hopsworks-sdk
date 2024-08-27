@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use log::debug;
+use tracing::debug;
 use std::sync::OnceLock;
 
 pub mod feature_store;

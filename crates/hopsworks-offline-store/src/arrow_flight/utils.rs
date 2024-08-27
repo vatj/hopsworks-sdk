@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use log::{debug, info};
+use tracing::{debug, info};
 use std::collections::HashMap;
 
 use crate::cluster_api::payloads::{

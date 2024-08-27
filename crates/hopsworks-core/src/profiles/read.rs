@@ -1,6 +1,6 @@
 use color_eyre::eyre::Result;
 use directories::BaseDirs;
-use log::debug;
+use tracing::debug;
 
 use super::{HopsworksProfileConfig, HopsworksTomlConfig};
 

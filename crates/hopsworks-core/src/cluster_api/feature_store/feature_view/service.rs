@@ -177,7 +177,7 @@ pub async fn delete_feature_view_by_name_and_version(feature_store_id: i32, feat
         .await
         .request(
             Method::DELETE,
-            format!("featurestores/{feature_store_id}/featureview/name/{feature_view_name}/version/{feature_view_version}").as_str(),
+            format!("featurestores/{feature_store_id}/featureview/{feature_view_name}/version/{feature_view_version}").as_str(),
             true,
             true,
         )
@@ -200,7 +200,7 @@ pub async fn delete_feature_view_by_name(feature_store_id: i32, feature_view_nam
         .await
         .request(
             Method::DELETE,
-            format!("featurestores/{feature_store_id}/featureview/name/{feature_view_name}").as_str(),
+            format!("featurestores/{feature_store_id}/featureview/{feature_view_name}").as_str(),
             true,
             true,
         )

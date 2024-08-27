@@ -20,11 +20,11 @@ class FeatureView:
         return fv_obj
     
     def init_online_store_rest_client(self, api_key: str, api_version: str = "0.1.0") -> None:
-        self._fv.init_online_store_rest_client(api_key=api_key, api_version=api_version, reqwest_client=None)
+        self._fv.init_online_store_rest_client(api_key=api_key, api_version=api_version)
 
-    def get_feature_vector(self, entries: Dict[str, Any], use_rest: bool = True) -> Dict[str, Any]:
+    def get_feature_vector(self, entry: Dict[str, Any], use_rest: bool = True) -> Dict[str, Any]:
         if use_rest:
-            return self._fv.get_feature_vector(entries=entries, _passed_values=None, _read_rest_options=None)
+            return self._fv.get_feature_vector(entry=entry, _passed_values=None, _rest_read_options=None)
         else:
             raise NotImplementedError("Only REST client is supported for get_feature_vector.")
     

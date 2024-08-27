@@ -88,7 +88,7 @@
 //! ```
 
 use color_eyre::Result;
-use log::debug;
+use tracing::debug;
 use tokio::sync::OnceCell;
 use std::sync::{Arc, OnceLock};
 

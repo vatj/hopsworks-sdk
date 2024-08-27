@@ -80,7 +80,7 @@ fn value_to_serde_value(ob: &Bound<PyAny>) -> color_eyre::Result<serde_json::Val
         let bool_val = ob.extract()?;
         return color_eyre::eyre::Ok(serde_json::Value::Bool(bool_val));
     } else if ob.is_instance_of::<PyInt>() {
-        let number_val: i32 = ob.extract()?;
+        let number_val: i64 = ob.extract()?;
         return color_eyre::eyre::Ok(serde_json::Value::Number(serde_json::Number::from(number_val)));
     } else if ob.is_instance_of::<PyString>() {
         let string_val = ob.extract()?;

@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use log::debug;
+use tracing::debug;
 use reqwest::Method;
 
 use crate::get_hopsworks_client;
