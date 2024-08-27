@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional, Union, List
 
 from hopsworks_sdk.hopsworks_rs import PyFeatureStore
-from hopsworks_sdk import feature_group
+from hopsworks_sdk import feature_group, feature_view, query
 
 class FeatureStore:
     _fs : PyFeatureStore
@@ -48,5 +48,18 @@ class FeatureStore:
                 primary_key=primary_key,
                 event_time=event_time,
                 online_enabled=online_enabled,
+            )
+        )
+    
+    def get_feature_view(self, name: str, version: Optional[int] = None) -> feature_group.FeatureGroup:
+        return feature_view.FeatureView._from_pyfv(self._fs.get_feature_view(name, version if version else 1))
+    
+    def create_feature_view(self, name: str, version: int, query: query.Query, description: Optional[str] = None) -> feature_view.FeatureView:
+        return feature_view.FeatureView._from_pyfv(
+            self._fs.create_feature_view(
+                name=name,
+                version=version,
+                query=query,
+                description=description,
             )
         )

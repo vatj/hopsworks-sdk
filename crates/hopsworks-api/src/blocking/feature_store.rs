@@ -1,6 +1,6 @@
 use color_eyre::Result;
 
-use hopsworks_core::feature_store::{FeatureStore, FeatureGroup, FeatureView};
+use hopsworks_core::feature_store::{FeatureStore, FeatureGroup, FeatureView, query::Query};
 use hopsworks_core::get_hopsworks_runtime;
 
 #[cfg(feature = "blocking")]
@@ -28,7 +28,7 @@ pub fn get_feature_view_blocking(fs: &FeatureStore, name: &str, version: Option<
 }
 
 #[cfg(feature = "blocking")]
-pub fn create_feature_view_blocking(fs: &FeatureStore, name: &str, version: i32, query: String, description: Option<&str>, multithreaded: bool) -> Result<FeatureView> {
+pub fn create_feature_view_blocking(fs: &FeatureStore, name: &str, version: i32, query: Query, description: Option<&str>, multithreaded: bool) -> Result<FeatureView> {
     let rt = get_hopsworks_runtime(multithreaded).clone();
     let _guard = rt.enter();
 
