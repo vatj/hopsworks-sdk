@@ -104,6 +104,9 @@ pub mod online_store;
 #[cfg(feature = "insert_into_kafka")]
 pub mod kafka;
 
+#[cfg(feature = "opensearch")]
+pub mod opensearch;
+
 #[cfg(feature = "blocking")]
 pub mod blocking;
 
