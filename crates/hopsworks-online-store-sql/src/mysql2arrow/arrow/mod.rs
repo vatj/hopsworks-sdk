@@ -13,7 +13,7 @@ pub mod typesystem;
 pub use self::errors::{ArrowDestinationError, Result};
 pub use self::typesystem::ArrowTypeSystem;
 use connectorx::prelude::{Consume, Destination, DestinationPartition};
-use crate::sql::mysql2arrow::constants::RECORD_BATCH_SIZE;
+use crate::mysql2arrow::constants::RECORD_BATCH_SIZE;
 use connectorx::data_order::DataOrder;
 use connectorx::typesystem::{Realize, TypeAssoc, TypeSystem};
 use anyhow::anyhow;

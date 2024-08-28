@@ -11,7 +11,7 @@ pub mod typesystem;
 
 use connectorx::prelude::{Consume, Destination, DestinationPartition};
 use polars_core::utils::accumulate_dataframes_vertical;
-use crate::sql::mysql2arrow::constants::RECORD_BATCH_SIZE;
+use super::constants::RECORD_BATCH_SIZE;
 use connectorx::data_order::DataOrder;
 use connectorx::typesystem::{Realize, TypeAssoc, TypeSystem};
 use anyhow::anyhow;

@@ -9,7 +9,7 @@ use arrow::datatypes::{DataType as ArrowDataType, TimeUnit};
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Utc};
 use fehler::throws;
 
-use crate::sql::mysql2arrow::constants::SECONDS_IN_DAY;
+use crate::mysql2arrow::constants::SECONDS_IN_DAY;
 
 /// Associate arrow builder with native type
 pub trait ArrowAssoc {

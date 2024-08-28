@@ -2,18 +2,18 @@ use color_eyre::Result;
 use reqwest::header;
 
 use hopsworks_core::{controller::platform::variables::get_loadbalancer_external_domain, feature_store::FeatureView};
-use hopsworks_online_store::rondb_rest::controller;
+use hopsworks_online_store_rest::controller;
 
-pub use hopsworks_online_store::rondb_rest::entities::{BatchFeatureVectors, SingleFeatureVector};
-pub use hopsworks_online_store::rondb_rest::{EntryValuesPayload, PassedValuesPayload};
-pub use hopsworks_online_store::rondb_rest::rest_read_options::FeatureVectorRestReadOptions;
+pub use hopsworks_online_store_rest::entities::{BatchFeatureVectors, SingleFeatureVector};
+pub use hopsworks_online_store_rest::{EntryValuesPayload, PassedValuesPayload};
+pub use hopsworks_online_store_rest::rest_read_options::FeatureVectorRestReadOptions;
 
 
 pub async fn init_online_store_rest_client(api_key: &str, api_version: &str, reqwest_client: Option<reqwest::Client>) -> Result<()> {
     let url = get_loadbalancer_external_domain("online_store_rest_server").await?;
     let header_value = header::HeaderValue::from_str(api_key)?;
 
-    hopsworks_online_store::rondb_rest::init_online_store_rest_client(&url, header_value, api_version, reqwest_client)
+    hopsworks_online_store_rest::init_online_store_rest_client(&url, header_value, api_version, reqwest_client)
 }
 
 pub async fn get_feature_vector(fview_obj: &FeatureView, entry: EntryValuesPayload, passed_values: Option<PassedValuesPayload>, rest_read_options: Option<FeatureVectorRestReadOptions>) -> Result<SingleFeatureVector> {

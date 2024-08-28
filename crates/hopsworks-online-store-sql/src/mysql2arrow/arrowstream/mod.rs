@@ -9,7 +9,7 @@ mod errors;
 mod funcs;
 pub mod typesystem;
 
-pub use crate::sql::mysql2arrow::arrowstream::errors::{ArrowDestinationError, Result};
+pub use super::arrowstream::errors::{ArrowDestinationError, Result};
 pub use self::typesystem::ArrowTypeSystem;
 use connectorx::prelude::{Consume, Destination, DestinationPartition};
 use connectorx::data_order::DataOrder;
@@ -28,7 +28,7 @@ use std::{
     },
 };
 
-use crate::sql::mysql2arrow::constants::RECORD_BATCH_SIZE;
+use super::constants::RECORD_BATCH_SIZE;
 
 type Builder = Box<dyn Any + Send>;
 type Builders = Vec<Builder>;

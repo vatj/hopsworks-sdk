@@ -39,7 +39,8 @@ hopsworks-api ={ path = "crates/hopsworks-api" }
 hopsworks-core = { path = "crates/hopsworks-core" }
 hopsworks-cli ={ path = "crates/hopsworks-cli" }
 hopsworks-offline-store = { path = "crates/hopsworks-offline-store" }
-hopsworks-online-store ={ path = "crates/hopsworks-online-store" }
+hopsworks-online-store-sql ={ path = "crates/hopsworks-online-store-sql" }
+hopsworks-online-store-rest ={ path = "crates/hopsworks-online-store-rest" }
 hopsworks-kafka ={ path = "crates/hopsworks-kafka" }
 py-hopsworks ={ path = "crates/py-hopsworks" }
 

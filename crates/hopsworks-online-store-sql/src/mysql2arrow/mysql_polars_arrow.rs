@@ -17,10 +17,10 @@ use std::marker::PhantomData;
 use thiserror::Error;
 
 
-use crate::sql::mysql2arrow::mysql::{
+use super::mysql::{
         BinaryProtocol, MySQLSource, MySQLSourceError, MySQLTypeSystem, TextProtocol,
     };
-use crate::sql::mysql2arrow::polars_arrow::{
+use super::polars_arrow::{
         typesystem::{PolarsArrowTypeSystem, NaiveDateTimeWrapperMicro, NaiveTimeWrapperMicro},
         PolarsArrowDestination, PolarsArrowDestinationError,
     };

@@ -2,7 +2,7 @@ use super::typesystem::{DateTimeWrapperMicro, NaiveDateTimeWrapperMicro, NaiveTi
 use polars_arrow::{array::{MutableBinaryArray, MutableBooleanArray, MutableListArray, MutableUtf8Array, MutableArray, MutablePrimitiveArray, TryPush}, datatypes::{ArrowDataType, Field, TimeUnit}};
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Utc};
 
-use crate::sql::mysql2arrow::constants::SECONDS_IN_DAY;
+use crate::mysql2arrow::constants::SECONDS_IN_DAY;
 
 /// Associate arrow builder with native type
 pub trait ArrowAssoc {

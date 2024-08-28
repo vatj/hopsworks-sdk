@@ -8,9 +8,9 @@ use hopsworks_core::feature_store::query::Query;
 use hopsworks_core::controller::feature_store::query::{build_mysql_connection_url_from_storage_connector, construct_query};
 
 use crate::OnlineReadOptions;
-use crate::sql::mysql2arrow::arrowstream::ArrowDestination;
-use crate::sql::mysql2arrow::mysql::{MySQLSource, BinaryProtocol};
-use crate::sql::mysql2arrow::mysql_arrowstream::MySQLArrowTransport;
+use crate::mysql2arrow::arrowstream::ArrowDestination;
+use crate::mysql2arrow::mysql::{MySQLSource, BinaryProtocol};
+use crate::mysql2arrow::mysql_arrowstream::MySQLArrowTransport;
 
 
 

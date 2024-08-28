@@ -9,14 +9,12 @@ repository = { workspace = true }
 [dependencies]
 color-eyre = { workspace = true }
 tokio = { workspace = true }
-reqwest = { workspace = true, optional = true }
+reqwest = { workspace = true }
 serde = { workspace = true }
-tracing = { version = "0.1", optional = true}
+tracing = { version = "0.1"}
 
 indexmap = { workspace = true, features = ["serde"]}
 typed-builder = { version = "0.20" }
+serde_json = { workspace = true }
 
 hopsworks-core = { workspace = true }
-
-
-[features]

@@ -2,7 +2,7 @@ use super::{
     errors::{ArrowDestinationError, Result},
     typesystem::{DateTimeWrapperMicro, NaiveDateTimeWrapperMicro, NaiveTimeWrapperMicro},
 };
-use crate::sql::mysql2arrow::constants::SECONDS_IN_DAY;
+use crate::mysql2arrow::constants::SECONDS_IN_DAY;
 use arrow::array::{
     ArrayBuilder, BooleanBuilder, Date32Builder, Float32Builder, Float64Builder, Int32Builder,
     Int64Builder, LargeBinaryBuilder, StringBuilder, Time64MicrosecondBuilder,

@@ -28,7 +28,7 @@ use sqlparser::dialect::MySqlDialect;
 use std::marker::PhantomData;
 pub use typesystem::MySQLTypeSystem;
 
-use crate::sql::mysql2arrow::constants::DB_BUFFER_SIZE;
+use crate::mysql2arrow::constants::DB_BUFFER_SIZE;
 
 type MysqlConn = PooledConnection<MySqlConnectionManager>;
 

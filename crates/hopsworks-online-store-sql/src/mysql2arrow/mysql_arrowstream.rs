@@ -18,11 +18,11 @@ use serde_json::{to_string, Value};
 use std::marker::PhantomData;
 use thiserror::Error;
 
-use crate::sql::mysql2arrow::arrowstream::{
+use super::arrowstream::{
         typesystem::ArrowTypeSystem, ArrowDestination, ArrowDestinationError,
     };
 
-use crate::sql::mysql2arrow::mysql::{
+use super::mysql::{
         BinaryProtocol, MySQLSource, MySQLSourceError, MySQLTypeSystem, TextProtocol,
     };
 

@@ -9,11 +9,11 @@ use connectorx::{
     impl_transport,
     typesystem::TypeConversion,
 };
-use crate::sql::mysql2arrow::arrow::{
+use super::arrow::{
         typesystem::{ArrowTypeSystem, NaiveDateTimeWrapperMicro, NaiveTimeWrapperMicro},
         ArrowDestination, ArrowDestinationError,
     };
-use crate::sql::mysql2arrow::mysql::{
+use super::mysql::{
         BinaryProtocol, MySQLSource, MySQLSourceError, MySQLTypeSystem, TextProtocol,
     };
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
