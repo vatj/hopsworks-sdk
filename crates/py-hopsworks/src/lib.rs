@@ -66,5 +66,6 @@ fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(login))?;
     m.add_wrapped(wrap_pyfunction!(refresh_logger))?;
     m.add_wrapped(wrap_pyfunction!(init_subscriber))?;
+    m.add_wrapped(wrap_pyfunction!(init_hopsworks_opensearch_client))?;
     Ok(())
 }

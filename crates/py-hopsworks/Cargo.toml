@@ -27,8 +27,9 @@ crate-type = ["cdylib"]
 name = "hopsworks_sdk"
 
 [features]
-default = ["hopsworks-api/blocking", "read_arrow_flight_offline_store", "insert_into_kafka", "read_sql_online_store", "read_rest_online_store"]
+default = ["hopsworks-api/blocking", "read_arrow_flight_offline_store", "insert_into_kafka", "read_sql_online_store", "read_rest_online_store", "opensearch"]
 read_arrow_flight_offline_store = ["hopsworks-api/read_arrow_flight_offline_store"]
 insert_into_kafka = ["hopsworks-api/insert_into_kafka"]
 read_sql_online_store = ["hopsworks-api/read_sql_online_store"]
 read_rest_online_store = ["hopsworks-api/read_rest_online_store", "indexmap"]
+opensearch = ["hopsworks-api/opensearch"]
