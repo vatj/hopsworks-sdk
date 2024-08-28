@@ -8,11 +8,9 @@ repository = { workspace = true }
 
 [dependencies]
 color-eyre = { workspace = true }
-log = { workspace = true }
-env_logger = { workspace = true }
+tracing = { workspace = true }
 tokio = { workspace = true, features = ["full", "tracing"]}
 polars = { workspace = true}
-tracing = { workspace = true }
 futures = { version = "0.3"}
 
 

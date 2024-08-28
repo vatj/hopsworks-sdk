@@ -34,6 +34,7 @@ impl NewFeatureViewPayload {
         query: QueryDTO,
         query_string: Option<&FeatureStoreQueryDTO>,
         features: Vec<TrainingDatasetFeatureDTO>,
+        description: Option<&str>
     ) -> Self {
         Self {
             dto_type: "featureViewDTO".to_owned(),
@@ -43,7 +44,7 @@ impl NewFeatureViewPayload {
             query_string: query_string.cloned(),
             featurestore_id: feature_store_id,
             featurestore_name: String::from(feature_store_name),
-            description: None,
+            description: description.map(String::from),
             location: "".to_owned(),
             features,
             keywords: None,

@@ -1,8 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Literal, Union
+from typing import TYPE_CHECKING, List, Literal, Union
 
 from hopsworks_sdk.hopsworks_rs import PyFeatureGroup
-from hopsworks_sdk import job_execution
+from hopsworks_sdk import job_execution, query
 
 if TYPE_CHECKING:
     import polars as pl
@@ -52,6 +52,9 @@ class FeatureGroup:
     
     def delete(self) -> None:
         self._fg.delete()
+
+    def select(self, features: List[str]) -> query.Query:
+        return query.Query._from_pyquery(self._fg.select(features))
 
     @property
     def name(self) -> str:

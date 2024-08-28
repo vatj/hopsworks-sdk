@@ -26,6 +26,7 @@ pub async fn create_feature_view(
     version: i32,
     query: &Query,
     transformation_functions: Option<HashMap<String, TransformationFunction>>,
+    description: Option<&str>,
 ) -> Result<FeatureView> {
     let transformation_functions = transformation_functions.unwrap_or_default();
     let (features, feature_groups) = query.features_and_feature_groups();
@@ -44,6 +45,7 @@ pub async fn create_feature_view(
                 QueryDTO::from(query),
                 Some(&query_string),
                 training_features,
+                description,
             ),
         )
         .await?,
@@ -114,4 +116,12 @@ pub fn features_to_transformed_features(
             )
         })
         .collect())
+}
+
+pub async fn delete(feature_view: &FeatureView) -> Result<()> {
+    feature_view::service::delete_feature_view_by_name_and_version(
+        feature_view.feature_store_id(), 
+        feature_view.name(), 
+        feature_view.version()
+    ).await
 }

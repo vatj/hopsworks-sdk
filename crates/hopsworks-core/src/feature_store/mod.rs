@@ -369,6 +369,7 @@ impl FeatureStore {
         version: i32,
         query: Query,
         transformation_functions: Option<HashMap<String, TransformationFunction>>,
+        description: Option<&str>,
     ) -> Result<FeatureView> {
         create_feature_view(
             self.feature_store_id(),
@@ -377,6 +378,7 @@ impl FeatureStore {
             version,
             &query,
             transformation_functions,
+            description,
         )
         .await
     }

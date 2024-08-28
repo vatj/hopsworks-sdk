@@ -8,8 +8,7 @@ repository = { workspace = true }
 
 [dependencies]
 color-eyre = { workspace = true }
-log = { workspace = true }
-env_logger = { workspace = true }
+tracing = { workspace = true }
 tokio = { workspace = true }
 polars ={ workspace = true }
 hopsworks-core = { workspace = true }

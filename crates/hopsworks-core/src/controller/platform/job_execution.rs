@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use log::debug;
+use tracing::debug;
 
 use crate::cluster_api::platform::job_execution::{self, JobExecutionDTO};
 

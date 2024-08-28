@@ -16,10 +16,8 @@ members = ["crates/*"]
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = { version = "1.0" }
 color-eyre = { version = "0.6" }
-log = { version = "0.4" }
-env_logger = { version = "0.11" }
-tokio = { version = "1.38", features = ["full", "tracing"] }
-console-subscriber = { version = "0.3" }
+tokio = { version = "1.39", features = ["full", "tracing"] }
+console-subscriber = { version = "0.4" }
 tracing = { version = "0.1" }
 
 chrono = { version = "0.4" }
@@ -33,14 +31,16 @@ polars = { version = "0.41", features = [
     "rows",
     "timezones",
 ] }
-arrow = { version = "52.0.0"}
+arrow = { version = "52" }
 reqwest = { version = "0.12", features = ["json", "native-tls", "stream"] }
+indexmap = { version = "2.4" }
 
 hopsworks-api ={ path = "crates/hopsworks-api" }
 hopsworks-core = { path = "crates/hopsworks-core" }
 hopsworks-cli ={ path = "crates/hopsworks-cli" }
 hopsworks-offline-store = { path = "crates/hopsworks-offline-store" }
-hopsworks-online-store ={ path = "crates/hopsworks-online-store" }
+hopsworks-online-store-sql ={ path = "crates/hopsworks-online-store-sql" }
+hopsworks-online-store-rest ={ path = "crates/hopsworks-online-store-rest" }
 hopsworks-kafka ={ path = "crates/hopsworks-kafka" }
 py-hopsworks ={ path = "crates/py-hopsworks" }
 

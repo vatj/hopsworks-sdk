@@ -11,7 +11,7 @@ pub mod feature;
 pub mod statistics_config;
 
 use color_eyre::Result;
-use log::debug;
+use tracing::debug;
 use serde::{Deserialize, Serialize};
 
 use crate::feature_store::{query::Query, FeatureStore};

@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use log::debug;
+use tracing::debug;
 use polars::prelude::DataFrame;
 use arrow::record_batch::RecordBatch;
 

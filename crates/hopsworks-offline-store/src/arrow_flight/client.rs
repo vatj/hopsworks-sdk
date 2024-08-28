@@ -4,7 +4,7 @@ use bytes::Bytes;
 use color_eyre::eyre::Ok;
 use color_eyre::Result;
 use futures::stream::{StreamExt, TryStreamExt};
-use log::{debug, info};
+use tracing::{debug, info};
 
 
 use std::time::Duration;

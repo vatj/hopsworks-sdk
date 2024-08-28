@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use log::debug;
+use tracing::debug;
 
 use crate::{
     controller::feature_store::query::construct_query,

@@ -1,0 +1,20 @@
+[package]
+name = "hopsworks-online-store-rest"
+edition = { workspace = true }
+version = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+color-eyre = { workspace = true }
+tokio = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+tracing = { version = "0.1"}
+
+indexmap = { workspace = true, features = ["serde"]}
+typed-builder = { version = "0.20" }
+serde_json = { workspace = true }
+
+hopsworks-core = { workspace = true }

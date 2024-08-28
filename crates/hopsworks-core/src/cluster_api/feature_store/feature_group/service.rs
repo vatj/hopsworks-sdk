@@ -116,7 +116,7 @@ pub async fn create_feature_group(
     }
 }
 
- pub async fn delete_feature_group(feature_store_id: i32, feature_group_id: i32) -> Result<()> {
+pub async fn delete_feature_group(feature_store_id: i32, feature_group_id: i32) -> Result<()> {
     let response = get_hopsworks_client()
         .await
         .request(
