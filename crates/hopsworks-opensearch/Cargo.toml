@@ -1,0 +1,18 @@
+[package]
+name = "hopsworks-opensearch"
+edition = { workspace = true }
+version = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+color-eyre = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+tracing = { version = "0.1"}
+
+opensearch = { version = "2.2" }
+
+typed-builder = { version = "0.20" }
+hopsworks-core = { workspace = true }
