@@ -1,5 +1,5 @@
 [package]
-name = "hopsworks-online-store"
+name = "hopsworks-online-store-sql"
 edition = { workspace = true }
 version = { workspace = true }
 authors = { workspace = true }
@@ -19,11 +19,6 @@ connectorx = { version = "0.3.3", optional = true}
 polars = { workspace = true, optional = true}
 
 arrow = { workspace = true, optional = true}
-
-# Used in the rest api
-indexmap = { workspace = true, optional = true, features = ["serde"]}
-typed-builder = { version = "0.20", optional = true}
-
 
 # Used by connectorx source code
 chrono = { workspace = true, optional = true, features = ["serde"]}
@@ -57,4 +52,3 @@ connectorx_arrow = ["dep:arrow", "dep:fehler", "dep:anyhow", "dep:itertools"]
 sql = ["sql2arrow", "sql2polars"]
 sql2arrow = ["connectorx", "connectorx_sql_outdated", "connectorx_explicit", "connectorx_arrow"]
 sql2polars = ["sql2arrow", "dep:polars", "dep:polars-core", "dep:polars-arrow"]
-rest = ["dep:reqwest", "dep:tracing", "dep:indexmap", "dep:typed-builder"]

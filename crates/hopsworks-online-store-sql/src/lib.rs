@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature="rest")]
-pub mod rondb_rest;
-#[cfg(feature="sql")]
-pub mod sql;
+mod mysql2arrow;
+pub mod read;
+
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub struct OnlineReadOptions {
