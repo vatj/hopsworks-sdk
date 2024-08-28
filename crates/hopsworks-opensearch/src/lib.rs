@@ -12,11 +12,12 @@ fn get_hopsworks_opensearch_client() -> Result<&'static OpenSearch> {
     }
 }
 
-#[tracing::instrument]
-pub fn init_hopsworks_opensearch_client(url: &str) -> Result<()> {
+#[tracing::instrument(skip(token))]
+pub fn init_hopsworks_opensearch_client(url: &str, token: &str) -> Result<()> {
     let url = Url::parse(url)?;
     let conn_pool = SingleNodeConnectionPool::new(url);
-    let transport = TransportBuilder::new(conn_pool).disable_proxy().build()?;
+    let bearer_token = opensearch::auth::Credentials::Bearer(token.to_string());
+    let transport = TransportBuilder::new(conn_pool).auth(bearer_token).disable_proxy().build()?;
     HOPSWORKS_OPENSEARCH_CLIENT.get_or_init(|| OpenSearch::new(transport));
     Ok(())
 }

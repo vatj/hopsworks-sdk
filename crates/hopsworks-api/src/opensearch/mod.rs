@@ -1,10 +1,12 @@
 use color_eyre::Result;
-use hopsworks_core::controller::platform::variables::get_loadbalancer_external_domain;
+use hopsworks_core::controller::platform::{variables::get_loadbalancer_external_domain, opensearch::get_opensearch_auth_token};
+
 use hopsworks_opensearch;
 
-pub async fn init_hopsworks_opensearch_client() -> Result<()> {
+pub async fn init_hopsworks_opensearch_client(project_id: i32) -> Result<()> {
     let opensearch_url = get_loadbalancer_external_domain("opensearch").await?;
-    hopsworks_opensearch::init_hopsworks_opensearch_client(&opensearch_url)?;
+    let opensearch_auth_token = get_opensearch_auth_token(project_id).await?;
+    hopsworks_opensearch::init_hopsworks_opensearch_client(&opensearch_url, &token)?;
     Ok(())
 }
 
