@@ -12,6 +12,7 @@ fn get_hopsworks_opensearch_client() -> Result<&'static OpenSearch> {
     }
 }
 
+#[tracing::instrument]
 pub fn init_hopsworks_opensearch_client(url: &str) -> Result<()> {
     let url = Url::parse(url)?;
     let conn_pool = SingleNodeConnectionPool::new(url);
