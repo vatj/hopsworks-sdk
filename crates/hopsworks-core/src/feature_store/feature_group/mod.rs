@@ -234,29 +234,29 @@ impl FeatureGroup {
     /// Returns the list of primary keys for the feature group.
     ///
     /// Note that order matters when building primary keys to access values from the online Feature Store.
-    pub fn primary_keys(&self) -> Result<Vec<&str>> {
+    pub fn primary_keys(&self) -> Vec<&str> {
         debug!(
             "Getting primary keys for feature group {}: {:?}",
             self.name(),
             self.primary_key
         );
-        Ok(self
+        self
             .primary_key
             .as_ref()
             .unwrap_or_else(|| panic!("Primary key not set for feature group {}", self.name()))
             .iter()
             .map(|pk| pk.as_str())
-            .collect())
+            .collect()
     }
 
-    pub fn primary_keys_owned(&self) -> Result<Vec<String>> {
-        Ok(self
+    pub fn primary_keys_owned(&self) -> Vec<String> {
+        self
             .primary_key
             .as_ref()
             .unwrap_or_else(|| panic!("Primary key not set for feature group {}", self.name()))
             .iter()
             .map(|pk| pk.to_owned())
-            .collect())
+            .collect()
     }
 
     /// Returns the feature with the given name if exists.

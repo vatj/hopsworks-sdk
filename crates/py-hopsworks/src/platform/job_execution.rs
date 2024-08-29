@@ -10,20 +10,20 @@ pub struct PyJobExecution {
 
 #[pymethods]
 impl PyJobExecution {
-    fn job_name(&self) -> PyResult<String> {
-        Ok(self.job_execution.job_name().to_string())
+    fn job_name(&self) -> String {
+        self.job_execution.job_name().to_string()
     }
 
-    fn id(&self) -> PyResult<i32> {
-        Ok(self.job_execution.id())
+    fn id(&self) -> i32 {
+        self.job_execution.id()
     }
 
-    fn state(&self) -> PyResult<String> {
-        Ok(self.job_execution.state().to_string())
+    fn state(&self) -> String {
+        self.job_execution.state().to_string()
     }
 
-    fn submission_time(&self) -> PyResult<String> {
-        Ok(self.job_execution.submission_time().to_string())
+    fn submission_time(&self) -> String {
+        self.job_execution.submission_time().to_string()
     }
 
     fn get_current_state(&self) -> PyResult<String> {

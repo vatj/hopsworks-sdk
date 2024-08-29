@@ -19,7 +19,7 @@ pub fn register_feature_group_if_needed_blocking(fg: &FeatureGroup, schema: Sche
             fg.name(), 
             fg.version(), 
             fg.description(), 
-            fg.primary_keys()?, 
+            fg.primary_keys(), 
             fg.event_time(), 
             schema, 
             fg.is_online_enabled()

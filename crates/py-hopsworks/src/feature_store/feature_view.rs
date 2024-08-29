@@ -13,12 +13,12 @@ pub struct PyFeatureView {
 
 #[pymethods]
 impl PyFeatureView {
-    pub fn name(&self) -> PyResult<String> {
-        Ok(self.fv.name().to_string())
+    pub fn name(&self) -> String {
+        self.fv.name().to_string()
     }
 
-    pub fn version(&self) -> PyResult<i32> {
-        Ok(self.fv.version())
+    pub fn version(&self) -> i32 {
+        self.fv.version()
     }
 
     fn delete(&self) -> PyResult<()> {

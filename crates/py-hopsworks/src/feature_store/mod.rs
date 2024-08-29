@@ -25,6 +25,10 @@ impl From<PyFeatureStore> for hopsworks_api::FeatureStore {
 
 #[pymethods]
 impl PyFeatureStore {
+    fn id(&self) -> i32 {
+        self.fs.id()
+    }
+
     fn get_feature_group(&self, name: &str, version: Option<i32>) -> PyResult<Option<feature_group::PyFeatureGroup>> {
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
         let fg = hopsworks_api::blocking::feature_store::get_feature_group_blocking(&self.fs, name, version, multithreaded)?;

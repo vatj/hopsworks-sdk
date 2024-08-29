@@ -49,12 +49,6 @@ pub fn init_subscriber() {
     tracing::info!("Initialized subscriber");
 }
 
-#[pyfunction]
-pub fn init_hopsworks_opensearch_client() -> PyResult<()> {
-    hopsworks_api::opensearch::init_hopsworks_opensearch_client_blocking(*MULTITHREADED.get().unwrap_or(&true))?;
-    Ok(())
-}
-
 #[pymodule]
 fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     refresh_logger();
@@ -66,6 +60,5 @@ fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(login))?;
     m.add_wrapped(wrap_pyfunction!(refresh_logger))?;
     m.add_wrapped(wrap_pyfunction!(init_subscriber))?;
-    m.add_wrapped(wrap_pyfunction!(init_hopsworks_opensearch_client))?;
     Ok(())
 }

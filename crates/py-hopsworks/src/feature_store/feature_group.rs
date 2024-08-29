@@ -31,24 +31,24 @@ impl From<PyFeatureGroup> for hopsworks_api::FeatureGroup {
 
 #[pymethods]
 impl PyFeatureGroup {
-    fn name(&self) -> PyResult<String> {
-        Ok(self.fg.name().to_string())
+    fn name(&self) -> String {
+        self.fg.name().to_string()
     }
 
-    fn version(&self) -> PyResult<i32> {
-        Ok(self.fg.version())
+    fn version(&self) -> i32 {
+        self.fg.version()
     }
 
-    fn description(&self) -> PyResult<Option<String>> {
-        Ok(self.fg.description().map(|s| s.to_string()))
+    fn description(&self) -> Option<String> {
+        self.fg.description().map(|s| s.to_string())
     }
 
-    fn primary_key(&self) -> PyResult<Vec<String>> {
-        Ok(self.fg.primary_keys()?.iter().map(|s| s.to_string()).collect())
+    fn primary_key(&self) -> Vec<String> {
+        self.fg.primary_keys().iter().map(|s| s.to_string()).collect()
     }
 
-    fn event_time(&self) -> PyResult<Option<String>> {
-        Ok(self.fg.event_time().map(|s| s.to_string()))
+    fn event_time(&self) -> Option<String> {
+        self.fg.event_time().map(|s| s.to_string())
     }
 
     fn select(&self, features: Vec<String>) -> PyResult<PyQuery> {

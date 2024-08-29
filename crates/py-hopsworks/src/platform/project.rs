@@ -23,18 +23,23 @@ impl From<PyProject> for hopsworks_api::Project {
 
 #[pymethods]
 impl PyProject {
-    fn name(&self) -> PyResult<String> {
-        Ok(self.project.name().to_string())
+    fn name(&self) -> String {
+        self.project.name().to_string()
     }
 
-    fn id(&self) -> PyResult<i32> {
-        Ok(self.project.id())
+    fn id(&self) -> i32 {
+        self.project.id()
     }
 
     fn get_feature_store(&self) -> PyResult<PyFeatureStore> {
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
         let fs = hopsworks_api::blocking::project::get_feature_store_blocking(&self.project, multithreaded)?;
         Ok(PyFeatureStore::from(fs))
+    }
+
+    fn init_hopsworks_opensearch_client(&self) -> PyResult<()> {
+        hopsworks_api::opensearch::init_hopsworks_opensearch_client_blocking(self.id(), *crate::MULTITHREADED.get().unwrap_or(&true))?;
+        Ok(())
     }
 }
 

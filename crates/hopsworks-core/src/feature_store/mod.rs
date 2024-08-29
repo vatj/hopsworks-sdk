@@ -149,6 +149,10 @@ impl FeatureStore {
     pub fn feature_store_id(&self) -> i32 {
         self.featurestore_id
     }
+
+    pub fn id(&self) -> i32 {
+        self.featurestore_id
+    }
 }
 
 impl From<FeatureStoreDTO> for FeatureStore {

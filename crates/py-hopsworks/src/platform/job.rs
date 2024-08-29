@@ -10,8 +10,8 @@ pub struct PyJob {
 
 #[pymethods]
 impl PyJob {
-    fn name(&self) -> PyResult<String> {
-        Ok(self.job.name().to_string())
+    fn name(&self) -> String {
+        self.job.name().to_string()
     }
 }
 
