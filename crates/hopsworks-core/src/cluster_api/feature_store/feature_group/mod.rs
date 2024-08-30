@@ -1,6 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-use crate::cluster_api::feature_store::{feature::FeatureDTO, statistics_config::StatisticsConfigDTO};
+use crate::cluster_api::feature_store::{
+    embedding::EmbeddingIndexDTO,
+    feature::FeatureDTO, 
+    statistics_config::StatisticsConfigDTO
+};
 use crate::cluster_api::platform::users::UserDTO;
 use crate::feature_store::feature_group::FeatureGroup;
 
@@ -27,6 +31,7 @@ pub struct FeatureGroupDTO {
     pub time_travel_format: String,
     pub online_topic_name: Option<String>,
     pub event_time: Option<String>,
+    pub embedding_index: Option<EmbeddingIndexDTO>,
 }
 
 impl From<&FeatureGroup> for FeatureGroupDTO {
@@ -68,6 +73,7 @@ impl From<&FeatureGroup> for FeatureGroupDTO {
             event_time: feature_group.event_time().map(|event_time| event_time.to_string()),
             online_enabled: feature_group.is_online_enabled(),
             time_travel_format: feature_group.time_travel_format().to_string(),
+            embedding_index: feature_group.embedding_index().map(EmbeddingIndexDTO::from),
         }
     }
 }

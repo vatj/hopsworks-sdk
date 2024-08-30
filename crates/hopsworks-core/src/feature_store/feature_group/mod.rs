@@ -27,6 +27,8 @@ use polars::prelude::DataFrame;
 #[cfg(feature = "polars")]
 use crate::controller::feature_store::feature_group;
 
+use super::embedding::embedding_index::EmbeddingIndex;
+
 /// Feature Group are metadata objects describing a table in the Feature Store.
 /// They are the primary interface through which one can ingest Feature data to the Feature Store.
 /// Once a Feature Group is created, one can insert/upsert data to it using the `insert` method.
@@ -83,6 +85,7 @@ pub struct FeatureGroup {
     online_topic_name: Option<String>,
     primary_key: Option<Vec<String>>,
     event_time: Option<String>,
+    embedding_index: Option<EmbeddingIndex>
 }
 
 impl FeatureGroup {
@@ -113,6 +116,7 @@ impl FeatureGroup {
             online_topic_name: None,
             primary_key: Some(primary_key.iter().map(|pk| pk.to_string()).collect()),
             event_time: event_time.map(String::from),
+            embedding_index: None
         }
     }
 }
@@ -150,6 +154,7 @@ impl From<FeatureGroupDTO> for FeatureGroup {
                 }
             }).collect()),
             event_time: feature_group_dto.event_time,
+            embedding_index: feature_group_dto.embedding_index.map(EmbeddingIndex::from)
         }
     }
 }
@@ -257,6 +262,14 @@ impl FeatureGroup {
             .iter()
             .map(|pk| pk.to_owned())
             .collect()
+    }
+
+    pub fn embedding_index(&self) -> Option<&EmbeddingIndex> {
+        self.embedding_index.as_ref()
+    }
+
+    pub fn embedding_index_mut(&mut self) -> &mut Option<EmbeddingIndex> {
+        &mut self.embedding_index
     }
 
     /// Returns the feature with the given name if exists.

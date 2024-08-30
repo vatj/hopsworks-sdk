@@ -23,5 +23,3 @@ pub fn init_hopsworks_opensearch_client(url: &str, token: &str) -> Result<()> {
     HOPSWORKS_OPENSEARCH_CLIENT.get_or_init(|| OpenSearch::new(transport));
     Ok(())
 }
-
-

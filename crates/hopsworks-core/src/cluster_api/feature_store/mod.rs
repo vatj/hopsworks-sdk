@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub(crate) mod service;
 
+pub(crate) mod embedding;
 pub(crate) mod feature;
 pub(crate) mod feature_group;
 pub(crate) mod feature_view;
@@ -10,6 +11,7 @@ pub(crate) mod statistics_config;
 pub(crate) mod storage_connector;
 pub(crate) mod training_dataset;
 pub(crate) mod transformation_function;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct FeatureStoreDTO {

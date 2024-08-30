@@ -17,6 +17,8 @@ serde_json = { workspace = true }
 polars ={ workspace = true, optional = true}
 tracing = { workspace = true }
 
+
+typed-builder = { version = "0.20.0" }
 indicatif = { version = "0.17" }
 chrono ={ version = "0.4", features = ["serde"] }
 toml = { version = "0.8" }
