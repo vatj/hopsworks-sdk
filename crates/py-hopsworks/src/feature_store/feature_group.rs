@@ -15,8 +15,6 @@ pub struct PyFeatureGroup {
     pub(crate) fg: hopsworks_api::FeatureGroup,
 }
 
-
-
 impl From<hopsworks_api::FeatureGroup> for PyFeatureGroup {
     fn from(fg: hopsworks_api::FeatureGroup) -> Self {
         Self { fg }

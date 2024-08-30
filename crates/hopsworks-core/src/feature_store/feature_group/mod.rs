@@ -15,7 +15,7 @@ use tracing::debug;
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
-use crate::feature_store::{query::Query, FeatureStore};
+use crate::feature_store::query::Query;
 use crate::util;
 use crate::cluster_api::feature_store::feature_group::FeatureGroupDTO;
 
@@ -68,6 +68,7 @@ use super::embedding::embedding_index::EmbeddingIndex;
 ///  }
 /// ```
 #[derive(Debug, Serialize, Deserialize, Clone, TypedBuilder)]
+#[builder(builder_method(vis="pub(super)"))]
 pub struct FeatureGroup {
     #[builder(setter(skip), default = None)]
     id: Option<i32>,
@@ -75,6 +76,7 @@ pub struct FeatureGroup {
     featurestore_name: String,
     #[builder(setter(skip), default = String::from("STREAM_FEATURE_GROUP"))]
     feature_group_type: String,
+    #[builder(default = None)]
     description: Option<String>,
     #[builder(setter(skip), default = String::from(""))]
     created: String,
@@ -94,7 +96,9 @@ pub struct FeatureGroup {
     #[builder(default = None, setter(skip))]
     online_topic_name: Option<String>,
     primary_key: Vec<String>,
+    #[builder(default = None)]
     event_time: Option<String>,
+    #[builder(default = None)]
     embedding_index: Option<EmbeddingIndex>
 }
 
@@ -292,6 +296,7 @@ impl FeatureGroup {
     ///  Ok(())
     /// }
     /// ```
+    #[tracing::instrument(skip(self))]
     pub fn select(&self, feature_names: &[&str]) -> Result<Query> {
         debug!(
             "Selecting features {:?} from feature group {} to build query object",
@@ -321,6 +326,7 @@ impl FeatureGroup {
     }
 
     #[cfg(feature = "polars")]
+    #[tracing::instrument(skip(self, dataframe), fields(schema = ?dataframe.schema()))]
     pub async fn register_feature_group(&mut self, dataframe: &DataFrame) -> Result<()> {
         if self.id().is_none() {
         let feature_group_dto = feature_group::save_feature_group_metadata(

@@ -34,6 +34,7 @@ impl EmbeddingIndex {
         }
     }
 
+    #[tracing::instrument(skip(self))]
     pub fn add_embedding_feature(&mut self, name: &str, embedding_feature: EmbeddingFeature) {
         if self.features.is_none() {
             self.features = Some(HashMap::new());

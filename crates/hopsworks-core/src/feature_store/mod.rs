@@ -5,7 +5,7 @@ pub mod query;
 pub mod storage_connector;
 pub mod embedding;
 
-pub use feature_group::{FeatureGroup, FeatureGroupBuilder};
+pub use feature_group::FeatureGroup;
 pub use feature_view::FeatureView;
 
 use color_eyre::Result;
@@ -22,6 +22,8 @@ use crate::controller::feature_store::{
 use feature_view::{training_dataset::TrainingDataset, transformation_function::TransformationFunction};
 use query::Query;
 use crate::cluster_api::feature_store::FeatureStoreDTO;
+
+pub type FeatureGroupBuilder = self::feature_group::FeatureGroupBuilder<((i32,), (std::string::String,), (), (), (), (), (), (), (), ())>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureStore {
@@ -319,19 +321,22 @@ impl FeatureStore {
         event_time: Option<&str>,
         online_enabled: bool,
     ) -> Result<FeatureGroup> {
-        Ok(FeatureGroup::new_local(
-            self,
-            name,
-            version,
-            description,
-            primary_key,
-            event_time,
-            online_enabled,
-        ))
+        let builder = FeatureGroup::builder()
+            .featurestore_id(self.featurestore_id)
+            .featurestore_name(self.featurestore_name.clone())
+            .name(String::from(name))
+            .version(version)
+            .primary_key(primary_key.iter().map(|s| String::from(*s)).collect())
+            .online_enabled(online_enabled)
+            .event_time(event_time.map(String::from));
+
+        Ok(builder.build())
     }
 
     pub fn feature_group_builder(&self) -> FeatureGroupBuilder {
         FeatureGroup::builder()
+            .featurestore_id(self.featurestore_id)
+            .featurestore_name(self.featurestore_name.clone())
     }
 
     /// Create a [`FeatureView`] with the given name and version. The [`FeatureView`] is the main interface to read data from the Feature Store,

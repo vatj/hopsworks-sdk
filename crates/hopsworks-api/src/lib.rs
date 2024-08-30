@@ -94,7 +94,12 @@ pub use hopsworks_core::platform::{
     job_execution::JobExecution,
 };
 pub use hopsworks_core::feature_store::{
-    FeatureStore, FeatureGroup, FeatureView, feature_view::training_dataset::TrainingDataset, query::Query,
+    FeatureStore, 
+    FeatureGroup, 
+    FeatureView, 
+    feature_view::training_dataset::TrainingDataset, 
+    query::Query, 
+    embedding::EmbeddingIndex,
 };
 
 #[cfg(feature = "read_arrow_flight_offline_store")]
