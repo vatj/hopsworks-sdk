@@ -13,6 +13,7 @@ pub mod statistics_config;
 use color_eyre::Result;
 use tracing::debug;
 use serde::{Deserialize, Serialize};
+use typed_builder::TypedBuilder;
 
 use crate::feature_store::{query::Query, FeatureStore};
 use crate::util;
@@ -66,59 +67,35 @@ use super::embedding::embedding_index::EmbeddingIndex;
 ///   Ok(())
 ///  }
 /// ```
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, TypedBuilder)]
 pub struct FeatureGroup {
+    #[builder(setter(skip), default = None)]
     id: Option<i32>,
     featurestore_id: i32,
     featurestore_name: String,
+    #[builder(setter(skip), default = String::from("STREAM_FEATURE_GROUP"))]
     feature_group_type: String,
     description: Option<String>,
+    #[builder(setter(skip), default = String::from(""))]
     created: String,
+    #[builder(setter(skip), default = None)]
     creator: Option<User>,
     version: i32,
     name: String,
+    #[builder(setter(skip), default = None)]
     location: Option<String>,
+    #[builder(default = None)]
     statistics_config: Option<StatisticsConfig>,
+    #[builder(setter(skip), default = Vec::new())]
     features: Vec<Feature>,
     online_enabled: bool,
+    #[builder(setter(skip), default = String::from("NONE"))]
     time_travel_format: String,
+    #[builder(default = None, setter(skip))]
     online_topic_name: Option<String>,
-    primary_key: Option<Vec<String>>,
+    primary_key: Vec<String>,
     event_time: Option<String>,
     embedding_index: Option<EmbeddingIndex>
-}
-
-impl FeatureGroup {
-    pub fn new_local(
-        feature_store: &FeatureStore,
-        name: &str,
-        version: i32,
-        description: Option<&str>,
-        primary_key: Vec<&str>,
-        event_time: Option<&str>,
-        online_enabled: bool,
-    ) -> Self {
-        Self {
-            featurestore_id: feature_store.featurestore_id,
-            featurestore_name: feature_store.featurestore_name.clone(),
-            feature_group_type: String::from("STREAM_FEATURE_GROUP"),
-            description: description.map(String::from),
-            created: String::from(""),
-            creator: None,
-            version,
-            name: String::from(name),
-            id: None,
-            location: None,
-            statistics_config: None,
-            features: Vec::new(),
-            online_enabled,
-            time_travel_format: String::from("NONE"),
-            online_topic_name: None,
-            primary_key: Some(primary_key.iter().map(|pk| pk.to_string()).collect()),
-            event_time: event_time.map(String::from),
-            embedding_index: None
-        }
-    }
 }
 
 impl From<FeatureGroupDTO> for FeatureGroup {
@@ -146,13 +123,13 @@ impl From<FeatureGroupDTO> for FeatureGroup {
             online_enabled: feature_group_dto.online_enabled,
             time_travel_format: feature_group_dto.time_travel_format,
             online_topic_name: feature_group_dto.online_topic_name,
-            primary_key: Some(feature_group_dto.features.iter().filter_map(|f| {
+            primary_key: feature_group_dto.features.iter().filter_map(|f| {
                 if f.primary {
                     Some(f.name.clone())
                 } else {
                     None
                 }
-            }).collect()),
+            }).collect(),
             event_time: feature_group_dto.event_time,
             embedding_index: feature_group_dto.embedding_index.map(EmbeddingIndex::from)
         }
@@ -247,21 +224,13 @@ impl FeatureGroup {
         );
         self
             .primary_key
-            .as_ref()
-            .unwrap_or_else(|| panic!("Primary key not set for feature group {}", self.name()))
             .iter()
             .map(|pk| pk.as_str())
             .collect()
     }
 
     pub fn primary_keys_owned(&self) -> Vec<String> {
-        self
-            .primary_key
-            .as_ref()
-            .unwrap_or_else(|| panic!("Primary key not set for feature group {}", self.name()))
-            .iter()
-            .map(|pk| pk.to_owned())
-            .collect()
+        self.primary_key.clone()
     }
 
     pub fn embedding_index(&self) -> Option<&EmbeddingIndex> {
@@ -361,8 +330,6 @@ impl FeatureGroup {
                 self.version(),
                 self.description(),
                 self.primary_key
-                    .as_ref()
-                    .unwrap()
                     .iter()
                     .map(|pk| pk.as_ref())
                     .collect(),

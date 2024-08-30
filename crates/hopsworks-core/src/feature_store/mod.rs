@@ -5,7 +5,7 @@ pub mod query;
 pub mod storage_connector;
 pub mod embedding;
 
-pub use feature_group::FeatureGroup;
+pub use feature_group::{FeatureGroup, FeatureGroupBuilder};
 pub use feature_view::FeatureView;
 
 use color_eyre::Result;
@@ -309,6 +309,7 @@ impl FeatureStore {
     ///   Ok(())
     /// }
     /// ```
+    #[tracing::instrument(skip(self))]
     pub fn create_feature_group(
         &self,
         name: &str,
@@ -327,6 +328,10 @@ impl FeatureStore {
             event_time,
             online_enabled,
         ))
+    }
+
+    pub fn feature_group_builder(&self) -> FeatureGroupBuilder {
+        FeatureGroup::builder()
     }
 
     /// Create a [`FeatureView`] with the given name and version. The [`FeatureView`] is the main interface to read data from the Feature Store,
