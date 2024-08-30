@@ -3,6 +3,8 @@ use opensearch::OpenSearch;
 use opensearch::http::{transport::{SingleNodeConnectionPool, TransportBuilder}, Url};
 use std::sync::OnceLock;
 
+pub mod vector_db;
+
 static HOPSWORKS_OPENSEARCH_CLIENT : OnceLock<OpenSearch> = OnceLock::new();
 
 fn get_hopsworks_opensearch_client() -> Result<&'static OpenSearch> {
