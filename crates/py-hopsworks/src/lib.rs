@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use std::{sync::OnceLock, time::Duration};
 use tracing::debug;
-use tracing_subscriber::prelude::*;
+use tracing_subscriber::{filter, prelude::*, Layer};
 
 pub mod feature_store;
 pub mod platform;
@@ -9,7 +9,6 @@ pub mod platform;
 use hopsworks_api::HopsworksClientBuilder;
 use platform::project::PyProject;
 
-static LOG_RESET_HANDLE: OnceLock<pyo3_log::ResetHandle> = OnceLock::new();
 static MULTITHREADED: OnceLock<bool> = OnceLock::new();
 
 #[pyfunction]
@@ -27,15 +26,8 @@ pub fn set_multithreaded(multithreaded: bool) {
 }
 
 #[pyfunction]
-pub fn refresh_logger() {
-    if LOG_RESET_HANDLE.get().is_none() {
-        LOG_RESET_HANDLE.get_or_init(pyo3_log::init);
-    }
-    LOG_RESET_HANDLE.get().unwrap().reset();
-}
-
-#[pyfunction]
 pub fn login(
+    py: Python<'_>,
     url: Option<&str>,
     api_key_value: Option<&str>,
     project_name: Option<&str>,
@@ -44,7 +36,8 @@ pub fn login(
     let multithreaded = multithreaded.unwrap_or(true);
     let builder =
         HopsworksClientBuilder::new_provided_or_from_env(api_key_value, url, project_name);
-    let project = hopsworks_api::login_blocking(Some(builder), multithreaded)?;
+    let project =
+        py.allow_threads(|| hopsworks_api::login_blocking(Some(builder), multithreaded))?;
     debug!("Logged in to project: {}", project.name());
     debug!("{:#?}", project);
     Ok(PyProject::from(project))
@@ -56,9 +49,17 @@ pub fn init_subscriber() {
         .retention(Duration::from_secs(60))
         .spawn();
 
+    let fmt_layer = tracing_subscriber::fmt::Layer::default()
+        .with_target(true)
+        .with_thread_names(true)
+        .pretty()
+        .with_filter(filter::LevelFilter::DEBUG);
+
+    // Todo: Add support for reloading the subscriber
+
     tracing_subscriber::registry()
         .with(console_layer)
-        .with(tracing_subscriber::fmt::layer())
+        .with(fmt_layer)
         .init();
 
     tracing::info!("Initialized subscriber");
@@ -66,14 +67,13 @@ pub fn init_subscriber() {
 
 #[pymodule]
 fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // refresh_logger();
+    init_subscriber();
     set_multithreaded(true);
 
     feature_store::register_module(m)?;
     platform::register_module(m)?;
     m.add_wrapped(wrap_pyfunction!(version))?;
     m.add_wrapped(wrap_pyfunction!(login))?;
-    m.add_wrapped(wrap_pyfunction!(refresh_logger))?;
     m.add_wrapped(wrap_pyfunction!(init_subscriber))?;
     Ok(())
 }

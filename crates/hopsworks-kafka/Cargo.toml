@@ -25,7 +25,7 @@ polars = { workspace = true, features = [
 
 hopsworks-core = { workspace = true }
 
-polars-arrow = {version = "*", features = ["io_avro"]}
+polars-arrow = {version = "0.41", features = ["io_avro"]}
 rayon = { version = "*" }
 
 rdkafka = { version = "0.36.2", features = ["tokio", "libz", "ssl"] }

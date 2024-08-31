@@ -142,15 +142,20 @@ pub fn get_threaded_runtime() -> &'static Arc<tokio::runtime::Runtime> {
         THREADED_RUNTIME.get().unwrap()
     } else {
         let num_worker_threads = get_threaded_runtime_num_worker_threads();
-        THREADED_RUNTIME
-            .set(Arc::new(
+        let runtime = std::thread::Builder::new()
+            .name("hopsworks_runtime".to_string())
+            .spawn(move || {
                 tokio::runtime::Builder::new_multi_thread()
                     .worker_threads(num_worker_threads)
                     .enable_all()
                     .build()
-                    .unwrap(),
-            ))
+                    .unwrap()
+            })
+            .unwrap()
+            .join()
             .unwrap();
+
+        THREADED_RUNTIME.set(Arc::new(runtime)).unwrap();
         tracing::debug!(
             "Initialized multi-threaded runtime with {} worker threads",
             num_worker_threads

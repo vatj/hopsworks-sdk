@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Optional, Union, List
+from typing import List, Optional, Union
 
-from hopsworks_sdk.hopsworks_rs import PyFeatureStore
-from hopsworks_sdk import feature_group, feature_view, query
 from hopsworks_sdk import embedding_index as ei_mod
+from hopsworks_sdk import feature_group, feature_view, query
+from hopsworks_sdk.hopsworks_rs import PyFeatureStore
 
 
 class FeatureStore:
@@ -60,6 +60,7 @@ class FeatureStore:
         primary_key: Optional[List[str]],
         event_time: Optional[str] = None,
         online_enabled: bool = False,
+        embedding_index: Optional[ei_mod.EmbeddingIndex] = None,
     ) -> feature_group.FeatureGroup:
         if not primary_key:
             primary_key = []
@@ -74,6 +75,7 @@ class FeatureStore:
                 primary_key=primary_key,
                 event_time=event_time,
                 online_enabled=online_enabled,
+                embedding_index=embedding_index._ei if embedding_index else None,
             )
         )
 

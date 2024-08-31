@@ -29,9 +29,11 @@ class EmbeddingIndex:
         self,
         name: str,
         dimension: int,
-        similarity_function: Optional[SimilarityFunction] = SimilarityFunction.L2,
+        _similarity_function: Optional[SimilarityFunction] = SimilarityFunction.L2,
     ) -> None:
-        self._ei.add_embedding(name, dimension, similarity_function.value)
+        self._ei.add_embedding_feature(name, dimension)
 
     def get_embedding(self, name: str) -> EmbeddingFeature:
-        return EmbeddingFeature._from_py_embedding_feature(self._ei.get_embedding(name))
+        return EmbeddingFeature._from_py_embedding_feature(
+            self._ei.get_embedding_feature(name)
+        )
