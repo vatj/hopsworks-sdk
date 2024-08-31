@@ -52,6 +52,22 @@ impl EmbeddingIndex {
             None => None,
         }
     }
+
+    #[tracing::instrument(skip(self))]
+    pub fn embedding_feature_names(&self) -> Vec<String> {
+        match &self.features {
+            Some(features) => features.keys().cloned().collect::<Vec<String>>(),
+            None => Vec::new(),
+        }
+    }
+
+    #[tracing::instrument(skip(self))]
+    pub fn embedding_feature_values(&self) -> Vec<&EmbeddingFeature> {
+        match &self.features {
+            Some(features) => features.values().collect::<Vec<&EmbeddingFeature>>(),
+            None => Vec::new(),
+        }
+    }
 }
 
 impl From<EmbeddingIndexDTO> for EmbeddingIndex {

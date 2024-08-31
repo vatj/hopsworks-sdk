@@ -23,12 +23,8 @@ use self::{feature::Feature, statistics_config::StatisticsConfig};
 
 use crate::platform::user::User;
 
-#[cfg(feature = "polars")]
-use crate::controller::feature_store::feature_group;
-#[cfg(feature = "polars")]
-use polars::prelude::DataFrame;
-
 use super::embedding::embedding_index::EmbeddingIndex;
+use crate::controller::feature_store::feature_group;
 
 /// Feature Group are metadata objects describing a table in the Feature Store.
 /// They are the primary interface through which one can ingest Feature data to the Feature Store.
@@ -325,7 +321,6 @@ impl FeatureGroup {
         Query::new_no_joins_no_filter(self.clone(), self.features().to_vec())
     }
 
-    #[cfg(feature = "polars")]
     #[tracing::instrument(skip(self), fields(name = self.name, version = self.version))]
     pub async fn register_feature_group(
         &mut self,
@@ -335,17 +330,14 @@ impl FeatureGroup {
         if self.id().is_none() {
             let feature_group_dto = feature_group::save_feature_group_metadata(
                 self.featurestore_id,
-                feature_group::build_new_feature_group_payload(
-                    self.name(),
-                    self.version(),
-                    self.description(),
-                    self.primary_key.iter().map(|pk| pk.as_ref()).collect(),
-                    self.event_time.as_deref(),
-                    self.online_enabled,
-                    feature_names,
-                    feature_types,
-                )
-                .unwrap(),
+                self.name(),
+                self.version(),
+                self.description(),
+                self.primary_key.iter().map(|pk| pk.as_ref()).collect(),
+                self.event_time.as_deref(),
+                self.online_enabled,
+                feature_names,
+                feature_types,
             )
             .await?;
 

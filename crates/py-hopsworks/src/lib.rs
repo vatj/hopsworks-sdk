@@ -52,12 +52,14 @@ pub fn login(
 #[pyfunction]
 pub fn init_subscriber() {
     console_subscriber::init();
+
     tracing::info!("Initialized subscriber");
 }
 
 #[pymodule]
 fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     refresh_logger();
+    init_subscriber();
     set_multithreaded(true);
 
     feature_store::register_module(m)?;

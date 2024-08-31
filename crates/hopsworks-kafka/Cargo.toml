@@ -10,8 +10,17 @@ repository = { workspace = true }
 color-eyre = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true, features = ["full", "tracing"]}
-polars = { workspace = true}
 futures = { version = "0.3"}
+polars = { workspace = true, features = [
+    "default",
+    "simd",
+    "performant",
+    "lazy",
+    "strings",
+    "dtype-full",
+    "rows",
+    "timezones",
+] }
 
 
 hopsworks-core = { workspace = true }

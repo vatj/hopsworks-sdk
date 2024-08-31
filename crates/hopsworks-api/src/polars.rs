@@ -1,9 +1,7 @@
 use color_eyre::Result;
-use polars::prelude::{DataType, SchemaRef, TimeUnit};
+use polars::prelude::{DataType, Schema, TimeUnit};
 
-pub fn extract_features_from_polars_schema(
-    schema: SchemaRef,
-) -> Result<(Vec<String>, Vec<String>)> {
+pub fn extract_features_from_polars_schema(schema: Schema) -> Result<(Vec<String>, Vec<String>)> {
     let feature_names: Vec<String> = schema.iter_names().map(|name| name.to_string()).collect();
     let feature_types: Vec<String> = schema
         .iter_dtypes()
