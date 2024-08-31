@@ -1,9 +1,6 @@
 use color_eyre::Result;
 
-#[cfg(feature = "polars")]
 use crate::controller::feature_store::feature;
-#[cfg(feature = "polars")]
-use polars::prelude::Schema;
 
 use crate::cluster_api::feature_store::{
     feature::payloads::NewFeaturePayload,
@@ -52,19 +49,22 @@ pub fn make_new_feature_group_payload(
     )
 }
 
-#[cfg(feature = "polars")]
 pub fn build_new_feature_group_payload(
     name: &str,
     version: i32,
     description: Option<&str>,
     primary_key: Vec<&str>,
     event_time: Option<&str>,
-    schema: Schema,
     online_enabled: bool,
+    feature_names: &[String],
+    feature_types: &[String],
 ) -> Result<NewFeatureGroupPayload> {
-    let features =
-        feature::build_feature_payloads_from_schema_and_feature_group_options(schema, primary_key)
-            .unwrap();
+    let features = feature::build_feature_payloads_from_schema_and_feature_group_options(
+        feature_names,
+        feature_types,
+        primary_key,
+    )
+    .unwrap();
 
     Ok(NewFeatureGroupPayload::new(
         name,

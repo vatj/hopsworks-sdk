@@ -326,8 +326,12 @@ impl FeatureGroup {
     }
 
     #[cfg(feature = "polars")]
-    #[tracing::instrument(skip(self, dataframe), fields(schema = ?dataframe.schema()))]
-    pub async fn register_feature_group(&mut self, dataframe: &DataFrame) -> Result<()> {
+    #[tracing::instrument(skip(self), fields(name = self.name, version = self.version))]
+    pub async fn register_feature_group(
+        &mut self,
+        feature_names: &[String],
+        feature_types: &[String],
+    ) -> Result<()> {
         if self.id().is_none() {
             let feature_group_dto = feature_group::save_feature_group_metadata(
                 self.featurestore_id,
@@ -337,8 +341,9 @@ impl FeatureGroup {
                     self.description(),
                     self.primary_key.iter().map(|pk| pk.as_ref()).collect(),
                     self.event_time.as_deref(),
-                    dataframe.schema(),
                     self.online_enabled,
+                    feature_names,
+                    feature_types,
                 )
                 .unwrap(),
             )
