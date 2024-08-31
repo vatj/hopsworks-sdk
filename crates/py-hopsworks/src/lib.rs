@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
-use std::sync::OnceLock;
+use std::{sync::OnceLock, time::Duration};
 use tracing::debug;
+use tracing_subscriber::prelude::*;
 
 pub mod feature_store;
 pub mod platform;
@@ -51,15 +52,21 @@ pub fn login(
 
 #[pyfunction]
 pub fn init_subscriber() {
-    console_subscriber::init();
+    let console_layer = console_subscriber::ConsoleLayer::builder()
+        .retention(Duration::from_secs(60))
+        .spawn();
+
+    tracing_subscriber::registry()
+        .with(console_layer)
+        .with(tracing_subscriber::fmt::layer())
+        .init();
 
     tracing::info!("Initialized subscriber");
 }
 
 #[pymodule]
 fn hopsworks_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    refresh_logger();
-    init_subscriber();
+    // refresh_logger();
     set_multithreaded(true);
 
     feature_store::register_module(m)?;

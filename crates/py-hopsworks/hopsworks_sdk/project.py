@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from hopsworks_sdk.hopsworks_rs import PyProject
-
 from hopsworks_sdk.feature_store import FeatureStore
+from hopsworks_sdk.hopsworks_rs import PyProject
 
 
 class Project:
@@ -19,3 +18,6 @@ class Project:
 
     def get_feature_store(self) -> FeatureStore:
         return FeatureStore._from_pyfs(self._proj.get_feature_store())
+
+    def init_hopsworks_opensearch_client(self) -> None:
+        self._proj.init_hopsworks_opensearch_client()

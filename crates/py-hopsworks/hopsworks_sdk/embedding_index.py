@@ -17,7 +17,7 @@ class EmbeddingIndex:
     _ei: PyEmbeddingIndex
 
     def __init__(self, index_name: Optional[str] = None):
-        self._ei = PyEmbeddingIndex(index_name)
+        self._ei = PyEmbeddingIndex.new_with_index_name(index_name)
 
     @classmethod
     def _from_py_embedding_index(cls, ei: PyEmbeddingIndex) -> EmbeddingIndex:
