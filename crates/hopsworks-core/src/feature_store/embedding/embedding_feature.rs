@@ -14,8 +14,11 @@ pub struct EmbeddingFeature {
     pub dimension: u32,
     #[builder(default = SimilarityFunction::L2)]
     pub similarity_function: SimilarityFunction,
+    #[builder(default)]
     pub model: Option<MinimalModelMetadata>,
+    #[builder(default)]
     pub feature_group: Option<FeatureGroup>,
+    #[builder(default)]
     pub embedding_index: Option<EmbeddingIndexMetadata>,
 }
 

@@ -100,6 +100,7 @@ pub use hopsworks_core::feature_store::{
     feature_view::training_dataset::TrainingDataset, 
     query::Query, 
     embedding::EmbeddingIndex,
+    embedding::EmbeddingFeature,
 };
 
 #[cfg(feature = "read_arrow_flight_offline_store")]

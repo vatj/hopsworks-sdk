@@ -5,6 +5,8 @@ pub mod feature_group;
 pub mod feature_view;
 pub mod query;
 pub mod embedding_index;
+pub mod embedding_feature;
+
 #[pyclass]
 #[repr(transparent)]
 #[derive(Clone)]
@@ -36,7 +38,16 @@ impl PyFeatureStore {
         Ok(fg.map(feature_group::PyFeatureGroup::from))
     }
 
-    fn get_or_create_feature_group(&self, name: &str, version: i32, primary_key: Vec<String>,  online_enabled: bool, description: Option<&str>, event_time: Option<&str>, embedding_index: Option<embedding_index::PyEmbeddingIndex>) -> PyResult<feature_group::PyFeatureGroup> {
+    fn get_or_create_feature_group(
+        &self, 
+        name: &str, 
+        version: i32, 
+        primary_key: Vec<String>,  
+        online_enabled: bool, 
+        description: Option<&str>, 
+        event_time: Option<&str>, 
+        embedding_index: Option<embedding_index::PyEmbeddingIndex>
+    ) -> PyResult<feature_group::PyFeatureGroup> {
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
         let fg = hopsworks_api::blocking::feature_store::get_or_create_feature_group_blocking(
             &self.fs, 
@@ -80,6 +91,7 @@ pub(crate) fn register_module(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     parent.add_class::<feature_view::PyFeatureView>()?;
     parent.add_class::<query::PyQuery>()?;
     parent.add_class::<embedding_index::PyEmbeddingIndex>()?;
+    parent.add_class::<embedding_feature::PyEmbeddingFeature>()?;
 
     Ok(())
 }
