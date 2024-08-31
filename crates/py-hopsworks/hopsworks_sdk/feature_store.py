@@ -4,6 +4,7 @@ from typing import Optional, Union, List
 
 from hopsworks_sdk.hopsworks_rs import PyFeatureStore
 from hopsworks_sdk import feature_group, feature_view, query
+from hopsworks_sdk import embedding_index as ei_mod
 
 class FeatureStore:
     _fs : PyFeatureStore
@@ -20,7 +21,16 @@ class FeatureStore:
     def get_feature_group(self, name: str, version: Optional[int]) -> feature_group.FeatureGroup:
         return feature_group.FeatureGroup._from_pyfg(self._fs.get_feature_group(name, version if version else 1))
 
-    def create_feature_group(self, name: str, version: Optional[int], description: Optional[str], primary_key: Union[str, List[str]], event_time: Optional[str] = None, online_enabled: bool = False) -> feature_group.FeatureGroup:
+    def create_feature_group(
+        self, 
+        name: str, 
+        version: Optional[int], 
+        description: Optional[str], 
+        primary_key: Union[str, List[str]], 
+        event_time: Optional[str] = None, 
+        online_enabled: bool = False,
+        embedding_index: Optional[ei_mod.EmbeddingIndex] = None
+    ) -> feature_group.FeatureGroup:
         if isinstance(primary_key, str):
             primary_key = [primary_key]
         return feature_group.FeatureGroup._from_pyfg(
@@ -31,10 +41,12 @@ class FeatureStore:
                 primary_key=primary_key,
                 event_time=event_time,
                 online_enabled=online_enabled,
+                embedding_index=embedding_index._ei if embedding_index else None
             )
         )
 
-    def get_or_create_feature_group(self, name: str, version: Optional[int], description: Optional[str], primary_key: Optional[List[str]], event_time: Optional[str] = None, online_enabled: bool = False) -> feature_group.FeatureGroup:
+    def get_or_create_feature_group(
+            self, name: str, version: Optional[int], description: Optional[str], primary_key: Optional[List[str]], event_time: Optional[str] = None, online_enabled: bool = False) -> feature_group.FeatureGroup:
         if not primary_key:
             primary_key = []
         elif isinstance(primary_key, str):
