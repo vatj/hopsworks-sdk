@@ -2,6 +2,8 @@ use pyo3::prelude::*;
 use pyo3::types::PyType;
 use serde::{Deserialize, Serialize};
 
+use super::embedding_feature::PyEmbeddingFeature;
+
 #[pyclass]
 #[repr(transparent)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -34,5 +36,9 @@ impl PyEmbeddingIndex {
     fn add_embedding_feature(&mut self, name: &str, dimension: u32) {
         let feat = hopsworks_api::EmbeddingFeature::builder().name(String::from(name)).dimension(dimension).build();
         self.ei.add_embedding_feature(name, feat);
+    }
+
+    fn get_embedding_feature(&self, name: &str) -> Option<PyEmbeddingFeature> {
+        self.ei.get_embedding_feature(name).map(|f| f.clone().into())
     }
 }

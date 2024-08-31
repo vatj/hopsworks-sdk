@@ -41,6 +41,14 @@ impl EmbeddingIndex {
         }
         self.features.as_mut().unwrap().insert(String::from(name), embedding_feature);
     }
+
+    #[tracing::instrument(skip(self))]
+    pub fn get_embedding_feature(&self, name: &str) -> Option<&EmbeddingFeature> {
+        match &self.features {
+            Some(features) => features.get(name),
+            None => None,
+        }
+    }
 }
 
 impl From<EmbeddingIndexDTO> for EmbeddingIndex {
