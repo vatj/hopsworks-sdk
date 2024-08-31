@@ -88,22 +88,21 @@
 //! ```
 
 use color_eyre::Result;
-use tracing::debug;
-use tokio::sync::OnceCell;
 use std::sync::{Arc, OnceLock};
+use tokio::sync::OnceCell;
+use tracing::debug;
 
 pub(crate) mod cluster_api;
 pub mod controller;
 pub mod feature_store;
 pub mod platform;
 pub mod profiles;
-pub mod util;
 pub mod rest_client;
+pub mod util;
 
 pub use platform::project::Project;
-pub use rest_client::HopsworksClientBuilder;
 use rest_client::HopsworksClient;
-
+pub use rest_client::HopsworksClientBuilder;
 
 static NUM_LOGICAL_CPUS: OnceCell<usize> = OnceCell::const_new();
 static THREADED_RUNTIME_NUM_WORKER_THREADS: OnceCell<usize> = tokio::sync::OnceCell::const_new();
@@ -118,7 +117,8 @@ pub fn get_logical_cpus() -> usize {
         let env_requested_threads = std::env::var("HOPSWORKS_NUM_THREADS")
             .ok()
             .and_then(|s| s.parse::<usize>().ok());
-        let num_logical_cpus = env_requested_threads.unwrap_or(std::thread::available_parallelism().unwrap().get());
+        let num_logical_cpus =
+            env_requested_threads.unwrap_or(std::thread::available_parallelism().unwrap().get());
         tracing::debug!("Detected {} logical CPUs", num_logical_cpus);
         NUM_LOGICAL_CPUS.set(num_logical_cpus).unwrap();
         num_logical_cpus
@@ -130,7 +130,9 @@ pub fn get_threaded_runtime_num_worker_threads() -> usize {
         *THREADED_RUNTIME_NUM_WORKER_THREADS.get().unwrap()
     } else {
         let num_worker_threads = get_logical_cpus();
-        THREADED_RUNTIME_NUM_WORKER_THREADS.set(num_worker_threads).unwrap();
+        THREADED_RUNTIME_NUM_WORKER_THREADS
+            .set(num_worker_threads)
+            .unwrap();
         num_worker_threads
     }
 }
@@ -140,15 +142,19 @@ pub fn get_threaded_runtime() -> &'static Arc<tokio::runtime::Runtime> {
         THREADED_RUNTIME.get().unwrap()
     } else {
         let num_worker_threads = get_threaded_runtime_num_worker_threads();
-        THREADED_RUNTIME.set(
-            Arc::new(
+        THREADED_RUNTIME
+            .set(Arc::new(
                 tokio::runtime::Builder::new_multi_thread()
-                .worker_threads(num_worker_threads)
-                .enable_all()
-                .build()
-                .unwrap()
-            )).unwrap();
-        tracing::debug!("Initialized multi-threaded runtime with {} worker threads", num_worker_threads);
+                    .worker_threads(num_worker_threads)
+                    .enable_all()
+                    .build()
+                    .unwrap(),
+            ))
+            .unwrap();
+        tracing::debug!(
+            "Initialized multi-threaded runtime with {} worker threads",
+            num_worker_threads
+        );
         THREADED_RUNTIME.get().unwrap()
     }
 }
@@ -157,14 +163,15 @@ pub fn get_single_threaded_runtime() -> &'static Arc<tokio::runtime::Runtime> {
     if SINGLE_THREADED_RUNTIME.get().is_some() {
         SINGLE_THREADED_RUNTIME.get().unwrap()
     } else {
-        SINGLE_THREADED_RUNTIME.set(
-            Arc::new(
+        SINGLE_THREADED_RUNTIME
+            .set(Arc::new(
                 tokio::runtime::Builder::new_multi_thread()
-                .worker_threads(1)
-                .enable_all()
-                .build()
-                .unwrap()
-            )).unwrap();
+                    .worker_threads(1)
+                    .enable_all()
+                    .build()
+                    .unwrap(),
+            ))
+            .unwrap();
         SINGLE_THREADED_RUNTIME.get().unwrap()
     }
 }
@@ -187,11 +194,15 @@ pub async fn get_hopsworks_client() -> &'static HopsworksClient {
     }
 }
 
-pub async fn login(client_builder: Option<HopsworksClientBuilder>, multithreaded: bool) -> Result<Project> {
+pub async fn login(
+    client_builder: Option<HopsworksClientBuilder>,
+    multithreaded: bool,
+) -> Result<Project> {
     if HOPSWORKS_CLIENT.get().is_some() {
-        Err(color_eyre::eyre::eyre!("Hopsworks client already initialized"))
-    }
-    else {
+        Err(color_eyre::eyre::eyre!(
+            "Hopsworks client already initialized"
+        ))
+    } else {
         let rt = get_hopsworks_runtime(multithreaded).clone();
         let _guard = rt.enter();
 
@@ -199,5 +210,5 @@ pub async fn login(client_builder: Option<HopsworksClientBuilder>, multithreaded
         let init_client = HOPSWORKS_CLIENT.get_or_init(|| client);
         let project_dto = init_client.login().await?;
         Ok(Project::from(&project_dto))
-    } 
+    }
 }

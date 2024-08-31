@@ -2,25 +2,25 @@
 //!
 //! This implementation is taken from the [connector-x](https://github.com/sfu-db/connector-x) crate.
 //! The crate itself is added to the Cargo.toml to allow using the core capabilities, but feature flags
-//! for src_mysql and dst_arrow are omitted due to the mysql and arrow dependencies being outdated. 
+//! for src_mysql and dst_arrow are omitted due to the mysql and arrow dependencies being outdated.
 //! The original crate and the source code below are under MIT Licence.
 mod errors;
 mod typesystem;
 
 pub use self::errors::MySQLSourceError;
+use anyhow::anyhow;
+use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use connectorx::{
     data_order::DataOrder,
     errors::ConnectorXError,
     sources::{PartitionParser, Produce, Source, SourcePartition},
     sql::{count_query, limit1_query, CXQuery},
 };
-use anyhow::anyhow;
-use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use fehler::{throw, throws};
 use tracing::{debug, warn};
 
-use r2d2::{Pool, PooledConnection};
 use mysql::{prelude::Queryable, Binary, Opts, OptsBuilder, QueryResult, Row, Text};
+use r2d2::{Pool, PooledConnection};
 use r2d2_mysql::MySqlConnectionManager;
 use rust_decimal::Decimal;
 use serde_json::Value;

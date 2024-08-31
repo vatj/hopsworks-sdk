@@ -1,8 +1,8 @@
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::feature_store::query::{QueryFilter, QueryFilterOrLogic, enums::QueryFilterCondition};
 use crate::cluster_api::feature_store::feature::FeatureDTO;
+use crate::feature_store::query::{enums::QueryFilterCondition, QueryFilter, QueryFilterOrLogic};
 
 /// Feature entity gathering metadata about a feature in a [`FeatureGroup`][super::FeatureGroup].
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -349,4 +349,3 @@ impl Feature {
         .into())
     }
 }
-

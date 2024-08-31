@@ -1,15 +1,14 @@
 use color_eyre::Result;
 
 #[cfg(feature = "polars")]
-use polars::prelude::Schema;
-#[cfg(feature = "polars")]
 use crate::controller::feature_store::feature;
-
+#[cfg(feature = "polars")]
+use polars::prelude::Schema;
 
 use crate::cluster_api::feature_store::{
-        feature::payloads::NewFeaturePayload,
-        feature_group::{self, FeatureGroupDTO, payloads::NewFeatureGroupPayload},
-    };
+    feature::payloads::NewFeaturePayload,
+    feature_group::{self, payloads::NewFeatureGroupPayload, FeatureGroupDTO},
+};
 
 pub async fn get_feature_group_by_name_and_version(
     feature_store_id: i32,
@@ -91,5 +90,3 @@ pub async fn save_feature_group_metadata(
 pub async fn delete_feature_group(feature_store_id: i32, feature_group_id: i32) -> Result<()> {
     feature_group::service::delete_feature_group(feature_store_id, feature_group_id).await
 }
-
-

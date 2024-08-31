@@ -2,31 +2,30 @@
 //!
 //! This implementation is taken from the [connector-x](https://github.com/sfu-db/connector-x) crate.
 //! The crate itself is added to the Cargo.toml to allow using the core capabilities, but feature flags
-//! for src_mysql and dst_arrow are omitted due to the mysql and arrow dependencies being outdated. 
+//! for src_mysql and dst_arrow are omitted due to the mysql and arrow dependencies being outdated.
 //! The original crate and the source code below are under MIT Licence.
 mod arrow_assoc;
 mod errors;
 mod funcs;
 pub mod typesystem;
 
-use connectorx::prelude::{Consume, Destination, DestinationPartition};
-use polars_core::utils::accumulate_dataframes_vertical;
 use super::constants::RECORD_BATCH_SIZE;
-use connectorx::data_order::DataOrder;
-use connectorx::typesystem::{Realize, TypeAssoc, TypeSystem};
 use anyhow::anyhow;
-use polars_arrow::{
-    record_batch::RecordBatch, 
-    array::
-        {Array, MutableArray},
-    datatypes::ArrowSchema as Schema
-};
 use arrow_assoc::ArrowAssoc;
+use connectorx::data_order::DataOrder;
+use connectorx::prelude::{Consume, Destination, DestinationPartition};
+use connectorx::typesystem::{Realize, TypeAssoc, TypeSystem};
 pub use errors::{PolarsArrowDestinationError, Result};
 use fehler::throw;
 use fehler::throws;
 use funcs::{FFinishBuilder, FNewBuilder, FNewField};
 use polars::prelude::DataFrame;
+use polars_arrow::{
+    array::{Array, MutableArray},
+    datatypes::ArrowSchema as Schema,
+    record_batch::RecordBatch,
+};
+use polars_core::utils::accumulate_dataframes_vertical;
 use std::convert::TryFrom;
 use std::sync::{Arc, Mutex};
 pub use typesystem::PolarsArrowTypeSystem;
@@ -125,19 +124,19 @@ impl PolarsArrowDestination {
     #[throws(PolarsArrowDestinationError)]
     pub fn arrow(self) -> Vec<RecordBatch> {
         let lock = Arc::try_unwrap(self.data).map_err(|_| anyhow!("Partitions are not freed"))?;
-        lock.into_inner().map_err(|e| anyhow!("mutex poisoned {}", e))?
+        lock.into_inner()
+            .map_err(|e| anyhow!("mutex poisoned {}", e))?
     }
 
     #[throws(PolarsArrowDestinationError)]
     pub fn polars(self) -> DataFrame {
         let schema = self.arrow_schema();
         let batches = self.arrow()?;
-        
 
         accumulate_dataframes_vertical(
-            batches.into_iter().map(
-                |rb| DataFrame::try_from((rb, schema.fields.as_slice())).unwrap()
-            )
+            batches
+                .into_iter()
+                .map(|rb| DataFrame::try_from((rb, schema.fields.as_slice())).unwrap()),
         )?
     }
 }

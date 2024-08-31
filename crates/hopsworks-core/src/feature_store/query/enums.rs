@@ -98,7 +98,6 @@ impl std::fmt::Display for QueryLogicType {
     }
 }
 
-
 impl std::fmt::Display for JoinType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {

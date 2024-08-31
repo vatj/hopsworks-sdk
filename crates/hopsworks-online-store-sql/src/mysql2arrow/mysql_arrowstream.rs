@@ -2,14 +2,10 @@
 //!
 //! This implementation is taken from the [connector-x](https://github.com/sfu-db/connector-x) crate.
 //! The crate itself is added to the Cargo.toml to allow using the core capabilities, but feature flags
-//! for src_mysql and dst_arrow are omitted due to the mysql and arrow dependencies being outdated. 
+//! for src_mysql and dst_arrow are omitted due to the mysql and arrow dependencies being outdated.
 //! The original crate and the source code below are under MIT Licence.
 
-
-use connectorx::{
-    impl_transport,
-    typesystem::TypeConversion,
-};
+use connectorx::{impl_transport, typesystem::TypeConversion};
 
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use num_traits::ToPrimitive;
@@ -18,14 +14,9 @@ use serde_json::{to_string, Value};
 use std::marker::PhantomData;
 use thiserror::Error;
 
-use super::arrowstream::{
-        typesystem::ArrowTypeSystem, ArrowDestination, ArrowDestinationError,
-    };
+use super::arrowstream::{typesystem::ArrowTypeSystem, ArrowDestination, ArrowDestinationError};
 
-use super::mysql::{
-        BinaryProtocol, MySQLSource, MySQLSourceError, MySQLTypeSystem, TextProtocol,
-    };
-
+use super::mysql::{BinaryProtocol, MySQLSource, MySQLSourceError, MySQLTypeSystem, TextProtocol};
 
 #[derive(Error, Debug)]
 pub enum MySQLArrowTransportError {
@@ -112,7 +103,6 @@ impl_transport!(
     }
 );
 
-
 impl<P> TypeConversion<Decimal, f64> for MySQLArrowTransport<P> {
     fn convert(val: Decimal) -> f64 {
         val.to_f64()
@@ -131,4 +121,3 @@ impl<P> TypeConversion<i8, bool> for MySQLArrowTransport<P> {
         val != 0
     }
 }
-

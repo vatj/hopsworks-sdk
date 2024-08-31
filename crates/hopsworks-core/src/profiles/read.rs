@@ -40,9 +40,7 @@ pub fn get_hopsworks_profiles() -> Result<HopsworksTomlConfig> {
     Ok(profiles)
 }
 
-pub fn get_hopsworks_profile(
-    profile_name: Option<&str>,
-) -> Result<HopsworksProfileConfig> {
+pub fn get_hopsworks_profile(profile_name: Option<&str>) -> Result<HopsworksProfileConfig> {
     let mut profiles = get_hopsworks_profiles()?;
     let profile_name = match profile_name {
         Some(name) => name,

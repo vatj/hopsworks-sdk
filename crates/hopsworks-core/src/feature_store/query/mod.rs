@@ -1,8 +1,8 @@
 //! Query API
 pub mod builder;
+pub mod enums;
 pub mod filter;
 pub mod join;
-pub mod enums;
 
 use color_eyre::Result;
 
@@ -13,14 +13,16 @@ pub use join::{JoinOptions, JoinQuery};
 
 use crate::feature_store::feature_group::{feature::Feature, FeatureGroup};
 
-use crate::cluster_api::feature_store::{
-    query::{QueryDTO, JoinQueryDTO, QueryFilterOrLogicDTO, payloads::{NewQueryPayload, NewJoinQueryPayload},}, 
-    feature_group::FeatureGroupDTO, 
-    feature::FeatureDTO,
-    feature_view::payloads::FeatureViewBatchQueryPayload,
-};
 use super::query::builder::BatchQueryOptions;
-
+use crate::cluster_api::feature_store::{
+    feature::FeatureDTO,
+    feature_group::FeatureGroupDTO,
+    feature_view::payloads::FeatureViewBatchQueryPayload,
+    query::{
+        payloads::{NewJoinQueryPayload, NewQueryPayload},
+        JoinQueryDTO, QueryDTO, QueryFilterOrLogicDTO,
+    },
+};
 
 /// Query object are used to read data from the feature store, both online and offline.
 ///
@@ -336,7 +338,7 @@ impl From<&Query> for NewQueryPayload {
 
 impl From<&BatchQueryOptions> for FeatureViewBatchQueryPayload {
     fn from(options: &BatchQueryOptions) -> Self {
-        Self{
+        Self {
             start_time: options.start_time.map(|t| t.timestamp_millis()),
             end_time: options.end_time.map(|t| t.timestamp_millis()),
             td_version: options.td_version,

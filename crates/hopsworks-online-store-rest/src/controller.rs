@@ -1,10 +1,22 @@
 use color_eyre::Result;
 use tracing;
 
-use super::{entities::{BatchFeatureVectors, SingleFeatureVector}, payload::{BatchEntriesPayload, SingleEntryPayload}, rest_read_options::FeatureVectorRestReadOptions, rondb_feature_store_api, EntryValuesPayload, PassedValuesPayload};
+use super::{
+    entities::{BatchFeatureVectors, SingleFeatureVector},
+    payload::{BatchEntriesPayload, SingleEntryPayload},
+    rest_read_options::FeatureVectorRestReadOptions,
+    rondb_feature_store_api, EntryValuesPayload, PassedValuesPayload,
+};
 
 #[tracing::instrument]
-pub async fn get_feature_vector(feature_store_id: i32, feature_view_name: &str, feature_view_version: i32, entries: EntryValuesPayload, passed_values: Option<PassedValuesPayload>, rest_read_options: FeatureVectorRestReadOptions) -> Result<SingleFeatureVector> {
+pub async fn get_feature_vector(
+    feature_store_id: i32,
+    feature_view_name: &str,
+    feature_view_version: i32,
+    entries: EntryValuesPayload,
+    passed_values: Option<PassedValuesPayload>,
+    rest_read_options: FeatureVectorRestReadOptions,
+) -> Result<SingleFeatureVector> {
     let payload = SingleEntryPayload {
         feature_store_id,
         feature_view_name: feature_view_name.to_string(),
@@ -21,7 +33,14 @@ pub async fn get_feature_vector(feature_store_id: i32, feature_view_name: &str, 
 }
 
 #[tracing::instrument]
-pub async fn get_feature_vectors(feature_store_id: i32, feature_view_name: &str, feature_view_version: i32, entries: Vec<EntryValuesPayload>, passed_values: Option<Vec<PassedValuesPayload>>, rest_read_options: FeatureVectorRestReadOptions) -> Result<BatchFeatureVectors> {
+pub async fn get_feature_vectors(
+    feature_store_id: i32,
+    feature_view_name: &str,
+    feature_view_version: i32,
+    entries: Vec<EntryValuesPayload>,
+    passed_values: Option<Vec<PassedValuesPayload>>,
+    rest_read_options: FeatureVectorRestReadOptions,
+) -> Result<BatchFeatureVectors> {
     let payload = BatchEntriesPayload {
         feature_store_id,
         feature_view_name: feature_view_name.to_string(),

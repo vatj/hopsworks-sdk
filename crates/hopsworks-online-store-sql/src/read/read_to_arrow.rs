@@ -1,18 +1,18 @@
+use arrow::{datatypes::Schema, record_batch::RecordBatch};
 use color_eyre::Result;
-use arrow::{record_batch::RecordBatch, datatypes::Schema};
 use connectorx::prelude::Dispatcher;
 use connectorx::sql::CXQuery;
 use std::sync::Arc;
 
+use hopsworks_core::controller::feature_store::query::{
+    build_mysql_connection_url_from_storage_connector, construct_query,
+};
 use hopsworks_core::feature_store::query::Query;
-use hopsworks_core::controller::feature_store::query::{build_mysql_connection_url_from_storage_connector, construct_query};
 
-use crate::OnlineReadOptions;
 use crate::mysql2arrow::arrowstream::ArrowDestination;
-use crate::mysql2arrow::mysql::{MySQLSource, BinaryProtocol};
+use crate::mysql2arrow::mysql::{BinaryProtocol, MySQLSource};
 use crate::mysql2arrow::mysql_arrowstream::MySQLArrowTransport;
-
-
+use crate::OnlineReadOptions;
 
 pub async fn read_query_from_online_feature_store(
     query: &Query,
@@ -41,4 +41,3 @@ pub async fn read_query_from_online_feature_store(
 
     Ok((record_batches, schema))
 }
-

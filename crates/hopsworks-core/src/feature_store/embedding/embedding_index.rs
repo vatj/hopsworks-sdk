@@ -39,7 +39,10 @@ impl EmbeddingIndex {
         if self.features.is_none() {
             self.features = Some(HashMap::new());
         }
-        self.features.as_mut().unwrap().insert(String::from(name), embedding_feature);
+        self.features
+            .as_mut()
+            .unwrap()
+            .insert(String::from(name), embedding_feature);
     }
 
     #[tracing::instrument(skip(self))]
@@ -53,7 +56,8 @@ impl EmbeddingIndex {
 
 impl From<EmbeddingIndexDTO> for EmbeddingIndex {
     fn from(embedding_index_dto: EmbeddingIndexDTO) -> Self {
-        let features: Option<HashMap<String, EmbeddingFeature>> = match embedding_index_dto.features {
+        let features: Option<HashMap<String, EmbeddingFeature>> = match embedding_index_dto.features
+        {
             Some(features) => {
                 let features = features
                     .into_iter()
@@ -64,7 +68,10 @@ impl From<EmbeddingIndexDTO> for EmbeddingIndex {
             None => None,
         };
         Self {
-            metadata: EmbeddingIndexMetadata::new(embedding_index_dto.index_name.clone(), embedding_index_dto.col_prefix.clone()),
+            metadata: EmbeddingIndexMetadata::new(
+                embedding_index_dto.index_name.clone(),
+                embedding_index_dto.col_prefix.clone(),
+            ),
             features,
         }
     }

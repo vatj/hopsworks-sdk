@@ -3,17 +3,15 @@ use typed_builder::TypedBuilder;
 
 use super::payload::{MetadataOptionsPayload, OptionsPayload};
 
-
-
 #[derive(Debug, Clone, Serialize, Deserialize, Default, TypedBuilder)]
 pub struct FeatureVectorRestReadOptions {
-    #[builder(default=false)]
+    #[builder(default = false)]
     feature_name: bool,
-    #[builder(default=false)]
+    #[builder(default = false)]
     feature_type: bool,
-    #[builder(default=false)]
+    #[builder(default = false)]
     detailed_status: bool,
-    #[builder(default=false)]
+    #[builder(default = false)]
     validate_passed_features: bool,
 }
 

@@ -11,22 +11,22 @@ pub mod feature;
 pub mod statistics_config;
 
 use color_eyre::Result;
-use tracing::debug;
 use serde::{Deserialize, Serialize};
+use tracing::debug;
 use typed_builder::TypedBuilder;
 
+use crate::cluster_api::feature_store::feature_group::FeatureGroupDTO;
 use crate::feature_store::query::Query;
 use crate::util;
-use crate::cluster_api::feature_store::feature_group::FeatureGroupDTO;
 
 use self::{feature::Feature, statistics_config::StatisticsConfig};
 
 use crate::platform::user::User;
 
 #[cfg(feature = "polars")]
-use polars::prelude::DataFrame;
-#[cfg(feature = "polars")]
 use crate::controller::feature_store::feature_group;
+#[cfg(feature = "polars")]
+use polars::prelude::DataFrame;
 
 use super::embedding::embedding_index::EmbeddingIndex;
 
@@ -68,7 +68,7 @@ use super::embedding::embedding_index::EmbeddingIndex;
 ///  }
 /// ```
 #[derive(Debug, Serialize, Deserialize, Clone, TypedBuilder)]
-#[builder(builder_method(vis="pub(super)"))]
+#[builder(builder_method(vis = "pub(super)"))]
 pub struct FeatureGroup {
     #[builder(setter(skip), default = None)]
     id: Option<i32>,
@@ -99,7 +99,7 @@ pub struct FeatureGroup {
     #[builder(default = None)]
     event_time: Option<String>,
     #[builder(default = None)]
-    embedding_index: Option<EmbeddingIndex>
+    embedding_index: Option<EmbeddingIndex>,
 }
 
 impl From<FeatureGroupDTO> for FeatureGroup {
@@ -127,15 +127,19 @@ impl From<FeatureGroupDTO> for FeatureGroup {
             online_enabled: feature_group_dto.online_enabled,
             time_travel_format: feature_group_dto.time_travel_format,
             online_topic_name: feature_group_dto.online_topic_name,
-            primary_key: feature_group_dto.features.iter().filter_map(|f| {
-                if f.primary {
-                    Some(f.name.clone())
-                } else {
-                    None
-                }
-            }).collect(),
+            primary_key: feature_group_dto
+                .features
+                .iter()
+                .filter_map(|f| {
+                    if f.primary {
+                        Some(f.name.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect(),
             event_time: feature_group_dto.event_time,
-            embedding_index: feature_group_dto.embedding_index.map(EmbeddingIndex::from)
+            embedding_index: feature_group_dto.embedding_index.map(EmbeddingIndex::from),
         }
     }
 }
@@ -226,11 +230,7 @@ impl FeatureGroup {
             self.name(),
             self.primary_key
         );
-        self
-            .primary_key
-            .iter()
-            .map(|pk| pk.as_str())
-            .collect()
+        self.primary_key.iter().map(|pk| pk.as_str()).collect()
     }
 
     pub fn primary_keys_owned(&self) -> Vec<String> {
@@ -329,39 +329,36 @@ impl FeatureGroup {
     #[tracing::instrument(skip(self, dataframe), fields(schema = ?dataframe.schema()))]
     pub async fn register_feature_group(&mut self, dataframe: &DataFrame) -> Result<()> {
         if self.id().is_none() {
-        let feature_group_dto = feature_group::save_feature_group_metadata(
-            self.featurestore_id,
-            feature_group::build_new_feature_group_payload(
-                self.name(),
-                self.version(),
-                self.description(),
-                self.primary_key
-                    .iter()
-                    .map(|pk| pk.as_ref())
-                    .collect(),
-                self.event_time.as_deref(),
-                dataframe.schema(),
-                self.online_enabled,
+            let feature_group_dto = feature_group::save_feature_group_metadata(
+                self.featurestore_id,
+                feature_group::build_new_feature_group_payload(
+                    self.name(),
+                    self.version(),
+                    self.description(),
+                    self.primary_key.iter().map(|pk| pk.as_ref()).collect(),
+                    self.event_time.as_deref(),
+                    dataframe.schema(),
+                    self.online_enabled,
+                )
+                .unwrap(),
             )
-            .unwrap(),
-        )
-        .await?;
+            .await?;
 
-        self.id = Some(feature_group_dto.id);
-        self.online_topic_name = feature_group_dto.online_topic_name;
-        self.creator = Some(User::from(feature_group_dto.creator));
-        self.location = Some(feature_group_dto.location);
-        self.statistics_config = feature_group_dto
-            .statistics_config
-            .as_ref()
-            .map(StatisticsConfig::from);
-        self.features_mut()
-            .extend(feature_group_dto.features.into_iter().map(Feature::from));
+            self.id = Some(feature_group_dto.id);
+            self.online_topic_name = feature_group_dto.online_topic_name;
+            self.creator = Some(User::from(feature_group_dto.creator));
+            self.location = Some(feature_group_dto.location);
+            self.statistics_config = feature_group_dto
+                .statistics_config
+                .as_ref()
+                .map(StatisticsConfig::from);
+            self.features_mut()
+                .extend(feature_group_dto.features.into_iter().map(Feature::from));
 
-         Ok(())
-    } else {
-        Err(color_eyre::eyre::eyre!("Feature Group already registered."))
-    }
+            Ok(())
+        } else {
+            Err(color_eyre::eyre::eyre!("Feature Group already registered."))
+        }
     }
 
     pub async fn delete(&self) -> Result<()> {
@@ -370,8 +367,5 @@ impl FeatureGroup {
         } else {
             feature_group::delete_feature_group(self.feature_store_id(), self.id().unwrap()).await
         }
-        
     }
-    
 }
-

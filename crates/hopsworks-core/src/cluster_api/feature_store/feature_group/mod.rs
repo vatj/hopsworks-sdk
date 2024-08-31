@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::cluster_api::feature_store::{
-    embedding::EmbeddingIndexDTO,
-    feature::FeatureDTO, 
-    statistics_config::StatisticsConfigDTO
+    embedding::EmbeddingIndexDTO, feature::FeatureDTO, statistics_config::StatisticsConfigDTO,
 };
 use crate::cluster_api::platform::users::UserDTO;
 use crate::feature_store::feature_group::FeatureGroup;
@@ -70,7 +68,9 @@ impl From<&FeatureGroup> for FeatureGroupDTO {
             created: feature_group.created().to_string(),
             version: feature_group.version(),
             name: feature_group.name().to_string(),
-            event_time: feature_group.event_time().map(|event_time| event_time.to_string()),
+            event_time: feature_group
+                .event_time()
+                .map(|event_time| event_time.to_string()),
             online_enabled: feature_group.is_online_enabled(),
             time_travel_format: feature_group.time_travel_format().to_string(),
             embedding_index: feature_group.embedding_index().map(EmbeddingIndexDTO::from),

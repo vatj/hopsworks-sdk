@@ -6,21 +6,17 @@ use color_eyre::Result;
 use futures::stream::{StreamExt, TryStreamExt};
 use tracing::{debug, info};
 
-
+use crate::cluster_api::payloads::RegisterArrowFlightClientCertificatePayload;
+use crate::cluster_api::payloads::{QueryArrowFlightPayload, TrainingDatasetArrowFlightPayload};
+use hopsworks_core::{get_hopsworks_client, util};
 use std::time::Duration;
 use std::vec;
 use tonic::transport::{channel::ClientTlsConfig, Certificate, Endpoint, Identity};
-use crate::cluster_api::payloads::{
-    QueryArrowFlightPayload, TrainingDatasetArrowFlightPayload,
-};
-use crate::cluster_api::payloads::RegisterArrowFlightClientCertificatePayload;
-use hopsworks_core::{get_hopsworks_client, util};
 
 use hopsworks_core::controller::platform::variables;
-use hopsworks_core::feature_store::{FeatureView, query::Query, feature_view::training_dataset::TrainingDataset};
-
-
-
+use hopsworks_core::feature_store::{
+    feature_view::training_dataset::TrainingDataset, query::Query, FeatureView,
+};
 
 #[derive(Debug, Clone, Default)]
 pub struct HopsworksArrowFlightClientBuilder {}
@@ -54,7 +50,8 @@ impl HopsworksArrowFlightClientBuilder {
     }
 
     async fn get_arrow_flight_url(&self) -> Result<String> {
-        let feature_query_hostname = variables::get_loadbalancer_external_domain("feature_query").await?;
+        let feature_query_hostname =
+            variables::get_loadbalancer_external_domain("feature_query").await?;
         let arrow_flight_url = format!("https://{}:5005", feature_query_hostname);
         debug!("Arrow flight url: {}", arrow_flight_url);
         Ok(arrow_flight_url)
@@ -161,7 +158,10 @@ impl HopsworksArrowFlightClient {
         Ok(df)
     }
 
-    async fn _get_dataset(&mut self, descriptor: FlightDescriptor) -> Result<FlightRecordBatchStream> {
+    async fn _get_dataset(
+        &mut self,
+        descriptor: FlightDescriptor,
+    ) -> Result<FlightRecordBatchStream> {
         debug!("Getting dataset with descriptor: {:#?}", descriptor);
         let flight_info = self.client.get_flight_info(descriptor).await?;
         let opt_endpoint = flight_info.endpoint.first();
@@ -215,4 +215,3 @@ impl HopsworksArrowFlightClient {
         Ok(())
     }
 }
-

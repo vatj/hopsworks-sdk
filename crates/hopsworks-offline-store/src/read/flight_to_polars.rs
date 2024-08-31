@@ -1,14 +1,15 @@
-use color_eyre::Result;
 use arrow::record_batch::RecordBatch;
-use polars::prelude::*;
+use color_eyre::Result;
 use futures::StreamExt;
+use polars::prelude::*;
 use polars_core::utils::accumulate_dataframes_vertical;
 
-
-use hopsworks_core::feature_store::query::Query;
-use crate::{arrow_flight::client::HopsworksArrowFlightClientBuilder, read::read_options::ArrowFlightReadOptions};
 use super::flight_query_builder::build_flight_query;
-
+use crate::{
+    arrow_flight::client::HopsworksArrowFlightClientBuilder,
+    read::read_options::ArrowFlightReadOptions,
+};
+use hopsworks_core::feature_store::query::Query;
 
 pub async fn read_with_arrow_flight_client(
     query_object: Query,
@@ -17,11 +18,11 @@ pub async fn read_with_arrow_flight_client(
 ) -> Result<DataFrame> {
     // Create Arrow Flight Client
     let mut arrow_flight_client = HopsworksArrowFlightClientBuilder::default().build().await?;
-    
-    let query_payload = build_flight_query(query_object, _offline_read_options, _ondemand_fg_aliases).await?;
+
+    let query_payload =
+        build_flight_query(query_object, _offline_read_options, _ondemand_fg_aliases).await?;
 
     let mut record_data_stream = arrow_flight_client.read_query(query_payload).await?;
-
 
     let mut dfs: Vec<DataFrame> = vec![];
     while let Some(Ok(record_batch)) = record_data_stream.next().await {

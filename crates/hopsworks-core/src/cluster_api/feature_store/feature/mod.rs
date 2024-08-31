@@ -1,10 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::feature_store::feature_group::feature::Feature;
 use crate::cluster_api::feature_store::{
-        feature_group::FeatureGroupDTO,
-        transformation_function::TransformationFunctionDTO,
-    };
+    feature_group::FeatureGroupDTO, transformation_function::TransformationFunctionDTO,
+};
+use crate::feature_store::feature_group::feature::Feature;
 
 pub mod payloads;
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -67,7 +66,7 @@ impl TrainingDatasetFeatureDTO {
 
 impl From<&Feature> for FeatureDTO {
     fn from(feature: &Feature) -> Self {
-        FeatureDTO{
+        FeatureDTO {
             feature_group_id: feature.feature_group_id(),
             primary: feature.is_primary(),
             name: feature.name().to_string(),

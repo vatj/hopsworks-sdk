@@ -1,18 +1,19 @@
-use color_eyre::Result;
 use arrow::record_batch::RecordBatch;
-use polars::prelude::*;
+use color_eyre::Result;
 use connectorx::prelude::Dispatcher;
 use connectorx::sql::CXQuery;
+use polars::prelude::*;
 use polars_core::utils::accumulate_dataframes_vertical;
 
+use hopsworks_core::controller::feature_store::query::{
+    build_mysql_connection_url_from_storage_connector, construct_query,
+};
 use hopsworks_core::feature_store::query::Query;
-use hopsworks_core::controller::feature_store::query::{build_mysql_connection_url_from_storage_connector, construct_query};
 
-use crate::OnlineReadOptions;
 use crate::mysql2arrow::arrowstream::ArrowDestination;
-use crate::mysql2arrow::mysql::{MySQLSource, BinaryProtocol};
+use crate::mysql2arrow::mysql::{BinaryProtocol, MySQLSource};
 use crate::mysql2arrow::mysql_arrowstream::MySQLArrowTransport;
-
+use crate::OnlineReadOptions;
 
 pub async fn read_polars_from_online_feature_store(
     query: &Query,

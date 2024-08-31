@@ -1,12 +1,10 @@
 use color_eyre::Result;
-use tracing::debug;
 use reqwest::Method;
+use tracing::debug;
 
 use crate::get_hopsworks_client;
 
-use super::{
-    FeatureStoreJdbcConnectorDTO, FeatureStoreKafkaConnectorDTO, StorageConnectorDTO,
-};
+use super::{FeatureStoreJdbcConnectorDTO, FeatureStoreKafkaConnectorDTO, StorageConnectorDTO};
 
 pub async fn get_feature_store_kafka_connector(
     feature_store_id: i32,

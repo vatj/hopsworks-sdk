@@ -2,20 +2,20 @@ use color_eyre::Result;
 use reqwest::{Method, StatusCode};
 
 use super::{
-    FeatureViewDTO,
     payloads::{FeatureViewBatchQueryPayload, NewFeatureViewPayload},
+    FeatureViewDTO,
+};
+use crate::cluster_api::{
+    feature_store::{
+        query::QueryDTO,
+        training_dataset::{
+            payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
+            TrainingDatasetDTO,
+        },
+    },
+    platform::job::JobDTO,
 };
 use crate::get_hopsworks_client;
-use crate::cluster_api::{
-        feature_store::{
-            query::QueryDTO,
-            training_dataset::{
-                TrainingDatasetDTO,
-                payloads::{NewTrainingDatasetPayload, TrainingDatasetComputeJobConfigPayload},
-            },
-        },
-        platform::job::JobDTO,
-    };
 
 pub async fn get_feature_view_by_name_and_version(
     feature_store_id: i32,
@@ -172,7 +172,11 @@ pub async fn get_feature_view_batch_query(
     }
 }
 
-pub async fn delete_feature_view_by_name_and_version(feature_store_id: i32, feature_view_name: &str, feature_view_version: i32) -> Result<()> {
+pub async fn delete_feature_view_by_name_and_version(
+    feature_store_id: i32,
+    feature_view_name: &str,
+    feature_view_version: i32,
+) -> Result<()> {
     let response = get_hopsworks_client()
         .await
         .request(
@@ -195,7 +199,10 @@ pub async fn delete_feature_view_by_name_and_version(feature_store_id: i32, feat
     }
 }
 
-pub async fn delete_feature_view_by_name(feature_store_id: i32, feature_view_name: &str) -> Result<()> {
+pub async fn delete_feature_view_by_name(
+    feature_store_id: i32,
+    feature_view_name: &str,
+) -> Result<()> {
     let response = get_hopsworks_client()
         .await
         .request(

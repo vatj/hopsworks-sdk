@@ -4,8 +4,8 @@ use reqwest::{Method, StatusCode};
 use crate::get_hopsworks_client;
 
 use super::{
-    TrainingDatasetDTO,
     payloads::{NewTrainingDatasetPayload, NewTrainingDatasetPayloadV2},
+    TrainingDatasetDTO,
 };
 
 pub async fn get_training_dataset_by_name_and_version(

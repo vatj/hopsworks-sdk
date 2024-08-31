@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::feature_store::embedding::embedding_index::EmbeddingIndex;
 use crate::feature_store::embedding::embedding_feature::EmbeddingFeature;
-
+use crate::feature_store::embedding::embedding_index::EmbeddingIndex;
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -33,7 +32,8 @@ pub struct EmbeddingIndexDTO {
 
 impl From<&EmbeddingIndex> for EmbeddingIndexDTO {
     fn from(embedding_index: &EmbeddingIndex) -> Self {
-        let features: Option<HashMap<String, EmbeddingFeatureDTO>> = match embedding_index.features {
+        let features: Option<HashMap<String, EmbeddingFeatureDTO>> = match embedding_index.features
+        {
             Some(ref features) => {
                 let features = features
                     .iter()
@@ -68,7 +68,10 @@ impl<'de> Deserialize<'de> for SimilarityFunctionDTO {
             "L2" => Ok(SimilarityFunctionDTO::L2),
             "COSINE" => Ok(SimilarityFunctionDTO::Cosine),
             "DOT_PRODUCT" => Ok(SimilarityFunctionDTO::DotProduct),
-            _ => Err(serde::de::Error::custom(format!("unknown similarity function: {}", s))),
+            _ => Err(serde::de::Error::custom(format!(
+                "unknown similarity function: {}",
+                s
+            ))),
         }
     }
 }

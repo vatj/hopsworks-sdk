@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::cluster_api::feature_store::{
-        feature::TrainingDatasetFeatureDTO,
-        query::{FeatureStoreQueryDTO, QueryDTO},
-    };
+    feature::TrainingDatasetFeatureDTO,
+    query::{FeatureStoreQueryDTO, QueryDTO},
+};
 
 use super::{KeywordDTO, TagsDTO};
 
@@ -34,7 +34,7 @@ impl NewFeatureViewPayload {
         query: QueryDTO,
         query_string: Option<&FeatureStoreQueryDTO>,
         features: Vec<TrainingDatasetFeatureDTO>,
-        description: Option<&str>
+        description: Option<&str>,
     ) -> Self {
         Self {
             dto_type: "featureViewDTO".to_owned(),

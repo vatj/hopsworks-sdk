@@ -1,10 +1,10 @@
 use super::arrow_assoc::ArrowAssoc;
 use super::Builder;
-use connectorx::errors::Result;
-use connectorx::typesystem::{ParameterizedFunc, ParameterizedOn};
 use anyhow::anyhow;
 use arrow::array::{ArrayBuilder, ArrayRef};
 use arrow::datatypes::Field;
+use connectorx::errors::Result;
+use connectorx::typesystem::{ParameterizedFunc, ParameterizedOn};
 
 pub struct FNewBuilder;
 

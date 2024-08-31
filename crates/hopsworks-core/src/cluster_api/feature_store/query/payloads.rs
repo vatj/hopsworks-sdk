@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::cluster_api::feature_store::{
-        feature::FeatureDTO, feature_group::FeatureGroupDTO,
-    };
+use crate::cluster_api::feature_store::{feature::FeatureDTO, feature_group::FeatureGroupDTO};
 
 use super::QueryFilterOrLogicDTO;
 use crate::feature_store::query::enums::JoinType;

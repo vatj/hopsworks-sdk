@@ -1,12 +1,11 @@
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
-use crate::feature_store::FeatureGroup;
 use crate::cluster_api::feature_store::embedding::EmbeddingFeatureDTO;
+use crate::feature_store::FeatureGroup;
 
 use super::embedding_index::EmbeddingIndexMetadata;
-use super::{SimilarityFunction, MinimalModelMetadata};
-
+use super::{MinimalModelMetadata, SimilarityFunction};
 
 #[derive(Serialize, Deserialize, Debug, Clone, TypedBuilder)]
 pub struct EmbeddingFeature {

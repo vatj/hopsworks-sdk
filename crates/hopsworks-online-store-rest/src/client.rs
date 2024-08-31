@@ -1,6 +1,6 @@
 use color_eyre::Result;
-use tracing::{debug, instrument};
 use reqwest::{header::HeaderValue, Method};
+use tracing::{debug, instrument};
 use typed_builder::TypedBuilder;
 
 #[derive(Debug, Clone, TypedBuilder)]
@@ -13,7 +13,6 @@ pub struct OnlineStoreRestClient {
     api_version: String,
 }
 
-
 impl OnlineStoreRestClient {
     #[instrument]
     pub async fn request(
@@ -22,14 +21,9 @@ impl OnlineStoreRestClient {
         url: &str,
         with_authorization: bool,
     ) -> Result<reqwest::RequestBuilder> {
-        let request_builder = self
-            .client
-            .request(method, self.build_full_url(url)?);
+        let request_builder = self.client.request(method, self.build_full_url(url)?);
         if with_authorization {
-            Ok(
-                request_builder
-                    .header("X-API-KEY", self.api_key.clone()),
-            )
+            Ok(request_builder.header("X-API-KEY", self.api_key.clone()))
         } else {
             Ok(request_builder)
         }

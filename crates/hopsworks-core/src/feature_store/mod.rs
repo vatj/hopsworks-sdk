@@ -1,9 +1,9 @@
 //! [`FeatureStore`] client to write, read and manage Feature data.
+pub mod embedding;
 pub mod feature_group;
 pub mod feature_view;
 pub mod query;
 pub mod storage_connector;
-pub mod embedding;
 
 pub use feature_group::FeatureGroup;
 pub use feature_view::FeatureView;
@@ -13,17 +13,30 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::controller::feature_store::{
-        feature_group::get_feature_group_by_name_and_version,
-        feature_view::{create_feature_view, get_feature_view_by_name_and_version},
-        training_dataset::get_training_dataset_by_name_and_version,
-        transformation_function::get_transformation_function_by_name_and_version,
-    };
+    feature_group::get_feature_group_by_name_and_version,
+    feature_view::{create_feature_view, get_feature_view_by_name_and_version},
+    training_dataset::get_training_dataset_by_name_and_version,
+    transformation_function::get_transformation_function_by_name_and_version,
+};
 
-use feature_view::{training_dataset::TrainingDataset, transformation_function::TransformationFunction};
-use query::Query;
 use crate::cluster_api::feature_store::FeatureStoreDTO;
+use feature_view::{
+    training_dataset::TrainingDataset, transformation_function::TransformationFunction,
+};
+use query::Query;
 
-pub type FeatureGroupBuilder = self::feature_group::FeatureGroupBuilder<((i32,), (std::string::String,), (), (), (), (), (), (), (), ())>;
+pub type FeatureGroupBuilder = self::feature_group::FeatureGroupBuilder<(
+    (i32,),
+    (std::string::String,),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+)>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureStore {

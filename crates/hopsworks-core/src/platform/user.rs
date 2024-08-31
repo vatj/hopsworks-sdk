@@ -49,7 +49,7 @@ impl From<UserDTO> for User {
 
 impl From<User> for UserDTO {
     fn from(user: User) -> Self {
-        UserDTO{
+        UserDTO {
             email: user.email,
             first_name: user.first_name,
             last_name: user.last_name,

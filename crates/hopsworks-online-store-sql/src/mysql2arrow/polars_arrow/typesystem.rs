@@ -1,5 +1,5 @@
-use connectorx::impl_typesystem;
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+use connectorx::impl_typesystem;
 
 #[derive(Debug, Clone, Copy)]
 pub struct DateTimeWrapperMicro(pub DateTime<Utc>);
