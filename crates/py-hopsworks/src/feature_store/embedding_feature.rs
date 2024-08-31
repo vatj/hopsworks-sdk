@@ -1,7 +1,6 @@
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
-
 #[pyclass]
 #[repr(transparent)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -11,7 +10,9 @@ pub struct PyEmbeddingFeature {
 
 impl From<hopsworks_api::EmbeddingFeature> for PyEmbeddingFeature {
     fn from(embedding_feature: hopsworks_api::EmbeddingFeature) -> Self {
-        Self { ef: embedding_feature }
+        Self {
+            ef: embedding_feature,
+        }
     }
 }
 

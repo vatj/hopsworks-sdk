@@ -1,12 +1,12 @@
 use pyo3::prelude::*;
-use tracing::debug;
 use std::sync::OnceLock;
+use tracing::debug;
 
 pub mod feature_store;
 pub mod platform;
 
-use platform::project::PyProject;
 use hopsworks_api::HopsworksClientBuilder;
+use platform::project::PyProject;
 
 static LOG_RESET_HANDLE: OnceLock<pyo3_log::ResetHandle> = OnceLock::new();
 static MULTITHREADED: OnceLock<bool> = OnceLock::new();
@@ -34,9 +34,15 @@ pub fn refresh_logger() {
 }
 
 #[pyfunction]
-pub fn login(url: Option<&str>, api_key_value: Option<&str>, project_name: Option<&str>, multithreaded: Option<bool>) -> PyResult<platform::project::PyProject> {
+pub fn login(
+    url: Option<&str>,
+    api_key_value: Option<&str>,
+    project_name: Option<&str>,
+    multithreaded: Option<bool>,
+) -> PyResult<platform::project::PyProject> {
     let multithreaded = multithreaded.unwrap_or(true);
-    let builder = HopsworksClientBuilder::new_provided_or_from_env(api_key_value, url, project_name);
+    let builder =
+        HopsworksClientBuilder::new_provided_or_from_env(api_key_value, url, project_name);
     let project = hopsworks_api::login_blocking(Some(builder), multithreaded)?;
     debug!("Logged in to project: {}", project.name());
     debug!("{:#?}", project);

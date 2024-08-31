@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[pyclass]
 #[repr(transparent)]

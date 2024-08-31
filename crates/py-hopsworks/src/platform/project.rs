@@ -33,16 +33,18 @@ impl PyProject {
 
     fn get_feature_store(&self) -> PyResult<PyFeatureStore> {
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
-        let fs = hopsworks_api::blocking::project::get_feature_store_blocking(&self.project, multithreaded)?;
+        let fs = hopsworks_api::blocking::project::get_feature_store_blocking(
+            &self.project,
+            multithreaded,
+        )?;
         Ok(PyFeatureStore::from(fs))
     }
 
     fn init_hopsworks_opensearch_client(&self) -> PyResult<()> {
-        hopsworks_api::opensearch::init_hopsworks_opensearch_client_blocking(self.id(), *crate::MULTITHREADED.get().unwrap_or(&true))?;
+        hopsworks_api::opensearch::init_hopsworks_opensearch_client_blocking(
+            self.id(),
+            *crate::MULTITHREADED.get().unwrap_or(&true),
+        )?;
         Ok(())
     }
 }
-
-
-
-

@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[pyclass]
 #[repr(transparent)]
@@ -14,7 +14,6 @@ impl PyJob {
         self.job.name().to_string()
     }
 }
-
 
 impl From<hopsworks_api::Job> for PyJob {
     fn from(job: hopsworks_api::Job) -> Self {
