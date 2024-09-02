@@ -5,6 +5,8 @@ use pyo3::{
     prelude::*,
     types::{PyBool, PyDict, PyInt, PyString},
 };
+#[cfg(feature = "read_arrow_flight_offline_store")]
+use pyo3_polars::PyDataFrame;
 use serde::{Deserialize, Serialize};
 
 #[pyclass]
@@ -70,6 +72,36 @@ impl PyFeatureView {
         )?;
         tracing::info!("{:?}", sfv);
         Ok(())
+    }
+
+    #[cfg(feature = "read_arrow_flight_offline_store")]
+    pub fn get_batch_data(
+        &self,
+        primary_keys: bool,
+        event_time: bool,
+        inference_helper_columns: bool,
+        td_version: Option<i32>,
+        start_time: Option<i64>,
+        end_time: Option<i64>,
+    ) -> PyResult<PyDataFrame> {
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        let batch_query_options = hopsworks_api::BatchQueryOptions::builder()
+            .with_primary_keys(primary_keys)
+            .with_event_time(event_time)
+            .with_inference_helper_columns(inference_helper_columns)
+            .td_version(td_version)
+            .start_time(start_time)
+            .end_time(end_time)
+            .build();
+
+        let df = hopsworks_api::offline_store::get_batch_data_to_polars_blocking(
+            &self.fv,
+            &batch_query_options,
+            None,
+            multithreaded,
+        )?;
+
+        Ok(PyDataFrame(df))
     }
 }
 

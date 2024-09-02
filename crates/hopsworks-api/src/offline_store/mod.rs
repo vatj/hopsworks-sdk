@@ -1,14 +1,17 @@
-use color_eyre::Result;
-use tracing::debug;
-use polars::prelude::DataFrame;
 use arrow::record_batch::RecordBatch;
+use color_eyre::Result;
+use polars::prelude::DataFrame;
+use tracing::debug;
 
-use hopsworks_core::feature_store::FeatureGroup;
-use hopsworks_core::feature_store::{FeatureView, query::builder::BatchQueryOptions};
 use hopsworks_core::controller::feature_store::feature_view::get_batch_query;
+use hopsworks_core::feature_store::FeatureGroup;
+use hopsworks_core::feature_store::{query::builder::BatchQueryOptions, FeatureView};
 
-use hopsworks_offline_store::read::{flight_to_polars::read_with_arrow_flight_client, flight_to_record_batch::read_to_record_batch_with_arrow_flight_client};
 pub use hopsworks_offline_store::read::read_options::ArrowFlightReadOptions;
+use hopsworks_offline_store::read::{
+    flight_to_polars::read_with_arrow_flight_client,
+    flight_to_record_batch::read_to_record_batch_with_arrow_flight_client,
+};
 
 /// Reads feature group data from Hopsworks via the Arrow Flight client.
 ///
@@ -79,13 +82,14 @@ pub async fn read_arrow_from_offline_feature_store(
         "Reading data from feature group {} with Arrow Flight client",
         fgroup.name()
     );
-    let read_df = read_to_record_batch_with_arrow_flight_client(query, _offline_read_options, vec![]).await?;
+    let read_df =
+        read_to_record_batch_with_arrow_flight_client(query, _offline_read_options, vec![]).await?;
 
     Ok(read_df)
 }
 
-
-pub async fn get_batch_data(
+#[tracing::instrument(skip(feature_view, offline_read_options), fields(fv_name = feature_view.name(), fv_version = feature_view.version()))]
+pub async fn get_batch_data_to_polars(
     feature_view: &FeatureView,
     batch_query_options: &BatchQueryOptions,
     offline_read_options: Option<ArrowFlightReadOptions>,
@@ -104,7 +108,10 @@ pub fn read_polars_from_offline_feature_store_blocking(
     let rt = hopsworks_core::get_hopsworks_runtime(multithreaded).clone();
     let _guard = rt.enter();
 
-    rt.block_on(read_polars_from_offline_feature_store(fgroup, offline_read_options))
+    rt.block_on(read_polars_from_offline_feature_store(
+        fgroup,
+        offline_read_options,
+    ))
 }
 
 #[cfg(feature = "blocking")]
@@ -116,5 +123,25 @@ pub fn read_arrow_from_offline_feature_store_blocking(
     let rt = hopsworks_core::get_hopsworks_runtime(multithreaded).clone();
     let _guard = rt.enter();
 
-    rt.block_on(read_arrow_from_offline_feature_store(fgroup, offline_read_options))
+    rt.block_on(read_arrow_from_offline_feature_store(
+        fgroup,
+        offline_read_options,
+    ))
+}
+
+#[cfg(feature = "blocking")]
+pub fn get_batch_data_to_polars_blocking(
+    feature_view: &FeatureView,
+    batch_query_options: &BatchQueryOptions,
+    offline_read_options: Option<ArrowFlightReadOptions>,
+    multithreaded: bool,
+) -> Result<DataFrame> {
+    let rt = hopsworks_core::get_hopsworks_runtime(multithreaded).clone();
+    let _guard = rt.enter();
+
+    rt.block_on(get_batch_data_to_polars(
+        feature_view,
+        batch_query_options,
+        offline_read_options,
+    ))
 }

@@ -1,7 +1,13 @@
 from __future__ import annotations
-from typing import Any, Dict
 
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+
+from datatime import date, datetime
 from hopsworks_sdk.hopsworks_rs import PyFeatureView
+
+
+if TYPE_CHECKING:
+    import polars as pl
 
 
 class FeatureView:
@@ -36,6 +42,24 @@ class FeatureView:
             raise NotImplementedError(
                 "Only REST client is supported for get_feature_vector."
             )
+
+    def get_batch_data(
+        self,
+        start_time: Optional[Union[str, int, datetime, date]] = None,
+        end_time: Optional[Union[str, int, datetime, date]] = None,
+        primary_key: bool = False,
+        event_time: bool = False,
+        inference_helper_columns: bool = False,
+        transformed: bool = False,
+    ) -> pl.DataFrame:
+        return self._fv.get_batch_data(
+            start_time=start_time,
+            end_time=end_time,
+            primary_key=primary_key,
+            event_time=event_time,
+            inference_helper_columns=inference_helper_columns,
+            transformed=transformed,
+        )
 
     def delete(self) -> None:
         self._fv.delete()

@@ -339,8 +339,8 @@ impl From<&Query> for NewQueryPayload {
 impl From<&BatchQueryOptions> for FeatureViewBatchQueryPayload {
     fn from(options: &BatchQueryOptions) -> Self {
         Self {
-            start_time: options.start_time.map(|t| t.timestamp_millis()),
-            end_time: options.end_time.map(|t| t.timestamp_millis()),
+            start_time: options.start_time,
+            end_time: options.end_time,
             td_version: options.td_version,
             with_event_time: options.event_time,
             with_label: options.label,
