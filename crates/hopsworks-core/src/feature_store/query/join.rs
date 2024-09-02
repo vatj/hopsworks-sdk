@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::cluster_api::feature_store::query::{JoinQueryDTO, QueryDTO, payloads::{NewJoinQueryPayload, NewQueryPayload}};
+use crate::cluster_api::feature_store::query::{
+    payloads::{NewJoinQueryPayload, NewQueryPayload},
+    JoinQueryDTO, QueryDTO,
+};
 use crate::feature_store::query::enums::JoinType;
 
 use super::Query;
@@ -126,8 +129,6 @@ impl JoinOptions {
         self
     }
 }
-
-
 
 impl From<&JoinQuery> for JoinQueryDTO {
     fn from(join_query: &JoinQuery) -> Self {

@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[pyclass]
 #[repr(transparent)]
@@ -10,36 +10,49 @@ pub struct PyJobExecution {
 
 #[pymethods]
 impl PyJobExecution {
-    fn job_name(&self) -> PyResult<String> {
-        Ok(self.job_execution.job_name().to_string())
+    fn job_name(&self) -> String {
+        self.job_execution.job_name().to_string()
     }
 
-    fn id(&self) -> PyResult<i32> {
-        Ok(self.job_execution.id())
+    fn id(&self) -> i32 {
+        self.job_execution.id()
     }
 
-    fn state(&self) -> PyResult<String> {
-        Ok(self.job_execution.state().to_string())
+    fn state(&self) -> String {
+        self.job_execution.state().to_string()
     }
 
-    fn submission_time(&self) -> PyResult<String> {
-        Ok(self.job_execution.submission_time().to_string())
+    fn submission_time(&self) -> String {
+        self.job_execution.submission_time().to_string()
     }
 
     fn get_current_state(&self) -> PyResult<String> {
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
-        Ok(hopsworks_api::blocking::job_execution::get_current_state_blocking(&self.job_execution, multithreaded)?.to_string())
+        Ok(
+            hopsworks_api::blocking::job_execution::get_current_state_blocking(
+                &self.job_execution,
+                multithreaded,
+            )?
+            .to_string(),
+        )
     }
 
     fn download_logs(&self, local_dir: Option<String>) -> PyResult<()> {
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
-        hopsworks_api::blocking::job_execution::download_logs_blocking(&self.job_execution, local_dir.as_deref(), multithreaded)?;
+        hopsworks_api::blocking::job_execution::download_logs_blocking(
+            &self.job_execution,
+            local_dir.as_deref(),
+            multithreaded,
+        )?;
         Ok(())
     }
 
     fn delete(&self) -> PyResult<()> {
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
-        hopsworks_api::blocking::job_execution::delete_blocking(&self.job_execution, multithreaded)?;
+        hopsworks_api::blocking::job_execution::delete_blocking(
+            &self.job_execution,
+            multithreaded,
+        )?;
         Ok(())
     }
 
@@ -51,7 +64,10 @@ impl PyJobExecution {
 
     fn await_termination(&self) -> PyResult<()> {
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
-        hopsworks_api::blocking::job_execution::await_termination_blocking(&self.job_execution, multithreaded)?;
+        hopsworks_api::blocking::job_execution::await_termination_blocking(
+            &self.job_execution,
+            multithreaded,
+        )?;
         Ok(())
     }
 }

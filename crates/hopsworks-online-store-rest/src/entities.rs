@@ -1,5 +1,4 @@
-
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 type FeatureValues = Vec<serde_json::Value>;
 
@@ -32,7 +31,6 @@ pub struct DetailedStatus {
     feature_group_id: i32,
     status_code: i32,
 }
-
 
 pub enum FeatureVectorStatus {
     COMPLETE,
@@ -107,6 +105,3 @@ impl std::fmt::Display for FeatureVectorStatus {
         }
     }
 }
-
-
-

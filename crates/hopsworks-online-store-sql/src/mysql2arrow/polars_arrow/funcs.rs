@@ -1,8 +1,8 @@
 use super::arrow_assoc::ArrowAssoc;
 use super::Builder;
+use anyhow::anyhow;
 use connectorx::errors::Result;
 use connectorx::typesystem::{ParameterizedFunc, ParameterizedOn};
-use anyhow::anyhow;
 use polars_arrow::array::{Array, MutableArray};
 use polars_arrow::datatypes::Field;
 

@@ -31,7 +31,7 @@ impl From<&StatisticsConfigDTO> for StatisticsConfig {
 
 impl From<&StatisticsConfig> for StatisticsConfigDTO {
     fn from(statistics_config: &StatisticsConfig) -> Self {
-        StatisticsConfigDTO{
+        StatisticsConfigDTO {
             enabled: statistics_config.enabled,
             histograms: statistics_config.histograms,
             correlations: statistics_config.correlations,

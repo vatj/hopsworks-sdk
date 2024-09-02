@@ -18,22 +18,14 @@ serde_json = { version = "1.0" }
 color-eyre = { version = "0.6" }
 tokio = { version = "1.39", features = ["full", "tracing"] }
 console-subscriber = { version = "0.4" }
+tracing-subscriber = { version = "0.3" }
 tracing = { version = "0.1" }
 
 chrono = { version = "0.4" }
-polars = { version = "0.41", features = [
-    "default",
-    "simd",
-    "performant",
-    "lazy",
-    "strings",
-    "dtype-full",
-    "rows",
-    "timezones",
-] }
+polars = { version = "0.41", features = ["default"] }
 arrow = { version = "52" }
 reqwest = { version = "0.12", features = ["json", "native-tls", "stream"] }
-indexmap = { version = "2.4" }
+indexmap = { version = "2.5" }
 
 hopsworks-api ={ path = "crates/hopsworks-api" }
 hopsworks-core = { path = "crates/hopsworks-core" }
@@ -41,6 +33,7 @@ hopsworks-cli ={ path = "crates/hopsworks-cli" }
 hopsworks-offline-store = { path = "crates/hopsworks-offline-store" }
 hopsworks-online-store-sql ={ path = "crates/hopsworks-online-store-sql" }
 hopsworks-online-store-rest ={ path = "crates/hopsworks-online-store-rest" }
+hopsworks-opensearch ={ path = "crates/hopsworks-opensearch" }
 hopsworks-kafka ={ path = "crates/hopsworks-kafka" }
 py-hopsworks ={ path = "crates/py-hopsworks" }
 

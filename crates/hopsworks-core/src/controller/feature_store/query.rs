@@ -3,11 +3,11 @@ use tracing::debug;
 
 use crate::controller::feature_store::storage_connector;
 
-use crate::cluster_api::platform::variables::service::get_loadbalancer_external_domain;
 use crate::cluster_api::feature_store::{
-        query,
-        query::{FeatureStoreQueryDTO, payloads::NewQueryPayload},
-    };
+    query,
+    query::{payloads::NewQueryPayload, FeatureStoreQueryDTO},
+};
+use crate::cluster_api::platform::variables::service::get_loadbalancer_external_domain;
 use crate::feature_store::query::Query;
 
 pub async fn construct_query(query: &Query) -> Result<FeatureStoreQueryDTO> {

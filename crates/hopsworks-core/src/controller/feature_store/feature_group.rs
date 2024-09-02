@@ -1,15 +1,10 @@
 use color_eyre::Result;
 
-#[cfg(feature = "polars")]
-use polars::prelude::Schema;
-#[cfg(feature = "polars")]
 use crate::controller::feature_store::feature;
 
-
-use crate::cluster_api::feature_store::{
-        feature::payloads::NewFeaturePayload,
-        feature_group::{self, FeatureGroupDTO, payloads::NewFeatureGroupPayload},
-    };
+use crate::cluster_api::feature_store::feature_group::{
+    self, payloads::NewFeatureGroupPayload, FeatureGroupDTO,
+};
 
 pub async fn get_feature_group_by_name_and_version(
     feature_store_id: i32,
@@ -35,37 +30,21 @@ pub async fn create_feature_group(
     feature_group::service::create_feature_group(feature_store_id, &new_feature_group_payload).await
 }
 
-pub fn make_new_feature_group_payload(
-    name: &str,
-    version: i32,
-    description: Option<&str>,
-    features: Vec<NewFeaturePayload>,
-    event_time: Option<&str>,
-    online_enabled: bool,
-) -> NewFeatureGroupPayload {
-    NewFeatureGroupPayload::new(
-        name,
-        version,
-        description,
-        features,
-        event_time,
-        online_enabled,
-    )
-}
-
-#[cfg(feature = "polars")]
-pub fn build_new_feature_group_payload(
+fn build_new_feature_group_payload(
     name: &str,
     version: i32,
     description: Option<&str>,
     primary_key: Vec<&str>,
     event_time: Option<&str>,
-    schema: Schema,
     online_enabled: bool,
+    feature_names: &[String],
+    feature_types: &[String],
 ) -> Result<NewFeatureGroupPayload> {
-    let features =
-        feature::build_feature_payloads_from_schema_and_feature_group_options(schema, primary_key)
-            .unwrap();
+    let features = feature::build_feature_payloads_from_schema_and_feature_group_options(
+        feature_names,
+        feature_types,
+        primary_key,
+    )?;
 
     Ok(NewFeatureGroupPayload::new(
         name,
@@ -77,10 +56,29 @@ pub fn build_new_feature_group_payload(
     ))
 }
 
+#[tracing::instrument]
 pub async fn save_feature_group_metadata(
     feature_store_id: i32,
-    new_feature_group_payload: NewFeatureGroupPayload,
+    name: &str,
+    version: i32,
+    description: Option<&str>,
+    primary_key: Vec<&str>,
+    event_time: Option<&str>,
+    online_enabled: bool,
+    feature_names: &[String],
+    feature_types: &[String],
 ) -> Result<FeatureGroupDTO> {
+    let new_feature_group_payload = build_new_feature_group_payload(
+        name,
+        version,
+        description,
+        primary_key,
+        event_time,
+        online_enabled,
+        feature_names,
+        feature_types,
+    )?;
+
     let feature_group_dto =
         feature_group::service::create_feature_group(feature_store_id, &new_feature_group_payload)
             .await?;
@@ -91,5 +89,3 @@ pub async fn save_feature_group_metadata(
 pub async fn delete_feature_group(feature_store_id: i32, feature_group_id: i32) -> Result<()> {
     feature_group::service::delete_feature_group(feature_store_id, feature_group_id).await
 }
-
-

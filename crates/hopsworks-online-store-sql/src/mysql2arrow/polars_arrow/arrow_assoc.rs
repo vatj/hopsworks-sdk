@@ -1,6 +1,12 @@
 use super::typesystem::{DateTimeWrapperMicro, NaiveDateTimeWrapperMicro, NaiveTimeWrapperMicro};
-use polars_arrow::{array::{MutableBinaryArray, MutableBooleanArray, MutableListArray, MutableUtf8Array, MutableArray, MutablePrimitiveArray, TryPush}, datatypes::{ArrowDataType, Field, TimeUnit}};
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Utc};
+use polars_arrow::{
+    array::{
+        MutableArray, MutableBinaryArray, MutableBooleanArray, MutableListArray,
+        MutablePrimitiveArray, MutableUtf8Array, TryPush,
+    },
+    datatypes::{ArrowDataType, Field, TimeUnit},
+};
 
 use crate::mysql2arrow::constants::SECONDS_IN_DAY;
 

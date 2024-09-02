@@ -7,7 +7,13 @@ pub struct ArrowFlightReadOptions {
 }
 
 impl ArrowFlightReadOptions {
-    pub fn new(host: &str, port: u16, tls: bool, root_cert_path: Option<&str>, token: Option<&str>) -> Self {
+    pub fn new(
+        host: &str,
+        port: u16,
+        tls: bool,
+        root_cert_path: Option<&str>,
+        token: Option<&str>,
+    ) -> Self {
         Self {
             _host: host.to_string(),
             _port: port,

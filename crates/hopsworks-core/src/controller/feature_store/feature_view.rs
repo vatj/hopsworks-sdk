@@ -2,22 +2,22 @@ use std::collections::HashMap;
 
 use color_eyre::Result;
 
+use crate::cluster_api::feature_store::{
+    feature::{FeatureDTO, TrainingDatasetFeatureDTO},
+    feature_group::FeatureGroupDTO,
+    feature_view::{self, payloads::NewFeatureViewPayload},
+    query::QueryDTO,
+    transformation_function::TransformationFunctionDTO,
+};
 use crate::{
     controller::feature_store::query::construct_query,
+    feature_store::FeatureGroup,
     feature_store::{
         feature_group::feature::Feature,
         feature_view::{transformation_function::TransformationFunction, FeatureView},
         query::{builder::BatchQueryOptions, Query},
     },
-    feature_store::FeatureGroup,
 };
-use crate::cluster_api::feature_store::{
-        feature::{FeatureDTO, TrainingDatasetFeatureDTO},
-        feature_group::FeatureGroupDTO,
-        feature_view::{self, payloads::NewFeatureViewPayload},
-        query::QueryDTO,
-        transformation_function::TransformationFunctionDTO,
-    };
 
 pub async fn create_feature_view(
     feature_store_id: i32,
@@ -120,8 +120,9 @@ pub fn features_to_transformed_features(
 
 pub async fn delete(feature_view: &FeatureView) -> Result<()> {
     feature_view::service::delete_feature_view_by_name_and_version(
-        feature_view.feature_store_id(), 
-        feature_view.name(), 
-        feature_view.version()
-    ).await
+        feature_view.feature_store_id(),
+        feature_view.name(),
+        feature_view.version(),
+    )
+    .await
 }

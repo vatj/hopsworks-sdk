@@ -14,7 +14,7 @@ pub async fn insert_polars_df_into_kafka(dataframe: &mut DataFrame, fg: &Feature
         fg.name(),
         fg.version(),
         fg.online_topic_name().expect("Register the Feature Group first"),
-        fg.primary_keys()?.as_slice(),
+        fg.primary_keys().as_slice(),
         cert_dir_path.as_str(),
     )
     .await

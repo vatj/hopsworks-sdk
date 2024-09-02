@@ -6,3 +6,4 @@ pub mod variables;
 pub mod users;
 pub mod project;
 pub mod credentials;
+pub mod opensearch;

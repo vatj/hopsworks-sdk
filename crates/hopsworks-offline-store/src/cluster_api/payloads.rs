@@ -25,7 +25,6 @@ impl FeatureGroupConnectorArrowFlightPayload {
     }
 }
 
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct QueryArrowFlightPayload {
     pub query_string: String,

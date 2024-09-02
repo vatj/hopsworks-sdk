@@ -5,3 +5,4 @@ pub mod kafka;
 pub mod project;
 pub mod credentials;
 pub mod variables;
+pub mod opensearch;

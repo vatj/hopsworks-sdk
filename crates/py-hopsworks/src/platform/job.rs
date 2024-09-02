@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[pyclass]
 #[repr(transparent)]
@@ -10,11 +10,10 @@ pub struct PyJob {
 
 #[pymethods]
 impl PyJob {
-    fn name(&self) -> PyResult<String> {
-        Ok(self.job.name().to_string())
+    fn name(&self) -> String {
+        self.job.name().to_string()
     }
 }
-
 
 impl From<hopsworks_api::Job> for PyJob {
     fn from(job: hopsworks_api::Job) -> Self {

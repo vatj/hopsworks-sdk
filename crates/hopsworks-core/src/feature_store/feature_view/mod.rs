@@ -15,13 +15,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     controller::feature_store::training_dataset::{
-            create_train_test_split, create_training_dataset_attached_to_feature_view,
-        },
+        create_train_test_split, create_training_dataset_attached_to_feature_view,
+    },
     feature_store::query::Query,
 };
 
-use std::collections::HashMap;
 use crate::cluster_api::feature_store::feature_view::FeatureViewDTO;
+use std::collections::HashMap;
 
 use self::{training_dataset_builder::NoSplit, transformation_function::TransformationFunction};
 
@@ -186,12 +186,16 @@ impl FeatureView {
         &self,
         batch_query_options: &BatchQueryOptions,
     ) -> Result<String> {
-        crate::controller::feature_store::feature_view::get_batch_query_string(self, batch_query_options)
-            .await
+        crate::controller::feature_store::feature_view::get_batch_query_string(
+            self,
+            batch_query_options,
+        )
+        .await
     }
 
     pub async fn get_batch_query(&self, batch_query_options: &BatchQueryOptions) -> Result<Query> {
-        crate::controller::feature_store::feature_view::get_batch_query(self, batch_query_options).await
+        crate::controller::feature_store::feature_view::get_batch_query(self, batch_query_options)
+            .await
     }
 
     pub fn training_dataset_builder(
@@ -227,6 +231,4 @@ impl FeatureView {
         create_training_dataset_attached_to_feature_view(self).await?;
         Ok(())
     }
-
-
 }

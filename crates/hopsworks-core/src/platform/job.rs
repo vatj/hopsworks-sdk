@@ -117,7 +117,9 @@ impl Job {
     /// }
     /// ```
     pub async fn get_executions(&self) -> Result<Vec<JobExecution>> {
-        match crate::controller::platform::job_execution::get_job_executions(self.name.as_str()).await {
+        match crate::controller::platform::job_execution::get_job_executions(self.name.as_str())
+            .await
+        {
             Ok(executions) => Ok(executions.into_iter().map(JobExecution::from).collect()),
             Err(e) => Err(e),
         }
@@ -146,7 +148,9 @@ impl Job {
     /// }
     /// ```
     pub async fn save(&self, updated_job_config: serde_json::Value) -> Result<Job> {
-        match crate::controller::platform::job::update_job(self.name.as_str(), updated_job_config).await {
+        match crate::controller::platform::job::update_job(self.name.as_str(), updated_job_config)
+            .await
+        {
             Ok(job) => Ok(job),
             Err(e) => Err(e),
         }

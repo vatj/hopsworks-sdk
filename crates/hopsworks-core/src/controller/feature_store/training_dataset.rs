@@ -13,19 +13,19 @@ use crate::{
 };
 
 use crate::cluster_api::{
-        feature_store::{
-            feature_view::service as feature_view_service,
-            query::QueryDTO,
-            training_dataset::{
-                self,
-                payloads::{
-                    NewTrainingDatasetPayload, NewTrainingDatasetPayloadV2,
-                    TrainingDatasetComputeJobConfigPayload,
-                },
+    feature_store::{
+        feature_view::service as feature_view_service,
+        query::QueryDTO,
+        training_dataset::{
+            self,
+            payloads::{
+                NewTrainingDatasetPayload, NewTrainingDatasetPayloadV2,
+                TrainingDatasetComputeJobConfigPayload,
             },
         },
-        platform::job::JobDTO,
-    };
+    },
+    platform::job::JobDTO,
+};
 
 pub async fn create_train_test_split() -> Result<()> {
     todo!("create_train_test_split is not implemented");

@@ -13,14 +13,14 @@ tokio = { workspace = true }
 polars ={ workspace = true }
 hopsworks-core = { workspace = true }
 serde ={ workspace=true, features = ["derive"] }
-serde_json = { version = "1.0" }
+serde_json = { workspace = true }
 polars-arrow ={ version = "0.41", features = ["arrow_rs"] }
 polars-core = { version = "0.41"}
 arrow = { workspace = true}
 arrow-flight = { version = "52"}
 tonic = { version = "0.11", features = ["transport", "tls"] }
-ahash = { version = "0.8.6" }
-bytes = { version = "1.5.0" }
+ahash = { version = "0.8" }
+bytes = { version = "1.7" }
 futures = { version = "0.3" }
 
 

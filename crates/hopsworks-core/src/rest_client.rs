@@ -1,11 +1,14 @@
 use color_eyre::Result;
-use tracing::{debug, info, warn};
 use reqwest::{header::HeaderValue, Method};
 use std::{path::Path, sync::Arc};
 use tokio::sync::Mutex;
+use tracing::{debug, info, warn};
 
+use crate::cluster_api::platform::project::{
+    service::get_project_and_user_list,
+    {ProjectAndUserDTO, ProjectDTO},
+};
 use crate::controller::platform::credentials::write_locally_project_credentials_on_login;
-use crate::cluster_api::platform::project::{{ProjectAndUserDTO, ProjectDTO}, service::get_project_and_user_list};
 
 pub const DEFAULT_CLIENT_URL: &str = "https://c.app.hopsworks.ai/hopsworks-api/api";
 pub const DEFAULT_CLIENT_CERT_DIR: &str = "/tmp/";
@@ -71,7 +74,7 @@ impl HopsworksClientBuilder {
     ///   - values set in the environment variables will be used if not provided as args
     ///   - (todo) values set in the provided toml config filepath will be used if not provided as args or in the environment variables
     ///   - static hard-coded default values will be used as last resort where possible
-    /// 
+    ///
     /// Note:
     ///   - A valid api_key is required and must be provided as an argument, environment variable or set in config toml.
     pub fn new_provided_or_from_env(
@@ -81,19 +84,19 @@ impl HopsworksClientBuilder {
     ) -> Self {
         let api_key = api_key_value.map(|s| s.to_string()).unwrap_or(std::env::var(DEFAULT_ENV_HOPSWORKS_API_KEY).ok().unwrap_or_else(|| {
             panic!("No API key provided. Provide an API key using the {} environment variable or the with_api_key() method of the HopsworksClientBuilder.", DEFAULT_ENV_HOPSWORKS_API_KEY)}));
-        
-        let url = url.map(|s| s.to_string()).unwrap_or(std::env::var(DEFAULT_ENV_HOPSWORKS_URL)
-            .unwrap_or(DEFAULT_CLIENT_URL.to_string()));
-        
+
+        let url = url.map(|s| s.to_string()).unwrap_or(
+            std::env::var(DEFAULT_ENV_HOPSWORKS_URL).unwrap_or(DEFAULT_CLIENT_URL.to_string()),
+        );
+
         HopsworksClientBuilder {
             url,
             api_key: None,
             cert_dir: DEFAULT_CLIENT_CERT_DIR.to_string(),
             project_name: project_name.map(|s| s.to_string()),
-        }.with_api_key(&api_key)
+        }
+        .with_api_key(&api_key)
     }
-
-    
 
     pub fn with_url(mut self, url: &str) -> Self {
         self.url = url.to_string();
@@ -203,8 +206,7 @@ impl HopsworksClient {
         self.set_project_id(Some(project.id)).await;
         info!(
             "Connected to Hopsworks project : {} at url {} !",
-            project.name,
-            self.url
+            project.name, self.url
         );
 
         let cert_dir = self.get_cert_dir().lock().await.clone();
@@ -279,7 +281,7 @@ impl HopsworksClient {
         }
     }
 
-    #[tracing::instrument]
+    #[tracing::instrument(skip(self))]
     pub async fn request(
         &self,
         method: Method,
@@ -342,13 +344,11 @@ impl HopsworksClient {
         if projects.is_empty() {
             panic!("No project found for this user, please create a project in the UI first.");
         } else if project_name.is_none() {
-             Ok(projects[0].project.to_owned())
+            Ok(projects[0].project.to_owned())
         } else {
             let name = project_name.unwrap();
 
-            let opt_match = projects
-                .iter()
-                .find(|project| project.project.name == name);
+            let opt_match = projects.iter().find(|project| project.project.name == name);
 
             if let Some(the_project) = opt_match {
                 Ok(the_project.project.to_owned())

@@ -84,8 +84,11 @@ impl JobExecution {
     /// Delete the job execution from the hopsworks cluster. Note that if the job_execution is still running
     /// it will be terminated before deletion. The deletion cleans up the logs on the file system.
     pub async fn delete(&self) -> Result<()> {
-        crate::controller::platform::job_execution::delete_job_execution(self.job_name.as_str(), self.id)
-            .await
+        crate::controller::platform::job_execution::delete_job_execution(
+            self.job_name.as_str(),
+            self.id,
+        )
+        .await
     }
 
     /// Block a thread until the job execution on the hopsworks cluster is terminated. Note that this does not guarantee the job finished
@@ -126,8 +129,11 @@ impl JobExecution {
     /// }
     /// ```
     pub async fn await_termination(&self) -> Result<()> {
-        crate::controller::platform::job_execution::await_termination(self.job_name.as_str(), self.id)
-            .await
+        crate::controller::platform::job_execution::await_termination(
+            self.job_name.as_str(),
+            self.id,
+        )
+        .await
     }
 
     /// Stop the execution of the job on the hopsworks cluster. Note that this does not delete the job execution.
@@ -157,12 +163,14 @@ impl JobExecution {
     ///  Ok(())
     /// ```
     pub async fn stop(&self) -> Result<JobExecution> {
-        Ok(crate::controller::platform::job_execution::stop_job_execution(
-            self.job_name.as_str(),
-            self.id,
+        Ok(
+            crate::controller::platform::job_execution::stop_job_execution(
+                self.job_name.as_str(),
+                self.id,
+            )
+            .await?
+            .into(),
         )
-        .await?
-        .into())
     }
 
     /// Get the current state of the job execution from the hopsworks cluster.

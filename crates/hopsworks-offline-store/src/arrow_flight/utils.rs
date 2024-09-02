@@ -1,12 +1,17 @@
 use color_eyre::Result;
-use tracing::{debug, info};
 use std::collections::HashMap;
+use tracing::{debug, info};
 
 use crate::cluster_api::payloads::{
-    FeatureGroupConnectorArrowFlightPayload, QueryArrowFlightPayload, QueryFilterArrowFlightPayload, QueryFilterOrLogicArrowFlightPayload, QueryLogicArrowFlightPayload
+    FeatureGroupConnectorArrowFlightPayload, QueryArrowFlightPayload,
+    QueryFilterArrowFlightPayload, QueryFilterOrLogicArrowFlightPayload,
+    QueryLogicArrowFlightPayload,
 };
 
-use hopsworks_core::feature_store::{feature_group::FeatureGroup, query::Query, feature_group::feature::Feature, query::QueryFilter, query::QueryLogic, query::QueryFilterOrLogic};
+use hopsworks_core::feature_store::{
+    feature_group::feature::Feature, feature_group::FeatureGroup, query::Query, query::QueryFilter,
+    query::QueryFilterOrLogic, query::QueryLogic,
+};
 
 pub fn create_flight_query(
     query: Query,
@@ -18,8 +23,7 @@ pub fn create_flight_query(
         query.left_feature_group().name()
     );
     let mut feature_names: HashMap<String, Vec<String>> = HashMap::new();
-    let mut connectors: HashMap<String, FeatureGroupConnectorArrowFlightPayload> =
-        HashMap::new();
+    let mut connectors: HashMap<String, FeatureGroupConnectorArrowFlightPayload> = HashMap::new();
     for feature_group in query.feature_groups() {
         let fg_name = serialize_feature_group_name(feature_group);
         feature_names.insert(
@@ -30,11 +34,8 @@ pub fn create_flight_query(
                 .map(|feature| feature.name().to_string())
                 .collect(),
         );
-        let fg_connector = serialize_feature_group_connector(
-            feature_group,
-            &query,
-            on_demand_fg_aliases.clone(),
-        )?;
+        let fg_connector =
+            serialize_feature_group_connector(feature_group, &query, on_demand_fg_aliases.clone())?;
         connectors.insert(fg_name, fg_connector);
     }
     let filters = match query.filters() {

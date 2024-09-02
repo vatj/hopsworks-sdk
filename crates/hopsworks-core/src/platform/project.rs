@@ -7,9 +7,9 @@
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
+use crate::cluster_api::platform::project::ProjectDTO;
 use crate::controller::feature_store;
 use crate::feature_store::FeatureStore;
-use crate::cluster_api::platform::project::ProjectDTO;
 
 use super::job::Job;
 

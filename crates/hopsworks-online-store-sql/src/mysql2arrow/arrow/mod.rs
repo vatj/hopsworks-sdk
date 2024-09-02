@@ -2,7 +2,7 @@
 //!
 //! This implementation is taken from the [connector-x](https://github.com/sfu-db/connector-x) crate.
 //! The crate itself is added to the Cargo.toml to allow using the core capabilities, but feature flags
-//! for src_mysql and dst_arrow are omitted due to the mysql and arrow dependencies being outdated. 
+//! for src_mysql and dst_arrow are omitted due to the mysql and arrow dependencies being outdated.
 //! The original crate and the source code below are under MIT Licence.
 
 mod arrow_assoc;
@@ -12,13 +12,13 @@ pub mod typesystem;
 
 pub use self::errors::{ArrowDestinationError, Result};
 pub use self::typesystem::ArrowTypeSystem;
-use connectorx::prelude::{Consume, Destination, DestinationPartition};
 use crate::mysql2arrow::constants::RECORD_BATCH_SIZE;
-use connectorx::data_order::DataOrder;
-use connectorx::typesystem::{Realize, TypeAssoc, TypeSystem};
 use anyhow::anyhow;
 use arrow::{datatypes::Schema, record_batch::RecordBatch};
 use arrow_assoc::ArrowAssoc;
+use connectorx::data_order::DataOrder;
+use connectorx::prelude::{Consume, Destination, DestinationPartition};
+use connectorx::typesystem::{Realize, TypeAssoc, TypeSystem};
 use fehler::{throw, throws};
 use funcs::{FFinishBuilder, FNewBuilder, FNewField};
 use itertools::Itertools;

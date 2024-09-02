@@ -1,4 +1,5 @@
 //! [`FeatureStore`] client to write, read and manage Feature data.
+pub mod embedding;
 pub mod feature_group;
 pub mod feature_view;
 pub mod query;
@@ -12,15 +13,30 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::controller::feature_store::{
-        feature_group::get_feature_group_by_name_and_version,
-        feature_view::{create_feature_view, get_feature_view_by_name_and_version},
-        training_dataset::get_training_dataset_by_name_and_version,
-        transformation_function::get_transformation_function_by_name_and_version,
-    };
+    feature_group::get_feature_group_by_name_and_version,
+    feature_view::{create_feature_view, get_feature_view_by_name_and_version},
+    training_dataset::get_training_dataset_by_name_and_version,
+    transformation_function::get_transformation_function_by_name_and_version,
+};
 
-use feature_view::{training_dataset::TrainingDataset, transformation_function::TransformationFunction};
-use query::Query;
 use crate::cluster_api::feature_store::FeatureStoreDTO;
+use feature_view::{
+    training_dataset::TrainingDataset, transformation_function::TransformationFunction,
+};
+use query::Query;
+
+pub type FeatureGroupBuilder = self::feature_group::FeatureGroupBuilder<(
+    (i32,),
+    (std::string::String,),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+)>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FeatureStore {
@@ -147,6 +163,10 @@ impl FeatureStore {
     }
 
     pub fn feature_store_id(&self) -> i32 {
+        self.featurestore_id
+    }
+
+    pub fn id(&self) -> i32 {
         self.featurestore_id
     }
 }
@@ -304,6 +324,7 @@ impl FeatureStore {
     ///   Ok(())
     /// }
     /// ```
+    #[tracing::instrument(skip(self))]
     pub fn create_feature_group(
         &self,
         name: &str,
@@ -313,15 +334,22 @@ impl FeatureStore {
         event_time: Option<&str>,
         online_enabled: bool,
     ) -> Result<FeatureGroup> {
-        Ok(FeatureGroup::new_local(
-            self,
-            name,
-            version,
-            description,
-            primary_key,
-            event_time,
-            online_enabled,
-        ))
+        let builder = FeatureGroup::builder()
+            .featurestore_id(self.featurestore_id)
+            .featurestore_name(self.featurestore_name.clone())
+            .name(String::from(name))
+            .version(version)
+            .primary_key(primary_key.iter().map(|s| String::from(*s)).collect())
+            .online_enabled(online_enabled)
+            .event_time(event_time.map(String::from));
+
+        Ok(builder.build())
+    }
+
+    pub fn feature_group_builder(&self) -> FeatureGroupBuilder {
+        FeatureGroup::builder()
+            .featurestore_id(self.featurestore_id)
+            .featurestore_name(self.featurestore_name.clone())
     }
 
     /// Create a [`FeatureView`] with the given name and version. The [`FeatureView`] is the main interface to read data from the Feature Store,

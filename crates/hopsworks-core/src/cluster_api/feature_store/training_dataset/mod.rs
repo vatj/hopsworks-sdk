@@ -2,8 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::cluster_api::{
     feature_store::{
-        feature_view::TagsDTO, query::QueryDTO,
-        statistics_config::StatisticsConfigDTO,
+        feature_view::TagsDTO, query::QueryDTO, statistics_config::StatisticsConfigDTO,
     },
     platform::users::UserDTO,
 };
@@ -47,8 +46,6 @@ pub enum TrainingDatasetType {
     #[serde(rename = "IN_MEMORY_TRAINING_DATASET")]
     InMemory,
 }
-
-
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

@@ -10,15 +10,22 @@ repository = { workspace = true }
 color-eyre = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true, features = ["full", "tracing"]}
-polars = { workspace = true}
 futures = { version = "0.3"}
+polars = { workspace = true, features = [
+    "default",
+    "simd",
+    "performant",
+    "lazy",
+    "strings",
+    "dtype-full",
+    "rows",
+    "timezones",
+] }
 
 
 hopsworks-core = { workspace = true }
 
-polars-arrow = {version = "*", features = ["io_avro"]}
+polars-arrow = {version = "0.41", features = ["io_avro"]}
 rayon = { version = "*" }
 
 rdkafka = { version = "0.36.2", features = ["tokio", "libz", "ssl"] }
-# apache-avro = { version = "0.16", features = ["derive"] }
-indicatif = { version = "0.17" }

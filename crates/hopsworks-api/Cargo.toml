@@ -13,7 +13,7 @@ tokio = { workspace = true }
 hopsworks-core ={ workspace = true }
 serde = { workspace = true }
 
-polars = { workspace = true , optional = true}
+polars = { workspace = true , features = ["dtype-full"], optional = true}
 arrow = { workspace = true , optional = true}
 reqwest = { workspace = true, optional = true }
 indexmap = { workspace = true, optional = true}
@@ -22,6 +22,7 @@ hopsworks-kafka ={ workspace = true, optional = true}
 hopsworks-offline-store = { workspace = true, optional = true}
 hopsworks-online-store-sql = { workspace = true, optional = true}
 hopsworks-online-store-rest = { workspace = true, optional = true}
+hopsworks-opensearch = { workspace = true, optional = true}
 
 
 [features]
@@ -30,5 +31,6 @@ arrow = ["dep:arrow"]
 read_arrow_flight_offline_store = ["hopsworks-offline-store", "polars", "arrow"]
 read_rest_online_store = ["hopsworks-online-store-rest", "reqwest", "indexmap"]
 read_sql_online_store = ["hopsworks-online-store-sql"]
-insert_into_kafka = ["hopsworks-kafka"]
+insert_into_kafka = ["hopsworks-kafka", "polars", "arrow"]
 blocking = []
+opensearch = ["hopsworks-opensearch"]

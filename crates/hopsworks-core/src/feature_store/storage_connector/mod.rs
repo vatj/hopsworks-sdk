@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::cluster_api::feature_store::storage_connector::{FeatureStoreKafkaConnectorDTO, FeatureStoreJdbcConnectorDTO};
+use crate::cluster_api::feature_store::storage_connector::{
+    FeatureStoreJdbcConnectorDTO, FeatureStoreKafkaConnectorDTO,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FeatureStoreKafkaConnector {
@@ -97,4 +99,3 @@ impl From<FeatureStoreJdbcConnectorDTO> for FeatureStoreOnlineConnector {
 }
 
 pub struct FeatureStoreJdbcConnector {}
-

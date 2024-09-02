@@ -88,25 +88,28 @@
 //! ```
 use color_eyre::Result;
 
-pub use hopsworks_core::platform::{
-    project::Project,
-    job::Job,
-    job_execution::JobExecution,
-};
 pub use hopsworks_core::feature_store::{
-    FeatureStore, FeatureGroup, FeatureView, feature_view::training_dataset::TrainingDataset, query::Query,
+    embedding::EmbeddingFeature, embedding::EmbeddingIndex,
+    feature_view::training_dataset::TrainingDataset, query::Query, FeatureGroup, FeatureStore,
+    FeatureView,
 };
+pub use hopsworks_core::platform::{job::Job, job_execution::JobExecution, project::Project};
 
+#[cfg(feature = "insert_into_kafka")]
+pub mod kafka;
 #[cfg(feature = "read_arrow_flight_offline_store")]
 pub mod offline_store;
 #[cfg(feature = "read_sql_online_store")]
 pub mod online_store;
-#[cfg(feature = "insert_into_kafka")]
-pub mod kafka;
+
+#[cfg(feature = "opensearch")]
+pub mod opensearch;
 
 #[cfg(feature = "blocking")]
 pub mod blocking;
 
+#[cfg(feature = "polars")]
+pub mod polars;
 
 pub use hopsworks_core::HopsworksClientBuilder;
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -152,12 +155,18 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// # Panics
 /// If no API key is provided via the `HOPSWORKS_API_KEY` environment variable or via the `api_key` field in the client builder.
-pub async fn login(client_builder: Option<HopsworksClientBuilder>, multithreaded: bool) -> Result<Project> {
+pub async fn login(
+    client_builder: Option<HopsworksClientBuilder>,
+    multithreaded: bool,
+) -> Result<Project> {
     hopsworks_core::login(client_builder, multithreaded).await
 }
 
 #[cfg(feature = "blocking")]
-pub fn login_blocking(client_builder: Option<HopsworksClientBuilder>, multithreaded: bool) -> Result<Project> {
+pub fn login_blocking(
+    client_builder: Option<HopsworksClientBuilder>,
+    multithreaded: bool,
+) -> Result<Project> {
     let rt = hopsworks_core::get_hopsworks_runtime(multithreaded);
     let _guard = rt.enter();
 

@@ -1,12 +1,11 @@
 use color_eyre::Result;
 
-use hopsworks_core::feature_store::query::Query;
 use hopsworks_core::controller::feature_store::query::construct_query;
+use hopsworks_core::feature_store::query::Query;
 
 use crate::arrow_flight::utils;
 use crate::cluster_api::payloads::QueryArrowFlightPayload;
 use crate::read::read_options::ArrowFlightReadOptions;
-
 
 pub async fn build_flight_query(
     query_object: Query,
@@ -36,9 +35,5 @@ pub async fn build_flight_query(
         .collect();
 
     // Use arrow flight client methods to convert query to arrow flight payload
-    utils::create_flight_query(
-        query_object.clone(),
-        query_str,
-        on_demand_fg_aliases,
-    )
+    utils::create_flight_query(query_object.clone(), query_str, on_demand_fg_aliases)
 }

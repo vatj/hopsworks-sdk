@@ -1,14 +1,14 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use super::{TrainingDatasetDataFormat, TrainingDatasetSplitSizes, TrainingDatasetType};
 use crate::cluster_api::feature_store::{
-        feature::TrainingDatasetFeatureDTO,
-        feature_view::{KeywordDTO, TagsDTO},
-        query::{FeatureStoreQueryDTO, QueryDTO},
-        statistics_config::StatisticsConfigDTO,
-        storage_connector::StorageConnectorDTO,
-    };
-use super::{TrainingDatasetDataFormat, TrainingDatasetType, TrainingDatasetSplitSizes};
+    feature::TrainingDatasetFeatureDTO,
+    feature_view::{KeywordDTO, TagsDTO},
+    query::{FeatureStoreQueryDTO, QueryDTO},
+    statistics_config::StatisticsConfigDTO,
+    storage_connector::StorageConnectorDTO,
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
