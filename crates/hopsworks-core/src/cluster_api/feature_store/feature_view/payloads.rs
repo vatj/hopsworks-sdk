@@ -62,7 +62,7 @@ pub struct FeatureViewBatchQueryPayload {
     pub with_label: bool,
     pub with_primary_keys: bool,
     pub with_event_time: bool,
-    pub training_helper_columns: Vec<String>,
-    pub inference_helper_columns: Vec<String>,
+    pub training_helper_columns: bool,
+    pub inference_helper_columns: bool,
     pub is_hive_engine: bool,
 }
