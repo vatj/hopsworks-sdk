@@ -65,10 +65,10 @@ trans_df = pl.read_csv(
 print(trans_df.head(5))
 
 # Use the polars schema to register Feature Group metadata, in particular feature names and types
-trans_fg.save(trans_df)
+trans_fg.save_using_polars_dataframe_schema(trans_df)
 
 # insert data into the feature store
-trans_fg.insert(trans_df.head(10))
+job_execution = trans_fg.insert(trans_df.head(10))
 
 # Read arrow/polars data from the online store via sql
 online_rb = trans_fg.read_from_online_store(return_type="pyarrow")
