@@ -80,7 +80,7 @@ impl PyFeatureGroup {
         Ok(())
     }
 
-    #[tracing::instrument(skip(self), fields(fg_name = self.fg.name(), fg_version=self.fg.version(), schema))]
+    #[tracing::instrument(skip(self, df), fields(fg_name = self.fg.name(), fg_version=self.fg.version(), schema))]
     fn register_feature_group_from_polars(&mut self, df: PyDataFrame) -> PyResult<()> {
         let schema = df.0.schema();
         let (feature_names, feature_types) =

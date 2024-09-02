@@ -12,7 +12,7 @@ pub fn extract_features_from_polars_schema(schema: Schema) -> Result<(Vec<String
 }
 
 pub fn convert_polars_data_type(data_type: &DataType) -> &str {
-    // polars to arrow data type
+    // polars to hopsworks data type
     match data_type {
         DataType::Boolean => "boolean",
         DataType::Int8 => "int",
@@ -31,6 +31,10 @@ pub fn convert_polars_data_type(data_type: &DataType) -> &str {
         DataType::Date => "date",
         DataType::String => "string",
         DataType::Categorical(None, _) => "string",
+        DataType::Array(_, _) => "binary",
+        DataType::List(_) => "binary",
+        DataType::Struct(_) => "binary",
+        DataType::Binary => "binary",
         _ => panic!("DataType {:?} not supported.", data_type),
     }
 }
