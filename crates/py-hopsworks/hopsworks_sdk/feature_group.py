@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, List, Literal, Union
 
-from hopsworks_sdk.hopsworks_rs import PyFeatureGroup
 from hopsworks_sdk import job_execution, query
+from hopsworks_sdk.hopsworks_rs import PyFeatureGroup
+
 
 if TYPE_CHECKING:
     import polars as pl
@@ -23,8 +25,8 @@ class FeatureGroup:
         fg_obj._fg = fg
         return fg_obj
 
-    def save(self, dataframe: pl.DataFrame) -> None:
-        self._fg.register_feature_group(dataframe)
+    def save_using_polars_dataframe_schema(self, dataframe: pl.DataFrame) -> None:
+        self._fg.register_feature_group_from_polars(dataframe)
 
     def read_from_offline_store(
         self, return_type: Literal["polars", "pyarrow"] = "polars"

@@ -59,17 +59,18 @@ impl PyFeatureGroup {
         Ok(PyQuery::from(query))
     }
 
-    fn register_feature_group(&mut self, df: PyDataFrame) -> PyResult<()> {
+    #[tracing::instrument(skip(self), fields(fg_name = self.fg.name(), fg_version=self.fg.version()))]
+    fn register_feature_group(
+        &mut self,
+        feature_names: Vec<String>,
+        feature_dtypes: Vec<String>,
+    ) -> PyResult<()> {
         let multithreaded = *crate::MULTITHREADED.get().unwrap();
-        let schema = df.0.schema();
-        let (feature_names, feature_types) =
-            hopsworks_api::polars::extract_features_from_polars_schema(schema)?;
-
         let registered_fg =
             hopsworks_api::blocking::feature_group::register_feature_group_if_needed_blocking(
                 &self.fg,
                 &feature_names,
-                &feature_types,
+                &feature_dtypes,
                 multithreaded,
             )?;
         if let Some(fg) = registered_fg {
@@ -77,6 +78,14 @@ impl PyFeatureGroup {
             debug!("Registered Feature Group: {:?}", self.fg);
         }
         Ok(())
+    }
+
+    #[tracing::instrument(skip(self), fields(fg_name = self.fg.name(), fg_version=self.fg.version(), schema))]
+    fn register_feature_group_from_polars(&mut self, df: PyDataFrame) -> PyResult<()> {
+        let schema = df.0.schema();
+        let (feature_names, feature_types) =
+            hopsworks_api::polars::extract_features_from_polars_schema(schema)?;
+        self.register_feature_group(feature_names, feature_types)
     }
 
     fn delete(&self) -> PyResult<()> {

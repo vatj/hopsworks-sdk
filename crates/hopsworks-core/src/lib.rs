@@ -88,7 +88,10 @@
 //! ```
 
 use color_eyre::Result;
-use std::sync::{Arc, OnceLock};
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc, OnceLock,
+};
 use tokio::sync::OnceCell;
 use tracing::debug;
 
@@ -143,11 +146,16 @@ pub fn get_threaded_runtime() -> &'static Arc<tokio::runtime::Runtime> {
     } else {
         let num_worker_threads = get_threaded_runtime_num_worker_threads();
         let runtime = std::thread::Builder::new()
-            .name("hopsworks_runtime".to_string())
+            .name("start_hopsworks_runtime".to_string())
             .spawn(move || {
                 tokio::runtime::Builder::new_multi_thread()
                     .worker_threads(num_worker_threads)
                     .enable_all()
+                    .thread_name_fn(|| {
+                        static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
+                        let id = ATOMIC_ID.fetch_add(1, Ordering::SeqCst);
+                        format!("hopsworks-runtime-worker-{}", id)
+                    })
                     .build()
                     .unwrap()
             })
