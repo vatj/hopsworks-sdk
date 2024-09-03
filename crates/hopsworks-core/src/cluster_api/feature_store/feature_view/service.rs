@@ -198,29 +198,3 @@ pub async fn delete_feature_view_by_name_and_version(
         )),
     }
 }
-
-pub async fn delete_feature_view_by_name(
-    feature_store_id: i32,
-    feature_view_name: &str,
-) -> Result<()> {
-    let response = get_hopsworks_client()
-        .await
-        .request(
-            Method::DELETE,
-            format!("featurestores/{feature_store_id}/featureview/{feature_view_name}").as_str(),
-            true,
-            true,
-        )
-        .await?
-        .send()
-        .await?;
-
-    match response.status() {
-        StatusCode::OK => Ok(()),
-        _ => Err(color_eyre::eyre::eyre!(
-            "delete_feature_view_by_name failed with status : {:?}, here is the response :\n{:?}",
-            response.status(),
-            response.text_with_charset("utf-8").await?
-        )),
-    }
-}

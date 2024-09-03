@@ -62,33 +62,6 @@ pub async fn get_latest_feature_group_by_name(
     }
 }
 
-pub async fn get_feature_group_by_id(
-    feature_store_id: i32,
-    feature_group_id: i32,
-) -> Result<Option<FeatureGroupDTO>> {
-    let resp = get_hopsworks_client()
-        .await
-        .request(
-            Method::GET,
-            format!("featurestores/{feature_store_id}/featuregroups/{feature_group_id}").as_str(),
-            true,
-            true,
-        )
-        .await?
-        .send()
-        .await?;
-
-    match resp.status() {
-        StatusCode::NOT_FOUND => Ok(None),
-        StatusCode::OK => Ok(resp.json::<Vec<FeatureGroupDTO>>().await?.pop()),
-        _ => Err(color_eyre::eyre::eyre!(
-            "get_feature_group_by_id failed with status : {:?}, here is the response :\n{:?}",
-            resp.status(),
-            resp.text_with_charset("utf-8").await?
-        )),
-    }
-}
-
 pub async fn create_feature_group(
     feature_store_id: i32,
     new_feature_group_payload: &NewFeatureGroupPayload,

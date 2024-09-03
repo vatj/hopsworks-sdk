@@ -93,6 +93,7 @@ pub use hopsworks_core::feature_store::{
     embedding::EmbeddingIndex,
     feature_view::training_dataset::TrainingDataset,
     query::{builder::BatchQueryOptions, Query},
+    storage_connector::StorageConnector,
     FeatureGroup, FeatureStore, FeatureView,
 };
 pub use hopsworks_core::platform::{job::Job, job_execution::JobExecution, project::Project};

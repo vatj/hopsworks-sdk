@@ -6,6 +6,7 @@ pub mod embedding_index;
 pub mod feature_group;
 pub mod feature_view;
 pub mod query;
+pub mod storage_connector;
 
 #[pyclass]
 #[repr(transparent)]

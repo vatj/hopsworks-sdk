@@ -2,8 +2,8 @@ use color_eyre::Result;
 use reqwest::{Method, StatusCode};
 
 use super::{
-    {ProjectAndUserDTO, SingleProjectDTO},
     payloads::NewProjectPayload,
+    {ProjectAndUserDTO, SingleProjectDTO},
 };
 use crate::get_hopsworks_client;
 
@@ -45,23 +45,5 @@ pub async fn create_project(
             response.status(),
             response.text_with_charset("utf-8").await?
         ))
-    }
-}
-
-pub async fn get_client_project() -> Result<SingleProjectDTO> {
-    let resp = get_hopsworks_client()
-        .await
-        .request(Method::GET, "", true, true)
-        .await?
-        .send()
-        .await?;
-
-    match resp.status() {
-        StatusCode::OK => Ok(resp.json::<SingleProjectDTO>().await?),
-        _ => Err(color_eyre::eyre::eyre!(
-            "get_client_project failed with status : {:?}, here is the response :\n{:?}",
-            resp.status(),
-            resp.text_with_charset("utf-8").await?
-        )),
     }
 }
