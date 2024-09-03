@@ -67,7 +67,7 @@ pub fn init_hopsworks_opensearch_client_blocking(
 }
 
 #[cfg(feature = "blocking")]
-pub fn get_feature_vector_blocking(
+pub fn get_feature_vectors_blocking(
     embedding_index: &str,
     n_entries: u32,
     entries: Vec<serde_json::Value>,

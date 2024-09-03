@@ -8,6 +8,8 @@ use pyo3::{
 #[cfg(feature = "read_arrow_flight_offline_store")]
 use pyo3_polars::PyDataFrame;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "opensearch")]
+use serde_json::json;
 
 #[pyclass]
 #[repr(transparent)]
@@ -102,6 +104,28 @@ impl PyFeatureView {
         )?;
 
         Ok(PyDataFrame(df))
+    }
+
+    #[cfg(feature = "opensearch")]
+    fn get_feature_vector_from_vectordb(&self, n_entries: u32, entries: &str) -> PyResult<()> {
+        let json_entries = json!(entries);
+        let ei = self
+            .fv
+            .query()
+            .feature_groups()
+            .first()
+            .unwrap()
+            .embedding_index()
+            .unwrap();
+        let index_name = ei.metadata.index_name.as_ref();
+        let multithreaded = *crate::MULTITHREADED.get().unwrap();
+        hopsworks_api::opensearch::get_feature_vectors_blocking(
+            index_name,
+            n_entries,
+            vec![json_entries],
+            multithreaded,
+        )?;
+        Ok(())
     }
 }
 
