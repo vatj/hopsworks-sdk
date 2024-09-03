@@ -1,6 +1,5 @@
 use color_eyre::Result;
 
-use hopsworks_core::controller::feature_store::query;
 use serde_json::json;
 
 #[tracing::instrument]

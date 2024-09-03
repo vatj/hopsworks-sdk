@@ -3,7 +3,7 @@ use opensearch::SearchParts;
 
 use crate::get_hopsworks_opensearch_client;
 
-async fn find_neighbors(
+pub async fn find_neighbors(
     embedding_index: &str,
     knn_query: serde_json::Value,
 ) -> Result<Vec<serde_json::Value>> {
@@ -24,7 +24,7 @@ async fn find_neighbors(
     }
 }
 
-async fn get_feature_vectors(
+pub async fn get_feature_vectors(
     embedding_index: &str,
     get_feature_vectors_query: serde_json::Value,
 ) -> Result<serde_json::Value> {

@@ -28,6 +28,9 @@ class FeatureGroup:
     def save_using_polars_dataframe_schema(self, dataframe: pl.DataFrame) -> None:
         self._fg.register_feature_group_from_polars(dataframe)
 
+    def find_neighbors_in_vectordb(self, k: int) -> None:
+        self._fv.find_neighbors(k=k)
+
     def read_from_offline_store(
         self, return_type: Literal["polars", "pyarrow"] = "polars"
     ) -> Union[pl.DataFrame, pa.RecordBatch]:

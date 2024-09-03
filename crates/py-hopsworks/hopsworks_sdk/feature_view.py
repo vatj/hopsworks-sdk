@@ -36,6 +36,9 @@ class FeatureView:
     ) -> None:
         self._fv.init_online_store_rest_client(api_key=api_key, api_version=api_version)
 
+    def get_feature_vector_from_vectordb(self, entry: Dict[str, Any]) -> None:
+        self._fv.get_feature_vector_from_vectordb(entry=entry)
+
     def get_feature_vector(
         self, entry: Dict[str, Any], use_rest: bool = True
     ) -> Dict[str, Any]:
@@ -192,7 +195,6 @@ class FeatureView:
         extra_filter: Optional[Union[filter.Filter, filter.Logic]] = None,
         statistics_config: Optional[Union[StatisticsConfig, bool, dict]] = None,
         read_options: Optional[Dict[Any, Any]] = None,
-        spine: Optional[SplineDataFrameTypes] = None,
         primary_key: bool = False,
         event_time: bool = False,
         training_helper_columns: bool = False,
