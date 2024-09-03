@@ -4,7 +4,7 @@ use tracing::debug;
 use crate::{
     cluster_api::feature_store::{
         statistics_config::StatisticsConfigDTO,
-        training_dataset::TrainingDatasetType,
+        training_dataset::{payloads::TrainingDatasetSplitPayload, TrainingDatasetType},
     },
     controller::feature_store::query::construct_query,
     feature_store::{
@@ -158,15 +158,33 @@ pub fn build_training_dataset_payload(
     metadata: &TrainingDatasetMetadata,
     size_split: &SizeSplit,
 ) -> NewTrainingDatasetPayloadV2 {
-    let training_dataset_type: TrainingDatasetType;
-    if metadata.storage_connector.is_some() {
-        training_dataset_type = match metadata.location {
+    let training_dataset_type = if metadata.storage_connector.is_some() {
+        match metadata.location {
             Some(_) => TrainingDatasetType::HopsFS,
             None => TrainingDatasetType::External,
-        };
+        }
     } else {
-        training_dataset_type = TrainingDatasetType::InMemory;
-    let splits = 
+        TrainingDatasetType::InMemory
+    };
+
+    let mut splits = Vec::with_capacity(3);
+    splits.push(TrainingDatasetSplitPayload::new_with_size(
+        "train".to_string(),
+        size_split.train,
+    ));
+    if size_split.validation.is_some() {
+        splits.push(TrainingDatasetSplitPayload::new_with_size(
+            "validation".to_string(),
+            size_split.validation.unwrap(),
+        ));
+    }
+    if size_split.test.is_some() {
+        splits.push(TrainingDatasetSplitPayload::new_with_size(
+            "test".to_string(),
+            size_split.test.unwrap(),
+        ));
+    }
+
     NewTrainingDatasetPayloadV2 {
         dto_type: "trainingDatasetDTO".to_string(),
         featurestore_id: metadata.feature_store_id,
@@ -176,7 +194,7 @@ pub fn build_training_dataset_payload(
         event_end_time: None,
         coalesce: metadata.coalesce,
         seed: metadata.seed,
-        data_format: metadata.data_format,
+        data_format: metadata.data_format.clone(),
         description: metadata.description.clone(),
         location: metadata.location.clone(),
         training_dataset_type,
@@ -184,7 +202,7 @@ pub fn build_training_dataset_payload(
             .statistics_config
             .as_ref()
             .map(StatisticsConfigDTO::from),
-        storage_connector: metadata.storage_connector,
+        storage_connector: metadata.storage_connector.clone(),
         train_split: Some("train".to_string()),
         splits,
     }

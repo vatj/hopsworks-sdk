@@ -3,9 +3,7 @@ use typed_builder::TypedBuilder;
 
 use crate::{
     cluster_api::feature_store::{
-        statistics_config::StatisticsConfigDTO,
-        storage_connector::StorageConnectorDTO,
-        training_dataset::{payloads::NewTrainingDatasetPayloadV2, TrainingDatasetDataFormat},
+        storage_connector::StorageConnectorDTO, training_dataset::TrainingDatasetDataFormat,
     },
     feature_store::feature_group::statistics_config::StatisticsConfig,
 };
@@ -29,8 +27,8 @@ pub struct TrainingDatasetMetadata {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SizeSplit {
     pub train: f64,
-    pub test: f64,
-    pub validation: f64,
+    pub test: Option<f64>,
+    pub validation: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, TypedBuilder)]

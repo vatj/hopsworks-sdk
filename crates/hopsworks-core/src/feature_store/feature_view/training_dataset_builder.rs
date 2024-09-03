@@ -1,13 +1,13 @@
 use chrono::{DateTime, Utc};
-use color_eyre::Result;
+use color_eyre::{eyre::Ok, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::cluster_api::feature_store::{
     statistics_config::StatisticsConfigDTO,
     storage_connector::StorageConnectorDTO,
     training_dataset::{
-        payloads::NewTrainingDatasetPayloadV2, TrainingDatasetDataFormat,
-        TrainingDatasetSplitSizes, TrainingDatasetType,
+        payloads::{NewTrainingDatasetPayloadV2, TrainingDatasetSplitPayload},
+        TrainingDatasetDataFormat, TrainingDatasetSplitSizes, TrainingDatasetType,
     },
 };
 use crate::feature_store::{
@@ -255,7 +255,7 @@ where
         self
     }
 
-    pub(crate) fn get_split_sizes(&self) -> TrainingDatasetSplitSizes {
+    pub(crate) fn get_split_sizes(&self) -> Vec<TrainingDatasetSplitPayload> {
         let test_split_size = self
             .test_split_options
             .as_ref()
@@ -268,7 +268,24 @@ where
             .unwrap_or(0.0);
         let train_split_size = 1.0 - test_split_size - validation_split_size;
 
-        TrainingDatasetSplitSizes::new(train_split_size, test_split_size, validation_split_size)
+        let mut splits = Vec::with_capacity(3);
+        splits.push(TrainingDatasetSplitPayload::new_with_size(
+            "train".to_string(),
+            train_split_size,
+        ));
+        if validation_split_size > 0.0 {
+            splits.push(TrainingDatasetSplitPayload::new_with_size(
+                "validation".to_string(),
+                validation_split_size,
+            ));
+        }
+        if test_split_size > 0.0 {
+            splits.push(TrainingDatasetSplitPayload::new_with_size(
+                "test".to_string(),
+                test_split_size,
+            ));
+        }
+        splits
     }
 
     pub async fn register(&self) -> Result<TrainingDataset> {
@@ -290,9 +307,9 @@ where
     {
         let (train_split, split_sizes) =
             if builder.validation_split_options.is_some() || builder.test_split_options.is_some() {
-                (Some("train".into()), Some(builder.get_split_sizes()))
+                (Some("train".into()), builder.get_split_sizes())
             } else {
-                (None, None)
+                (None, vec![])
             };
 
         Self {

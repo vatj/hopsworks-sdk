@@ -45,7 +45,7 @@ impl TrainingDatasetSplitPayload {
     pub fn new_with_size(name: String, percentage: f64) -> Self {
         Self {
             name,
-            split_type: "SIZE".to_owned(),
+            split_type: "RANDOM_SPLIT".to_owned(),
             percentage: Some(percentage),
             start_time: None,
             end_time: None,
@@ -61,8 +61,8 @@ impl TrainingDatasetSplitPayload {
             name,
             split_type: "TIME_SERIES_SPLIT".to_owned(),
             percentage: None,
-            start_time: Some(start_time),
-            end_time: Some(end_time),
+            start_time,
+            end_time,
         }
     }
 }
