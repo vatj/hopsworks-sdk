@@ -7,6 +7,7 @@
 
 pub mod training_dataset;
 pub mod training_dataset_builder;
+pub mod training_dataset_typed_builder;
 pub mod transformation_function;
 
 use color_eyre::Result;

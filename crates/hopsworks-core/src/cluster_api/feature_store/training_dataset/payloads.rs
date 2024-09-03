@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use super::{TrainingDatasetDataFormat, TrainingDatasetSplitSizes, TrainingDatasetType};
+use super::{TrainingDatasetDataFormat, TrainingDatasetType};
 use crate::cluster_api::feature_store::{
     feature::TrainingDatasetFeatureDTO,
     feature_view::{KeywordDTO, TagsDTO},
@@ -21,14 +21,50 @@ pub struct NewTrainingDatasetPayloadV2 {
     pub description: Option<String>,
     pub version: Option<i32>,
     pub name: String,
-    pub training_dataset_type: Option<TrainingDatasetType>,
+    pub training_dataset_type: TrainingDatasetType,
     pub data_format: Option<TrainingDatasetDataFormat>,
     pub coalesce: bool,
     pub statistics_config: Option<StatisticsConfigDTO>,
     pub train_split: Option<String>,
     pub location: Option<String>,
-    pub splits: Option<TrainingDatasetSplitSizes>,
+    pub splits: Vec<TrainingDatasetSplitPayload>,
     pub storage_connector: Option<StorageConnectorDTO>,
+    pub seed: Option<i64>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TrainingDatasetSplitPayload {
+    pub name: String,
+    pub split_type: String,
+    pub percentage: Option<f64>,
+    pub start_time: Option<i64>,
+    pub end_time: Option<i64>,
+}
+
+impl TrainingDatasetSplitPayload {
+    pub fn new_with_size(name: String, percentage: f64) -> Self {
+        Self {
+            name,
+            split_type: "SIZE".to_owned(),
+            percentage: Some(percentage),
+            start_time: None,
+            end_time: None,
+        }
+    }
+
+    pub fn new_with_event_time(
+        name: String,
+        start_time: Option<i64>,
+        end_time: Option<i64>,
+    ) -> Self {
+        Self {
+            name,
+            split_type: "TIME_SERIES_SPLIT".to_owned(),
+            percentage: None,
+            start_time: Some(start_time),
+            end_time: Some(end_time),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

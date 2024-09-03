@@ -2,13 +2,19 @@ use color_eyre::Result;
 use tracing::debug;
 
 use crate::{
-    controller::feature_store::query::construct_query,
-    feature_store::feature_view::training_dataset_builder::{
-        TrainingDatasetBuilder, TrainingDatasetBuilderState,
+    cluster_api::feature_store::{
+        statistics_config::StatisticsConfigDTO,
+        training_dataset::TrainingDatasetType,
     },
-    {
-        feature_store::feature_view::{training_dataset::TrainingDataset, FeatureView},
-        feature_store::query::Query,
+    controller::feature_store::query::construct_query,
+    feature_store::{
+        feature_view::{
+            training_dataset::TrainingDataset,
+            training_dataset_builder::{TrainingDatasetBuilder, TrainingDatasetBuilderState},
+            training_dataset_typed_builder::{SizeSplit, TrainingDatasetMetadata},
+            FeatureView,
+        },
+        query::Query,
     },
 };
 
@@ -145,5 +151,41 @@ pub async fn get_training_dataset_by_name_and_version(
             training_dataset_dto.version,
         ))),
         None => Ok(None),
+    }
+}
+
+pub fn build_training_dataset_payload(
+    metadata: &TrainingDatasetMetadata,
+    size_split: &SizeSplit,
+) -> NewTrainingDatasetPayloadV2 {
+    let training_dataset_type: TrainingDatasetType;
+    if metadata.storage_connector.is_some() {
+        training_dataset_type = match metadata.location {
+            Some(_) => TrainingDatasetType::HopsFS,
+            None => TrainingDatasetType::External,
+        };
+    } else {
+        training_dataset_type = TrainingDatasetType::InMemory;
+    let splits = 
+    NewTrainingDatasetPayloadV2 {
+        dto_type: "trainingDatasetDTO".to_string(),
+        featurestore_id: metadata.feature_store_id,
+        name: metadata.feature_view_name.clone(),
+        version: None,
+        event_start_time: None,
+        event_end_time: None,
+        coalesce: metadata.coalesce,
+        seed: metadata.seed,
+        data_format: metadata.data_format,
+        description: metadata.description.clone(),
+        location: metadata.location.clone(),
+        training_dataset_type,
+        statistics_config: metadata
+            .statistics_config
+            .as_ref()
+            .map(StatisticsConfigDTO::from),
+        storage_connector: metadata.storage_connector,
+        train_split: Some("train".to_string()),
+        splits,
     }
 }

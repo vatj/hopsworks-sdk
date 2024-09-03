@@ -6,7 +6,8 @@ use crate::cluster_api::feature_store::{
     statistics_config::StatisticsConfigDTO,
     storage_connector::StorageConnectorDTO,
     training_dataset::{
-        payloads::NewTrainingDatasetPayloadV2, TrainingDatasetDataFormat, TrainingDatasetSplitSizes,
+        payloads::NewTrainingDatasetPayloadV2, TrainingDatasetDataFormat,
+        TrainingDatasetSplitSizes, TrainingDatasetType,
     },
 };
 use crate::feature_store::{
@@ -298,7 +299,7 @@ where
             dto_type: "trainingDatasetDTO".into(),
             name: builder.feature_view_name.clone(),
             version: None,
-            training_dataset_type: None,
+            training_dataset_type: TrainingDatasetType::InMemory,
             data_format: builder.data_format.clone(),
             coalesce: builder.coalesce,
             featurestore_id: builder.feature_store_id,
@@ -313,6 +314,7 @@ where
                 .statistics_config
                 .as_ref()
                 .map(StatisticsConfigDTO::from),
+            seed: None,
         }
     }
 }
