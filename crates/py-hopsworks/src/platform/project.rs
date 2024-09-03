@@ -40,6 +40,7 @@ impl PyProject {
         Ok(PyFeatureStore::from(fs))
     }
 
+    #[cfg(feature = "opensearch")]
     fn init_hopsworks_opensearch_client(&self) -> PyResult<()> {
         hopsworks_api::opensearch::init_hopsworks_opensearch_client_blocking(
             self.id(),

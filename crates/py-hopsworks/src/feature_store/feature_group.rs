@@ -179,4 +179,24 @@ impl PyFeatureGroup {
         debug!("Inserting into Kafka via rust took: {:?}", before.elapsed());
         Ok(PyJobExecution::from(job_execution?))
     }
+
+    #[cfg(feature = "opensearch")]
+    fn find_neighbors(&self, num_neighbors: u32) -> PyResult<()> {
+        let ei = self
+            .fg
+            .embedding_index()
+            .expect("Feature Group does not contain embedding feature.");
+
+        hopsworks_api::opensearch::find_neighbors_blocking(
+            &ei.metadata.index_name,
+            num_neighbors,
+            &ei.embedding_feature_names()[0],
+            "",
+            vec![],
+            vec![],
+            *crate::MULTITHREADED.get().unwrap(),
+        )?;
+
+        Ok(())
+    }
 }

@@ -47,4 +47,8 @@ impl PyEmbeddingIndex {
             .get_embedding_feature(name)
             .map(|f| f.clone().into())
     }
+
+    fn get_embedding_feature_names(&self) -> Vec<String> {
+        self.ei.embedding_feature_names()
+    }
 }
