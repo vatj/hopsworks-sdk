@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
 
 from hopsworks_sdk.hopsworks_rs import PyFeatureView
 
 
 if TYPE_CHECKING:
     import polars as pl
+
+    TrainingDatasetDataFrameTypes = pl.DataFrame
+    StatisticsConfig = Dict[str, Any]
+
+    from hopsworks_sdk import job, storage_connector
 
 
 class FeatureView:
@@ -60,6 +65,148 @@ class FeatureView:
             inference_helper_columns=inference_helper_columns,
             transformed=transformed,
         )
+
+    def create_training_data(
+        self,
+        start_time: Optional[Union[str, int, datetime, date]] = "",
+        end_time: Optional[Union[str, int, datetime, date]] = "",
+        storage_connector: Optional[storage_connector.StorageConnector] = None,
+        location: Optional[str] = "",
+        description: Optional[str] = "",
+        extra_filter: Optional[Union[filter.Filter, filter.Logic]] = None,
+        data_format: Optional[str] = "parquet",
+        coalesce: Optional[bool] = False,
+        seed: Optional[int] = None,
+        statistics_config: Optional[Union[StatisticsConfig, bool, dict]] = None,
+        write_options: Optional[Dict[Any, Any]] = None,
+        primary_key: bool = False,
+        event_time: bool = False,
+        training_helper_columns: bool = False,
+        **kwargs,
+    ) -> Tuple[int, job.Job]:
+        raise NotImplementedError("Not implemented yet")
+
+    def create_train_test_split(
+        self,
+        test_size: Optional[float] = None,
+        train_start: Optional[Union[str, int, datetime, date]] = "",
+        train_end: Optional[Union[str, int, datetime, date]] = "",
+        test_start: Optional[Union[str, int, datetime, date]] = "",
+        test_end: Optional[Union[str, int, datetime, date]] = "",
+        storage_connector: Optional[storage_connector.StorageConnector] = None,
+        location: Optional[str] = "",
+        description: Optional[str] = "",
+        extra_filter: Optional[Union[filter.Filter, filter.Logic]] = None,
+        data_format: Optional[str] = "parquet",
+        coalesce: Optional[bool] = False,
+        seed: Optional[int] = None,
+        statistics_config: Optional[Union[StatisticsConfig, bool, dict]] = None,
+        write_options: Optional[Dict[Any, Any]] = None,
+        primary_key: bool = False,
+        event_time: bool = False,
+        training_helper_columns: bool = False,
+        **kwargs,
+    ) -> Tuple[int, job.Job]:
+        raise NotImplementedError("Not implemented yet")
+
+    def create_train_validation_test_split(
+        self,
+        validation_size: Optional[float] = None,
+        test_size: Optional[float] = None,
+        train_start: Optional[Union[str, int, datetime, date]] = "",
+        train_end: Optional[Union[str, int, datetime, date]] = "",
+        validation_start: Optional[Union[str, int, datetime, date]] = "",
+        validation_end: Optional[Union[str, int, datetime, date]] = "",
+        test_start: Optional[Union[str, int, datetime, date]] = "",
+        test_end: Optional[Union[str, int, datetime, date]] = "",
+        storage_connector: Optional[storage_connector.StorageConnector] = None,
+        location: Optional[str] = "",
+        description: Optional[str] = "",
+        extra_filter: Optional[Union[filter.Filter, filter.Logic]] = None,
+        data_format: Optional[str] = "parquet",
+        coalesce: Optional[bool] = False,
+        seed: Optional[int] = None,
+        statistics_config: Optional[Union[StatisticsConfig, bool, dict]] = None,
+        write_options: Optional[Dict[Any, Any]] = None,
+        primary_key: bool = False,
+        event_time: bool = False,
+        training_helper_columns: bool = False,
+        **kwargs,
+    ) -> Tuple[int, job.Job]:
+        raise NotImplementedError("Not implemented yet")
+
+    def training_data(
+        self,
+        start_time: Optional[Union[str, int, datetime, date]] = None,
+        end_time: Optional[Union[str, int, datetime, date]] = None,
+        description: Optional[str] = "",
+        extra_filter: Optional[Union[filter.Filter, filter.Logic]] = None,
+        statistics_config: Optional[Union[StatisticsConfig, bool, dict]] = None,
+        read_options: Optional[Dict[Any, Any]] = None,
+        primary_key: bool = False,
+        event_time: bool = False,
+        training_helper_columns: bool = False,
+        dataframe_type: Optional[str] = "default",
+        **kwargs,
+    ) -> Tuple[
+        TrainingDatasetDataFrameTypes,
+        Optional[TrainingDatasetDataFrameTypes],  # optional label DataFrame
+    ]:
+        raise NotImplementedError("Not implemented yet")
+
+    def train_test_split(
+        self,
+        test_size: Optional[float] = None,
+        train_start: Optional[Union[str, int, datetime, date]] = "",
+        train_end: Optional[Union[str, int, datetime, date]] = "",
+        test_start: Optional[Union[str, int, datetime, date]] = "",
+        test_end: Optional[Union[str, int, datetime, date]] = "",
+        description: Optional[str] = "",
+        extra_filter: Optional[Union[filter.Filter, filter.Logic]] = None,
+        statistics_config: Optional[Union[StatisticsConfig, bool, dict]] = None,
+        read_options: Optional[Dict[Any, Any]] = None,
+        primary_key: bool = False,
+        event_time: bool = False,
+        training_helper_columns: bool = False,
+        dataframe_type: Optional[str] = "default",
+        **kwargs,
+    ) -> Tuple[
+        TrainingDatasetDataFrameTypes,
+        TrainingDatasetDataFrameTypes,
+        Optional[TrainingDatasetDataFrameTypes],
+        Optional[TrainingDatasetDataFrameTypes],
+    ]:
+        raise NotImplementedError("Not implemented yet")
+
+    def train_validation_test_split(
+        self,
+        validation_size: Optional[float] = None,
+        test_size: Optional[float] = None,
+        train_start: Optional[Union[str, int, datetime, date]] = "",
+        train_end: Optional[Union[str, int, datetime, date]] = "",
+        validation_start: Optional[Union[str, int, datetime, date]] = "",
+        validation_end: Optional[Union[str, int, datetime, date]] = "",
+        test_start: Optional[Union[str, int, datetime, date]] = "",
+        test_end: Optional[Union[str, int, datetime, date]] = "",
+        description: Optional[str] = "",
+        extra_filter: Optional[Union[filter.Filter, filter.Logic]] = None,
+        statistics_config: Optional[Union[StatisticsConfig, bool, dict]] = None,
+        read_options: Optional[Dict[Any, Any]] = None,
+        spine: Optional[SplineDataFrameTypes] = None,
+        primary_key: bool = False,
+        event_time: bool = False,
+        training_helper_columns: bool = False,
+        dataframe_type: Optional[str] = "default",
+        **kwargs,
+    ) -> Tuple[
+        TrainingDatasetDataFrameTypes,
+        TrainingDatasetDataFrameTypes,
+        TrainingDatasetDataFrameTypes,
+        Optional[TrainingDatasetDataFrameTypes],
+        Optional[TrainingDatasetDataFrameTypes],
+        Optional[TrainingDatasetDataFrameTypes],
+    ]:
+        raise NotImplementedError("Not implemented yet")
 
     def delete(self) -> None:
         self._fv.delete()
