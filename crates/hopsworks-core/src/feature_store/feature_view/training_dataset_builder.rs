@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use color_eyre::{eyre::Ok, Result};
+use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::cluster_api::feature_store::{
@@ -7,14 +7,14 @@ use crate::cluster_api::feature_store::{
     storage_connector::StorageConnectorDTO,
     training_dataset::{
         payloads::{NewTrainingDatasetPayloadV2, TrainingDatasetSplitPayload},
-        TrainingDatasetDataFormat, TrainingDatasetSplitSizes, TrainingDatasetType,
+        TrainingDatasetType,
     },
 };
 use crate::feature_store::{
     feature_group::statistics_config::StatisticsConfig, query::QueryFilterOrLogic,
 };
 
-use super::training_dataset::TrainingDataset;
+use super::training_dataset::{TrainingDataset, TrainingDatasetDataFormat};
 
 mod seal {
     pub trait Sealed {}

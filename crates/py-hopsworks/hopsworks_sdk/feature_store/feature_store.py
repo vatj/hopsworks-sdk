@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import List, Optional, Union
 
-from hopsworks_sdk import embedding_index as ei_mod
-from hopsworks_sdk import feature_group, feature_view, query
+from hopsworks_sdk.feature_store import embedding_index as ei_mod
+from hopsworks_sdk.feature_store import feature_group, feature_view, query
 from hopsworks_sdk.hopsworks_rs import PyFeatureStore
 
 

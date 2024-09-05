@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Literal, Union
 
-from hopsworks_sdk import job_execution, query
+from hopsworks_sdk.feature_store import query
 from hopsworks_sdk.hopsworks_rs import PyFeatureGroup
+from hopsworks_sdk.platform import job_execution
 
 
 if TYPE_CHECKING:

@@ -1,8 +1,7 @@
-from hopsworks_sdk import hopsworks_rs
 from typing import Optional
 
-
-from hopsworks_sdk import project
+from hopsworks_sdk import hopsworks_rs
+from hopsworks_sdk.platform import project
 
 
 def login(

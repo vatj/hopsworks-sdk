@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
 
+from hopsworks_sdk.feature_store import storage_connector
 from hopsworks_sdk.hopsworks_rs import PyFeatureView
 
 
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
     TrainingDatasetDataFrameTypes = pl.DataFrame
     StatisticsConfig = Dict[str, Any]
 
-    from hopsworks_sdk import job, storage_connector
+    from hopsworks_sdk import job
 
 
 class FeatureView:

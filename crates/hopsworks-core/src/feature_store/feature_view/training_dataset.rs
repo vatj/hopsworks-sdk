@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::cluster_api::feature_store::training_dataset::TrainingDatasetDTO;
 
+pub use crate::cluster_api::feature_store::training_dataset::TrainingDatasetDataFormat;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TrainingDataset {
     feature_store_name: String,

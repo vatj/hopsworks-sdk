@@ -1,5 +1,6 @@
 #[cfg(feature = "read_rest_online_store")]
 use hopsworks_api::online_store::rest_read::{EntryValuesPayload, PassedValuesPayload};
+use hopsworks_api::TrainingDatasetDataFormat;
 use indexmap::IndexMap;
 use pyo3::{
     prelude::*,
@@ -104,6 +105,45 @@ impl PyFeatureView {
         )?;
 
         Ok(PyDataFrame(df))
+    }
+
+    fn create_training_dataset(
+        &self,
+        coalesce: bool,
+        description: Option<String>,
+        seed: Option<i64>,
+        location: Option<String>,
+        data_format: Option<String>,
+    ) -> PyResult<()> {
+        let data_format = match data_format {
+            Some(data_format) => match data_format.as_str() {
+                "AVRO" => Some(TrainingDatasetDataFormat::Avro),
+                "CSV" => Some(TrainingDatasetDataFormat::Csv),
+                "PARQUET" => Some(TrainingDatasetDataFormat::Parquet),
+                "ORC" => Some(TrainingDatasetDataFormat::Orc),
+                "TFRECORD" => Some(TrainingDatasetDataFormat::TFRecord),
+                "TSV" => Some(TrainingDatasetDataFormat::Tsv),
+                _ => {
+                    return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                        "Invalid data format",
+                    ))
+                }
+            },
+            None => None,
+        };
+        let _metadata = hopsworks_api::TrainingDatasetMetadata::builder()
+            .feature_store_id(self.fv.feature_store_id())
+            .feature_view_name(self.fv.name().to_string())
+            .feature_view_version(self.fv.version())
+            .description(description)
+            .coalesce(coalesce)
+            .seed(seed)
+            .data_format(data_format)
+            .location(location)
+            .statistics_config(None)
+            .build();
+
+        Ok(())
     }
 
     #[cfg(feature = "opensearch")]

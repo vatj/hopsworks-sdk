@@ -91,10 +91,14 @@ use color_eyre::Result;
 pub use hopsworks_core::feature_store::{
     embedding::EmbeddingFeature,
     embedding::EmbeddingIndex,
-    feature_view::training_dataset::TrainingDataset,
+    feature_view::{
+        training_dataset::{TrainingDataset, TrainingDatasetDataFormat},
+        training_dataset_typed_builder::TrainingDatasetMetadata,
+        FeatureView,
+    },
     query::{builder::BatchQueryOptions, Query},
     storage_connector::StorageConnector,
-    FeatureGroup, FeatureStore, FeatureView,
+    FeatureGroup, FeatureStore,
 };
 pub use hopsworks_core::platform::{job::Job, job_execution::JobExecution, project::Project};
 

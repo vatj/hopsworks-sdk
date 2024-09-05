@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-from hopsworks_sdk.embedding_feature import EmbeddingFeature
+from hopsworks_sdk.feature_store.embedding_feature import EmbeddingFeature
 from hopsworks_sdk.hopsworks_rs import PyEmbeddingIndex
 
 
