@@ -3,13 +3,13 @@ use polars::prelude::*;
 use std::sync::Arc;
 
 use hopsworks_core::controller::feature_store::storage_connector;
-use hopsworks_core::platform::job_execution::JobExecution;
 use hopsworks_core::controller::platform::job_execution;
 use hopsworks_core::controller::platform::kafka::get_kafka_topic_subject;
 use hopsworks_core::get_hopsworks_client;
+use hopsworks_core::platform::job_execution::JobExecution;
 
-use crate::kafka_configuration::setup_kafka_configuration;
 use crate::helper::{get_kafka_offsets, make_custom_headers};
+use crate::kafka_configuration::setup_kafka_configuration;
 use crate::produce_polars_df::produce_df;
 
 #[tracing::instrument(
@@ -25,17 +25,25 @@ pub async fn insert_in_registered_feature_group(
     primary_keys: &[&str],
     cert_dir: &str,
 ) -> Result<JobExecution> {
+    let external = match std::env::var("HOPSWORKS_EXTERNAL_KAFKA") {
+        Ok(val) => val.parse::<bool>().unwrap_or(false),
+        Err(_) => false,
+    };
     let kafka_connector =
-        storage_connector::get_feature_store_kafka_connector(feature_store_id, true).await?;
+        storage_connector::get_feature_store_kafka_connector(feature_store_id, external).await?;
     let kafka_config = setup_kafka_configuration(kafka_connector, cert_dir)?;
 
-    let subject = get_kafka_topic_subject(format!("{}_{}", feature_group_name, feature_group_version).as_str(), None).await?;
+    let subject = get_kafka_topic_subject(
+        format!("{}_{}", feature_group_name, feature_group_version).as_str(),
+        None,
+    )
+    .await?;
     let project_id = get_hopsworks_client()
-            .await
-            .get_project_id()
-            .lock()
-            .await
-            .expect("Project ID not set, login to Hopsworks to set it");
+        .await
+        .get_project_id()
+        .lock()
+        .await
+        .expect("Project ID not set, login to Hopsworks to set it");
 
     // These value are wrapped into an Arc to allow read-only access across threads
     // meaning clone only increases the ref count, no extra-memory is allocated
@@ -65,6 +73,7 @@ pub async fn insert_in_registered_feature_group(
     let job_args = format!(" -initialCheckpointString {topic_name}{kafka_offsets}");
 
     Ok(JobExecution::from(
-        job_execution::start_new_execution_for_named_job(job_name.as_str(), Some(&job_args)).await?,
+        job_execution::start_new_execution_for_named_job(job_name.as_str(), Some(&job_args))
+            .await?,
     ))
 }

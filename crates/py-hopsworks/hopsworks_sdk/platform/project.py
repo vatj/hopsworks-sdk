@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from hopsworks_sdk.feature_store import FeatureStore
+from hopsworks_sdk.feature_store.feature_store import FeatureStore
 from hopsworks_sdk.hopsworks_rs import PyProject
 
 

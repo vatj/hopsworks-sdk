@@ -30,7 +30,7 @@ impl OnlineStoreRestClient {
     }
 
     fn build_full_url(&self, url: &str) -> Result<String> {
-        let full_url = format!("https://{}:5005/{}/{}", &self.url, &self.api_version, url);
+        let full_url = format!("https://{}:4406/{}/{}", &self.url, &self.api_version, url);
         debug!("RonDB Client Endpoint URL: {}", full_url);
         Ok(full_url)
     }

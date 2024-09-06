@@ -1,10 +1,7 @@
 use color_eyre::Result;
-use reqwest::{Method, StatusCode};
+use reqwest::Method;
 
-use super::{
-    payloads::NewProjectPayload,
-    {ProjectAndUserDTO, SingleProjectDTO},
-};
+use super::{payloads::NewProjectPayload, ProjectAndUserDTO};
 use crate::get_hopsworks_client;
 
 pub async fn get_project_and_user_list() -> Result<Vec<ProjectAndUserDTO>> {

@@ -115,6 +115,7 @@ pub(crate) fn register_module(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     parent.add_class::<query::PyQuery>()?;
     parent.add_class::<embedding_index::PyEmbeddingIndex>()?;
     parent.add_class::<embedding_feature::PyEmbeddingFeature>()?;
+    parent.add_class::<storage_connector::PyStorageConnector>()?;
 
     Ok(())
 }
