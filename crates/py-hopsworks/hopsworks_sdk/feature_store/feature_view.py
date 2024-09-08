@@ -77,18 +77,24 @@ class FeatureView:
         storage_connector: Optional[storage_connector.StorageConnector] = None,
         location: Optional[str] = "",
         description: Optional[str] = "",
-        extra_filter: Optional[Union[filter.Filter, filter.Logic]] = None,
+        _extra_filter: Optional[Union[filter.Filter, filter.Logic]] = None,
         data_format: Optional[str] = "parquet",
         coalesce: Optional[bool] = False,
         seed: Optional[int] = None,
-        statistics_config: Optional[Union[StatisticsConfig, bool, dict]] = None,
+        _statistics_config: Optional[Union[StatisticsConfig, bool, dict]] = None,
         write_options: Optional[Dict[Any, Any]] = None,
         primary_key: bool = False,
         event_time: bool = False,
         training_helper_columns: bool = False,
         **kwargs,
     ) -> Tuple[int, job.Job]:
-        raise NotImplementedError("Not implemented yet")
+        self._fv.create_training_data(
+            location=location,
+            description=description,
+            data_format=data_format,
+            coalesce=coalesce,
+            seed=seed,
+        )
 
     def create_train_test_split(
         self,

@@ -7,6 +7,7 @@ pub mod feature_group;
 pub mod feature_view;
 pub mod query;
 pub mod storage_connector;
+pub mod training_dataset;
 
 #[pyclass]
 #[repr(transparent)]
@@ -116,6 +117,7 @@ pub(crate) fn register_module(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     parent.add_class::<embedding_index::PyEmbeddingIndex>()?;
     parent.add_class::<embedding_feature::PyEmbeddingFeature>()?;
     parent.add_class::<storage_connector::PyStorageConnector>()?;
+    parent.add_class::<training_dataset::PyTrainingDataset>()?;
 
     Ok(())
 }

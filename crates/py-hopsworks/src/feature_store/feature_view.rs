@@ -146,6 +146,10 @@ impl PyFeatureView {
         Ok(())
     }
 
+    fn create_train_test_split(&self) -> PyResult<()> {
+        Ok(())
+    }
+
     #[cfg(feature = "opensearch")]
     fn get_feature_vector_from_vectordb(&self, n_entries: u32, entries: &str) -> PyResult<()> {
         let json_entries = json!(entries);
